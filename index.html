@@ -115,9 +115,9 @@ p{max-width:68ch}
   backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--border-soft)}
 .masthead__inner{display:flex;align-items:center;gap:1.25rem;height:66px}
 .brandmark{display:flex;align-items:center;gap:.7rem;flex:none}
-.brandmark img{height:30px;width:auto;filter:var(--logo-filter)}
+.brandmark img{height:50px;width:auto;filter:var(--logo-filter)}
 .brandmark__div{width:1px;height:22px;background:var(--border)}
-.brandmark__word{font-size:var(--t-sm);font-weight:600;color:var(--text-2);letter-spacing:-.01em}
+.brandmark__word{font-size:2rem;font-weight:600;color:var(--text-2);letter-spacing:-.01em}
 .masthead__nav{margin-left:auto;display:flex;align-items:center;gap:.35rem}
 .masthead__link{padding:.4rem .7rem;border-radius:var(--r-sm);font-size:var(--t-sm);
   color:var(--text-2);cursor:pointer;background:none;border:0;transition:color 140ms,background 140ms}
@@ -438,7 +438,7 @@ p{max-width:68ch}
       <div class="board-stage reveal" style="--d:140ms">
         <svg class="coggy" viewBox="0 0 760 565" role="img" aria-label="Labelled isometric model of the CognoSpace Coggy board">
         <text class="iso-title" x="380" y="34" text-anchor="middle">CognoSpace Coggy</text>
-        <text class="iso-sub" x="380" y="54" text-anchor="middle">ESP32-WROOM-32 · 6 motor ports · 6 sensor ports</text>
+        <text class="iso-sub" x="380" y="54" text-anchor="middle">Built-in . BLE </text>
         <g transform="translate(422.2,125.8)">
         <polygon class="c-board f-a" points="-396.2,219.6 -84.5,399.5 -84.5,408.7 -396.2,228.7"/><polygon class="c-board f-b" points="311.7,170.8 -84.5,399.5 -84.5,408.7 311.7,179.9"/><polygon class="c-board f-t" points="0.0,-9.1 311.7,170.8 -84.5,399.5 -396.2,219.6"/>
         <g transform="matrix(2.6414,1.5250,-2.6414,1.5250,0,0)"><text class="silk silk--big" x="11" y="137">COGGY</text><text class="silk" x="46" y="139">www.cognospace.in</text><path class="trace-base" d="M10,136 H58 V147 H106"/><path class="trace-live" d="M10,136 H58 V147 H106"/></g>
@@ -677,7 +677,7 @@ p{max-width:68ch}
   "grades": [
     {
       "grade": 3,
-      "title": "Getting Started with Circuits",
+      "title": "Mechatronics",
       "activities": [
         {
           "code": "CS-G03-A01",
@@ -774,7 +774,7 @@ p{max-width:68ch}
     },
     {
       "grade": 4,
-      "title": "Measuring & Sensing",
+      "title": "Mechatronics",
       "activities": [
         {
           "code": "CS-G04-A01",
@@ -872,7 +872,7 @@ p{max-width:68ch}
     },
     {
       "grade": 5,
-      "title": "Automation Basics",
+      "title": "Mechatronics",
       "activities": [
         {
           "code": "CS-G05-A01",
@@ -970,7 +970,7 @@ p{max-width:68ch}
     },
     {
       "grade": 6,
-      "title": "Smart Spaces",
+      "title": "Mechatronics",
       "activities": [
         {
           "code": "CS-G06-A01",
@@ -1069,7 +1069,7 @@ p{max-width:68ch}
     },
     {
       "grade": 7,
-      "title": "Systems in the Real World",
+      "title": "Mechatronics",
       "activities": [
         {
           "code": "CS-G07-A01",
@@ -1169,7 +1169,7 @@ p{max-width:68ch}
     },
     {
       "grade": 8,
-      "title": "Robotics & IoT",
+      "title": "Robotics & IoT/Automation",
       "activities": [
         {
           "code": "CS-G08-A01",
@@ -1359,7 +1359,7 @@ p{max-width:68ch}
     },
     {
       "grade": 9,
-      "title": "Advanced Robotics & IoT",
+      "title": "Advanced Robotics & IoT/Automation",
       "activities": [
         {
           "code": "CS-G09-A01",
@@ -1543,6 +1543,30 @@ p{max-width:68ch}
           "parts": [
             {
               "file": "/firmware/grade-09/CS-G09-A10/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 10,
+      "title": "Sensor Testing",
+      "activities": [
+        {
+          "code": "CS-G10-A01",
+          "name": "Sensor Testing",
+          "category": "Sensor Testing",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Read a connected sensor and display its current value for testing.",
+          "components": [
+            "Sensor",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-10/CS-G10-A01/firmware.bin",
               "offset": "0x0"
             }
           ]
