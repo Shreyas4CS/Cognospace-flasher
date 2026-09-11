@@ -6,7 +6,9 @@
 <title>Coggy Flasher — classroom firmware, straight from the browser</title>
 <meta name="description" content="Flash your Coggy for every CognoSpace activity, straight from the browser. Organised by class, with a unique code for every activity.">
 <meta name="theme-color" content="#F5821E">
-<link rel="icon" href="assets/cognospace-logo.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/coggy-icon.png">
+<link rel="apple-touch-icon" href="assets/coggy-icon-180.png">
 
 <script>
 /* paint the right theme before first paint */
@@ -294,27 +296,48 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   color:color-mix(in srgb,var(--gc) 80%,var(--text))}
 [data-theme="dark"] .card .code{color:color-mix(in srgb,var(--gc) 62%,#fff)}
 
-/* ---------- doodles around the board ---------- */
-.dd{fill:none;stroke:var(--brand);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.34}
-.dd--ring{stroke-dasharray:5 9;opacity:.26}
-.dd--dot{fill:var(--brand);stroke:none;opacity:.4}
-.dd--chip{stroke:var(--text-3);opacity:.3}
-.dd--arc{stroke-dasharray:4 8;opacity:.3}
-.js-loaded .dd{animation:ddFloat 6s var(--ease) infinite}
-.js-loaded .dd--b{animation-duration:7.5s;animation-delay:-2s}
-.js-loaded .dd--c{animation-duration:5s;animation-delay:-3.4s}
-.js-loaded .dd--ring{animation:ddSpin 26s linear infinite;transform-origin:96px 150px}
-@keyframes ddFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-@keyframes ddSpin{to{transform:rotate(360deg)}}
+/* ---------- schematic doodles around the board ---------- */
+.dd{fill:none;stroke:var(--brand);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.6;transition:opacity 400ms var(--ease),stroke-width 400ms var(--ease)}
+[data-theme="dark"] .dd{opacity:.68}
+.dd--fill{fill:var(--brand);stroke:none;opacity:.75}
+.js-loaded .f1{animation:ddFloat 6s var(--ease) infinite}
+.js-loaded .f2{animation:ddFloat 7.6s var(--ease) infinite;animation-delay:-2.1s}
+.js-loaded .f3{animation:ddFloat 5.2s var(--ease) infinite;animation-delay:-3.4s}
+@keyframes ddFloat{0%,100%{transform:translateY(0) rotate(0)}
+  50%{transform:translateY(-8px) rotate(2.5deg)}}
+.board-stage:hover .dd{opacity:1;stroke-width:3}
 
 .coggy-shadow{fill:#0B0D10;opacity:.1;transition:opacity 400ms var(--ease),transform 400ms var(--ease)}
 [data-theme="dark"] .coggy-shadow{fill:#000;opacity:.42}
 .coggy-lift{transition:transform 500ms var(--ease)}
-.board-stage:hover .coggy-lift{transform:translateY(-10px)}
-.board-stage:hover .coggy-shadow{opacity:.06;transform:scale(.96)}
+.board-stage:hover .coggy-lift{transform:translateY(-12px)}
+.board-stage:hover .coggy-shadow{opacity:.06;transform:scale(.95)}
 [data-theme="dark"] .board-stage:hover .coggy-shadow{opacity:.3}
-.board-stage:hover .dd{opacity:.6}
-.dd{transition:opacity 400ms var(--ease)}
+
+/* ---------- the board talks ---------- */
+.board-stage{position:relative}
+.coggy-says{
+  position:absolute;left:50%;top:11.5%;transform:translateX(-50%);
+  z-index:2;width:max-content;max-width:min(84%,380px);
+  padding:.62rem 1rem;border-radius:14px;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:var(--shadow-1);
+  transition:transform 500ms var(--ease),box-shadow 400ms var(--ease)}
+.coggy-says::after{content:'';position:absolute;left:50%;bottom:-7px;
+  width:12px;height:12px;margin-left:-6px;transform:rotate(45deg);
+  background:var(--surface);border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);border-bottom-right-radius:3px}
+.coggy-says__t{margin:0;font-size:var(--t-sm);color:var(--text);
+  text-align:center;white-space:nowrap;line-height:1.4;min-height:1.4em}
+.caret{display:inline-block;width:2px;height:1em;margin-left:2px;
+  vertical-align:-2px;background:var(--brand);animation:caretBlink 1s steps(1,end) infinite}
+@keyframes caretBlink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.board-stage:hover .coggy-says{transform:translateX(-50%) translateY(-6px);box-shadow:var(--shadow-2)}
+@media (max-width:520px){
+  .coggy-says{max-width:88%}
+  .coggy-says__t{white-space:normal;font-size:var(--t-xs)}
+}
 
 /* ---------- footer ---------- */
 .foot{border-top:1px solid var(--border-soft);margin-top:5rem;padding-block:3rem 1.5rem;
@@ -524,23 +547,35 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
       <!-- the hero is the thing students actually touch: current running into a board -->
       <div class="board-stage reveal" style="--d:140ms">
+        <div class="coggy-says" aria-live="polite">
+          <p class="coggy-says__t"><span id="coggyLine"></span><span class="caret"></span></p>
+        </div>
         <svg class="coggy" viewBox="0 0 760 565" role="img" aria-label="Labelled isometric model of the CognoSpace Coggy board">
         <text class="iso-title" x="380" y="34" text-anchor="middle">CognoSpace Coggy</text>
         <text class="iso-sub" x="380" y="54" text-anchor="middle">Built-in . BLE </text>
         <g class="doodles" aria-hidden="true">
-          <circle class="dd dd--ring" cx="96" cy="150" r="26"/>
-          <path class="dd dd--arc" d="M628 118a44 44 0 0 1 44 44"/>
-          <path class="dd dd--spark" d="M678 208v26M665 221h26"/>
-          <path class="dd dd--spark dd--b" d="M60 408v18M51 417h18"/>
-          <path class="dd dd--wave" d="M32 222q14-16 28 0t28 0"/>
-          <path class="dd dd--wave dd--b" d="M634 472q14-16 28 0t28 0"/>
-          <circle class="dd dd--dot" cx="708" cy="164" r="4.5"/>
-          <circle class="dd dd--dot dd--b" cx="704" cy="508" r="3.5"/>
-          <circle class="dd dd--dot dd--c" cx="150" cy="98" r="3"/>
-          <path class="dd dd--zig" d="M688 424h22l-10 16h20"/>
-          <path class="dd dd--plus" d="M100 468v20M90 478h20"/>
-          <path class="dd dd--chip" d="M38 486h34v26H38zM44 486v-8M54 486v-8M64 486v-8M44 512v8M54 512v8M64 512v8"/>
-        </g>
+  <g transform="translate(24,104)"><g class="dd-sym f1" transform="scale(1.05)"><path class="dd" d="M0 0h10l4-8 8 16 8-16 8 16 4-8h10"/></g></g>
+  <g transform="translate(152,84)"><g class="dd-sym f2"><path class="dd" d="M0 0h14M14-11v22M26-11v22M26 0h14"/></g></g>
+  <g transform="translate(34,182)"><g class="dd-sym f3"><path class="dd" d="M0 0h10M10-9l18 9-18 9zM28-9v18M28 0h10M16-14l9-9M19-23h6v6M25-14l9-9M28-23h6v6"/></g></g>
+  <g transform="translate(182,146)"><g class="dd-sym f2"><path class="dd" d="M0-12v12M-14 0h28M-9 7h18M-4 14h8"/></g></g>
+  <g transform="translate(118,208)"><g class="dd-sym f1"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+  <g transform="translate(22,262)"><g class="dd-sym f3"><path class="dd" d="M0 0h6a6 6 0 0 1 12 0a6 6 0 0 1 12 0a6 6 0 0 1 12 0a6 6 0 0 1 12 0h6"/></g></g>
+  <g transform="translate(104,268)"><g class="dd-sym f1" transform="scale(0.9)"><circle class="dd" cx="16" cy="0" r="15"/><path class="dd" d="M0 0h7M7-10v20M7-4l14-9M7 4l14 9M21-13h9M21 13h9M15 7l7 3-2-7"/></g></g>
+  <g transform="translate(30,462)"><g class="dd-sym f2"><path class="dd" d="M0 0h38v30H0zM8 0v-8M19 0v-8M30 0v-8M8 30v8M19 30v8M30 30v8M0 8h-8M0 22h-8M38 8h8M38 22h8"/></g></g>
+  <g transform="translate(30,540)"><g class="dd-sym f1"><path class="dd" d="M0 0h10M10-13v26M18-7v14M18 0h4M22-13v26M30-7v14M30 0h10"/></g></g>
+  <g transform="translate(146,486)"><g class="dd-sym f3"><path class="dd" d="M0 0h8M8-7v14M30-7v14M30 0h8M5-13h28M19-13v-9"/></g></g>
+  <g transform="translate(150,546)"><g class="dd-sym f2" transform="scale(0.9)"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+  <g transform="translate(664,92)"><g class="dd-sym f1"><path class="dd" d="M0 22a30 30 0 0 1 44 0M8 30a19 19 0 0 1 28 0M16 38a9 9 0 0 1 12 0"/><circle class="dd dd--fill" cx="22" cy="46" r="3.5"/></g></g>
+  <g transform="translate(578,86)"><g class="dd-sym f2"><path class="dd" d="M0 0h10M10-9l18 9-18 9zM28-9v18M28 0h10"/></g></g>
+  <g transform="translate(686,176)"><g class="dd-sym f3"><path class="dd" d="M0 0h8M8-13v26M14-10h12v20H14zM32-13v26M32 0h8"/></g></g>
+  <g transform="translate(582,178)"><g class="dd-sym f1"><path class="dd" d="M0 0h10l4-8 8 16 8-16 8 16 4-8h10M26-24v13M21-14l5 5 5-5"/></g></g>
+  <g transform="translate(698,264)"><g class="dd-sym f2" transform="scale(0.9)"><circle class="dd" cx="16" cy="0" r="15"/><path class="dd" d="M9 5l4-10 3 10 4-10 3 10M-6 0h7M31 0h7"/></g></g>
+  <g transform="translate(642,214)"><g class="dd-sym f3" transform="scale(0.9)"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+  <g transform="translate(596,462)"><g class="dd-sym f1"><path class="dd" d="M0-9h8l11-11v40L8 9H0zM26-9a13 13 0 0 1 0 18M33-15a21 21 0 0 1 0 30"/></g></g>
+  <g transform="translate(686,420)"><g class="dd-sym f3"><path class="dd" d="M0 0h8M8-13l21 13-21 13zM35 0h8"/></g></g>
+  <g transform="translate(596,534)"><g class="dd-sym f2"><path class="dd" d="M0 0h9M13-3l17-11M34 0h9"/></g></g>
+  <g transform="translate(692,508)"><g class="dd-sym f1"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+</g>
         <ellipse class="coggy-shadow" cx="380" cy="512" rx="252" ry="26"/>
         
         <g class="coggy-lift"><g transform="translate(422.2,125.8)">
@@ -2435,6 +2470,51 @@ window.addEventListener('hashchange', route);
 
   route();
 })();
+
+/* ---------- Coggy says ---------- */
+(function () {
+  const el = document.getElementById('coggyLine');
+  if (!el) return;
+  const LINES = [
+    "Hi, I'm Coggy.",
+    "Designed and developed by CognoSpace.",
+    "There's an ESP32-WROOM-32 under my shield.",
+    "Six motor ports. Six sensor ports.",
+    "Plug me in, pick a code, press flash.",
+    "No IDE. No drivers. Just a browser.",
+    "I speak I2C, PWM and plain old GPIO.",
+    "Built in Hyderabad, for Indian classrooms.",
+    "One board, Class 3 all the way to Class 9.",
+    "Give me thirty seconds and I'm someone new.",
+    "Line follower today, weather station tomorrow.",
+    "Wi-Fi and Bluetooth, both already on board.",
+    "Break me, fix me, learn something.",
+    "45 activities are waiting on the shelf.",
+    "Ready when you are.",
+  ];
+
+  // a teacher who prefers less motion still gets to read them
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let i = 0;
+    el.textContent = LINES[0];
+    setInterval(() => { i = (i + 1) % LINES.length; el.textContent = LINES[i]; }, 5000);
+    return;
+  }
+
+  let i = 0, c = 0, erasing = false;
+  (function tick() {
+    const line = LINES[i];
+    el.textContent = line.slice(0, c);
+    let wait = erasing ? 24 : 52 + Math.random() * 46;
+
+    if (!erasing && c === line.length) { erasing = true; wait = 2100; }
+    else if (erasing && c === 0) { erasing = false; i = (i + 1) % LINES.length; wait = 380; }
+    else { c += erasing ? -1 : 1; }
+
+    setTimeout(tick, wait);
+  })();
+})();
+
 </script>
 </body>
 </html>
