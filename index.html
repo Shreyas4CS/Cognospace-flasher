@@ -597,7 +597,15 @@ p{max-width:68ch}
         <div class="panel__head"><h2>Board</h2></div>
         <div class="panel__body">
           <label class="rail__title" for="boardSelect" style="padding-left:0;display:block">Target board</label>
-          <select class="select" id="boardSelect" style="width:100%;margin-bottom:.9rem"></select>
+          <select class="select" id="boardSelect" style="width:100%;margin-bottom:.7rem"></select>
+
+          <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
+          <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
+            <option value="460800">460800 — default</option>
+            <option value="921600">921600 — fastest</option>
+            <option value="230400">230400 — safer</option>
+            <option value="115200">115200 — slowest, most reliable</option>
+          </select>
 
           <div class="readout">
             <div class="readout__row"><span class="readout__k">Chip</span><span class="readout__v" id="roChip">Not connected</span></div>
@@ -609,7 +617,7 @@ p{max-width:68ch}
 
           <button class="btn btn--block btn--ghost" id="connectBtn" type="button" style="margin-top:1rem">Connect a Coggy</button>
           <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.6rem">
-            CH340 and CP2102 adapters look identical to the browser, so pick the board you are holding before you connect.
+            CH340 and CP2102 adapters look identical to the browser, so pick the board you are holding before you connect. If a flash breaks up partway, lower the transfer speed.
           </p>
         </div>
       </div>
@@ -1937,7 +1945,8 @@ async function connect() {
     } else {
       const { ESPLoader, Transport } = await import(ESPTOOL_CDN);
       const transport = new Transport(port, true);
-      const loader = new ESPLoader({ transport, baudrate: 921600, romBaudrate: 115200, terminal: espTerminal });
+      const baud = parseInt($('#baudSelect').value, 10) || 460800;
+      const loader = new ESPLoader({ transport, baudrate: baud, romBaudrate: 115200, terminal: espTerminal });
       const chip = await loader.main();
       let mac = '—';
       try { mac = await loader.chip.readMac(loader); } catch (_) {}
@@ -2061,8 +2070,18 @@ async function flash() {
     toast('Firmware written');
   } catch (err) {
     $('#progressBar').classList.remove('is-active');
-    log(err.message || String(err), 'err');
-    toast(err.message || 'Flash failed', 'error');
+    const msg = err.message || String(err);
+    log(msg, 'err');
+    if (/head of packet|serial noise|corrupt|timed out|Timeout/i.test(msg)) {
+      log('The data stream broke up. Drop the transfer speed one step and flash again; '
+        + 'if it keeps happening, try a shorter or different USB cable.', 'warn');
+      const sel = $('#baudSelect');
+      if (sel.selectedIndex < sel.options.length - 1) {
+        const slower = [...sel.options].map(o => +o.value).filter(v => v < +sel.value).sort((a, b) => b - a)[0];
+        if (slower) { sel.value = String(slower); log(`Speed lowered to ${slower}. Reconnect and try again.`, 'info'); }
+      }
+    }
+    toast(msg, 'error');
   } finally {
     state.busy = false;
     updateFlashButton();
