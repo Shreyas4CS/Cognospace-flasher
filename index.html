@@ -215,12 +215,14 @@ p{max-width:68ch}
   color:var(--text-3)}
 .tables__now{font-family:var(--font-mono);font-size:var(--t-xs);color:var(--brand-deep);margin-left:auto}
 [data-theme="dark"] .tables__now{color:var(--brand)}
-.tables__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:.4rem}
-.tchip{padding:.42rem .3rem;border-radius:var(--r-sm);border:1px solid var(--border);
-  background:var(--surface-2);color:var(--text-2);cursor:pointer;
-  font-family:var(--font-mono);font-size:var(--t-xs);font-weight:500;text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.tables__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:.4rem}
+.tchip{padding:.4rem .3rem;border-radius:var(--r-sm);border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text-2);cursor:pointer;text-align:center;
+  display:flex;flex-direction:column;gap:.05rem;overflow:hidden;
   transition:background 140ms var(--ease),border-color 140ms var(--ease),color 140ms var(--ease)}
+.tchip__id{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:700;line-height:1.2}
+.tchip__nm{font-size:.68rem;line-height:1.2;opacity:.8;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tchip:hover{border-color:var(--brand-line);color:var(--text)}
 .tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700;
   box-shadow:0 3px 10px rgba(245,130,30,.3)}
@@ -231,6 +233,40 @@ p{max-width:68ch}
 .tchip[data-build="checking"]{opacity:.6}
 .tables__hint{font-size:var(--t-xs);color:var(--text-3);margin-top:.5rem}
 .tables__hint b{color:var(--warn)}
+
+/* ---------- table guide modal ---------- */
+.modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:1.25rem}
+.modal__scrim{position:absolute;inset:0;background:rgba(12,14,18,.55);
+  backdrop-filter:blur(3px);animation:fade 180ms var(--ease)}
+@keyframes fade{from{opacity:0}}
+.modal__box{position:relative;width:min(640px,100%);max-height:86vh;display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);
+  box-shadow:var(--shadow-2);overflow:hidden;animation:pop 220ms var(--ease)}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.modal__head{display:flex;align-items:flex-start;gap:1rem;padding:1.35rem 1.5rem 1rem;
+  border-bottom:1px solid var(--border-soft)}
+.modal__head h2{font-size:var(--t-xl)}
+.modal__head p{margin-top:.3rem;font-size:var(--t-sm);color:var(--text-2)}
+.modal__x{margin-left:auto;flex:none;width:34px;height:34px;display:grid;place-items:center;
+  border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-2);
+  color:var(--text-2);font-size:1.35rem;line-height:1;cursor:pointer;
+  transition:background 140ms var(--ease),color 140ms var(--ease)}
+.modal__x:hover{background:var(--surface-3);color:var(--text)}
+.modal__body{padding:1.25rem 1.5rem;overflow:auto}
+.modal__foot{padding:1rem 1.5rem;border-top:1px solid var(--border-soft);
+  display:flex;justify-content:flex-end;background:var(--surface-2)}
+
+.guide__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem}
+.guide__row{display:flex;align-items:center;gap:.7rem;padding:.6rem .75rem;
+  border:1px solid var(--border-soft);border-radius:var(--r-md);background:var(--surface-2)}
+.guide__id{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:700;
+  padding:.2rem .45rem;border-radius:var(--r-sm);background:var(--brand-soft);
+  color:var(--brand-deep);border:1px solid var(--brand-line);flex:none}
+[data-theme="dark"] .guide__id{color:var(--brand)}
+.guide__name{font-size:var(--t-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guide__note{margin-top:1.1rem;font-size:var(--t-xs);color:var(--text-3);max-width:none}
+.guide__note code{font-family:var(--font-mono);font-size:.95em;padding:.1rem .3rem;
+  border-radius:4px;background:var(--surface-3)}
 
 .foot__made{font-weight:600;color:var(--text-2);text-align:center;flex:none}
 
@@ -539,6 +575,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
       </span>
       <a class="masthead__link" href="#/">Home</a>
       <a class="masthead__link" href="#/flash">Flasher</a>
+      <button class="masthead__link" id="guideBtn" type="button">Table guide</button>
       <button class="theme-toggle" data-theme-toggle type="button" aria-label="Switch theme">
         <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>
@@ -874,6 +911,31 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
     </aside>
   </main>
+</div>
+
+<!-- ==================== TABLE GUIDE ==================== -->
+<div class="modal" id="guide" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="modal__head">
+      <div>
+        <h2 id="guideTitle">Table guide</h2>
+        <p>Which bench is which. The code is the folder on disk; the name is what the room calls it.</p>
+      </div>
+      <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal__body">
+      <div class="guide__grid" id="guideGrid"></div>
+      <p class="guide__note">
+        Names live in the <code>TABLES</code> list near the top of the script in this file.
+        Edit <code>name</code> freely — but leave <code>id</code> alone once firmware is built,
+        because it is the folder the flasher reads from.
+      </p>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--brand" type="button" data-close>Close</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast-wrap" id="toasts"></div>
@@ -2076,26 +2138,27 @@ const $ = (s, r = document) => r.querySelector(s);
 
 /* ==========================================================================
    TABLES — the lab benches.
-   `id` is the folder name on disk and must not change once firmware is built.
-   `name` is what the teacher sees on the button. Rename these freely.
+   `id` is the folder name on disk. Do NOT change it once firmware is built.
+   `name` is what the room calls the bench — shown in the Table guide and on
+   hover. Rename these freely; they are placeholders.
    Delete a row to retire a table; add one (with a matching folder) to grow.
    ========================================================================== */
 const TABLES = [
-  { id: 'T1',  name: 'T1'  },
-  { id: 'T2',  name: 'T2'  },
-  { id: 'T3',  name: 'T3'  },
-  { id: 'T4',  name: 'T4'  },
-  { id: 'T5',  name: 'T5'  },
-  { id: 'T6',  name: 'T6'  },
-  { id: 'T7',  name: 'T7'  },
-  { id: 'T8',  name: 'T8'  },
-  { id: 'T9',  name: 'T9'  },
-  { id: 'T10', name: 'T10' },
-  { id: 'T11', name: 'T11' },
-  { id: 'T12', name: 'T12' },
-  { id: 'T13', name: 'T13' },
-  { id: 'T14', name: 'T14' },
-  { id: 'T15', name: 'T15' },
+  { id: 'T1',  name: 'Tesla'      },
+  { id: 'T2',  name: 'Kalam'      },
+  { id: 'T3',  name: 'Curie'      },
+  { id: 'T4',  name: 'Newton'     },
+  { id: 'T5',  name: 'Bose'       },
+  { id: 'T6',  name: 'Ada'        },
+  { id: 'T7',  name: 'Raman'      },
+  { id: 'T8',  name: 'Turing'     },
+  { id: 'T9',  name: 'Hopper'     },
+  { id: 'T10', name: 'Edison'     },
+  { id: 'T11', name: 'Sarabhai'   },
+  { id: 'T12', name: 'Faraday'    },
+  { id: 'T13', name: 'Bhabha'     },
+  { id: 'T14', name: 'Volta'      },
+  { id: 'T15', name: 'Ramanujan'  },
 ];
 const TABLE_KEY = 'cognospace-table';
 
@@ -2112,7 +2175,10 @@ const state = {
   if (saved && TABLES.some((t) => t.id === saved)) state.table = saved;
 })();
 
-const tableName = (id) => TABLES.find((t) => t.id === id)?.name || id;
+const tableName = (id) => {
+  const t = TABLES.find((x) => x.id === id);
+  return t ? `${t.id} · ${t.name}` : id;
+};
 
 /* Any path carrying {table} is per-table; anything else is shared firmware. */
 const needsTable = (a) =>
@@ -2307,10 +2373,12 @@ function renderTables() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'tchip';
-    b.textContent = t.name;
+    b.innerHTML = '<span class="tchip__id"></span><span class="tchip__nm"></span>';
+    b.querySelector('.tchip__id').textContent = t.id;
+    b.querySelector('.tchip__nm').textContent = t.name;
     b.dataset.table = t.id;
     b.dataset.build = 'checking';
-    b.title = `Folder: ${t.id}`;
+    b.title = `${t.id} — ${t.name}`;
     b.setAttribute('aria-pressed', String(state.table === t.id));
     b.addEventListener('click', () => pickTable(t.id));
     grid.append(b);
@@ -2367,6 +2435,43 @@ function pickTable(id) {
   paintHint();
   updateFlashButton();
   log(`Table set to ${tableName(id)}.`, 'info');
+}
+
+/* ---------- table guide ---------- */
+function renderGuide() {
+  const grid = $('#guideGrid');
+  grid.innerHTML = '';
+  for (const t of TABLES) {
+    const row = document.createElement('div');
+    row.className = 'guide__row';
+    row.innerHTML = '<span class="guide__id"></span><span class="guide__name"></span>';
+    row.querySelector('.guide__id').textContent = t.id;
+    row.querySelector('.guide__name').textContent = t.name;
+    grid.append(row);
+  }
+}
+
+function openGuide() {
+  renderGuide();
+  $('#guide').hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#guide').querySelector('.modal__x')?.focus();
+}
+
+function closeGuide() {
+  $('#guide').hidden = true;
+  document.body.style.overflow = '';
+  $('#guideBtn')?.focus();
+}
+
+function wireGuide() {
+  $('#guideBtn').addEventListener('click', openGuide);
+  $('#guide').addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]')) closeGuide();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#guide').hidden) closeGuide();
+  });
 }
 
 /* ---------- full audit ---------- */
@@ -2691,6 +2796,7 @@ window.addEventListener('hashchange', route);
   });
 
   wireDrop();
+  wireGuide();
   updateFlashButton();
   navigator.serial?.addEventListener('disconnect', () => {
     if (state.connected) { log('The Coggy was unplugged.', 'warn'); hardClose(); }
