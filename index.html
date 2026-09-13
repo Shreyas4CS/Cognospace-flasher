@@ -208,6 +208,30 @@ p{max-width:68ch}
 .callout p{color:var(--text-2);margin-top:.4rem;font-size:var(--t-sm)}
 .callout .btn{margin-left:auto}
 
+/* ---------- table picker ---------- */
+.tables{margin-top:.9rem;padding-top:.9rem;border-top:1px dashed var(--border)}
+.tables__head{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.55rem}
+.tables__label{font-size:var(--t-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-3)}
+.tables__now{font-family:var(--font-mono);font-size:var(--t-xs);color:var(--brand-deep);margin-left:auto}
+[data-theme="dark"] .tables__now{color:var(--brand)}
+.tables__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:.4rem}
+.tchip{padding:.42rem .3rem;border-radius:var(--r-sm);border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text-2);cursor:pointer;
+  font-family:var(--font-mono);font-size:var(--t-xs);font-weight:500;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background 140ms var(--ease),border-color 140ms var(--ease),color 140ms var(--ease)}
+.tchip:hover{border-color:var(--brand-line);color:var(--text)}
+.tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700;
+  box-shadow:0 3px 10px rgba(245,130,30,.3)}
+.tchip[data-build="missing"]{opacity:.62;border-style:dashed;color:var(--text-3)}
+.tchip[data-build="missing"]::after{content:' ·';color:var(--warn);font-weight:700}
+.tchip[data-build="missing"][aria-pressed="true"]{background:var(--warn);border-color:var(--warn);
+  color:#fff;opacity:1;box-shadow:0 3px 10px rgba(217,164,0,.3)}
+.tchip[data-build="checking"]{opacity:.6}
+.tables__hint{font-size:var(--t-xs);color:var(--text-3);margin-top:.5rem}
+.tables__hint b{color:var(--warn)}
+
 .foot__made{font-weight:600;color:var(--text-2);text-align:center;flex:none}
 
 @media (max-width:860px){
@@ -806,6 +830,15 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
             <div class="target__label">Selected</div>
             <div class="target__name" id="targetName">Nothing selected</div>
             <div style="font-size:var(--t-xs);color:var(--text-3);margin-top:.2rem" id="targetMeta">Pick an activity from the shelf</div>
+
+            <div class="tables" id="tableRow" hidden>
+              <div class="tables__head">
+                <span class="tables__label">Table</span>
+                <span class="tables__now" id="tableNow">none picked</span>
+              </div>
+              <div class="tables__grid" id="tableGrid"></div>
+              <p class="tables__hint" id="tablePath">Pick the table this Coggy belongs to.</p>
+            </div>
           </div>
 
           <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
@@ -832,6 +865,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
         <div class="panel__head">
           <h2>Console</h2>
           <span class="tag" id="lineCount" style="margin-left:auto">0 lines</span>
+          <button class="btn btn--sm btn--ghost" id="auditBtn" type="button">Check builds</button>
           <button class="btn btn--sm btn--ghost" id="saveLog" type="button">Save log</button>
           <button class="btn btn--sm btn--ghost" id="clearConsole" type="button">Clear</button>
         </div>
@@ -869,7 +903,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-03/CS-G03-A01/firmware.bin",
+              "file": "/firmware/grade-03/CS-G03-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -887,7 +921,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-03/CS-G03-A02/firmware.bin",
+              "file": "/firmware/grade-03/CS-G03-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -905,7 +939,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-03/CS-G03-A03/firmware.bin",
+              "file": "/firmware/grade-03/CS-G03-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -923,7 +957,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-03/CS-G03-A04/firmware.bin",
+              "file": "/firmware/grade-03/CS-G03-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -942,7 +976,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-03/CS-G03-A05/firmware.bin",
+              "file": "/firmware/grade-03/CS-G03-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -967,7 +1001,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-04/CS-G04-A01/firmware.bin",
+              "file": "/firmware/grade-04/CS-G04-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -985,7 +1019,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-04/CS-G04-A02/firmware.bin",
+              "file": "/firmware/grade-04/CS-G04-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1004,7 +1038,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-04/CS-G04-A03/firmware.bin",
+              "file": "/firmware/grade-04/CS-G04-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1023,7 +1057,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-04/CS-G04-A04/firmware.bin",
+              "file": "/firmware/grade-04/CS-G04-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1041,7 +1075,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-04/CS-G04-A05/firmware.bin",
+              "file": "/firmware/grade-04/CS-G04-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1066,7 +1100,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-05/CS-G05-A01/firmware.bin",
+              "file": "/firmware/grade-05/CS-G05-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1084,7 +1118,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-05/CS-G05-A02/firmware.bin",
+              "file": "/firmware/grade-05/CS-G05-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1103,7 +1137,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-05/CS-G05-A03/firmware.bin",
+              "file": "/firmware/grade-05/CS-G05-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1121,7 +1155,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-05/CS-G05-A04/firmware.bin",
+              "file": "/firmware/grade-05/CS-G05-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1140,7 +1174,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-05/CS-G05-A05/firmware.bin",
+              "file": "/firmware/grade-05/CS-G05-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1166,7 +1200,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-06/CS-G06-A01/firmware.bin",
+              "file": "/firmware/grade-06/CS-G06-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1185,7 +1219,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-06/CS-G06-A02/firmware.bin",
+              "file": "/firmware/grade-06/CS-G06-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1204,7 +1238,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-06/CS-G06-A03/firmware.bin",
+              "file": "/firmware/grade-06/CS-G06-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1222,7 +1256,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-06/CS-G06-A04/firmware.bin",
+              "file": "/firmware/grade-06/CS-G06-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1240,7 +1274,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-06/CS-G06-A05/firmware.bin",
+              "file": "/firmware/grade-06/CS-G06-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1266,7 +1300,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-07/CS-G07-A01/firmware.bin",
+              "file": "/firmware/grade-07/CS-G07-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1285,7 +1319,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-07/CS-G07-A02/firmware.bin",
+              "file": "/firmware/grade-07/CS-G07-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1303,7 +1337,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-07/CS-G07-A03/firmware.bin",
+              "file": "/firmware/grade-07/CS-G07-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1321,7 +1355,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-07/CS-G07-A04/firmware.bin",
+              "file": "/firmware/grade-07/CS-G07-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1341,7 +1375,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-07/CS-G07-A05/firmware.bin",
+              "file": "/firmware/grade-07/CS-G07-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1367,7 +1401,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A01/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1385,7 +1419,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A02/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1404,7 +1438,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A03/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1422,7 +1456,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A04/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1441,7 +1475,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A05/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1459,7 +1493,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A06/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A06/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1477,7 +1511,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A07/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A07/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1496,7 +1530,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A08/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A08/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1514,7 +1548,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A09/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A09/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1532,7 +1566,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-08/CS-G08-A10/firmware.bin",
+              "file": "/firmware/grade-08/CS-G08-A10/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1558,7 +1592,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A01/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1577,7 +1611,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A02/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1595,7 +1629,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A03/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1613,7 +1647,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A04/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1632,7 +1666,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A05/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1650,7 +1684,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A06/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A06/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1669,7 +1703,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A07/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A07/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1687,7 +1721,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A08/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A08/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1707,7 +1741,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A09/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A09/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1725,7 +1759,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/grade-09/CS-G09-A10/firmware.bin",
+              "file": "/firmware/grade-09/CS-G09-A10/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1750,7 +1784,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           "components": [],
           "parts": [
             {
-              "file": "/firmware/resources/CS-ER-A01/firmware.bin",
+              "file": "/firmware/resources/CS-ER-A01/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1768,7 +1802,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/resources/CS-ER-A02/firmware.bin",
+              "file": "/firmware/resources/CS-ER-A02/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1786,7 +1820,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/resources/CS-ER-A03/firmware.bin",
+              "file": "/firmware/resources/CS-ER-A03/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1803,7 +1837,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/resources/CS-ER-A04/firmware.bin",
+              "file": "/firmware/resources/CS-ER-A04/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1820,7 +1854,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           ],
           "parts": [
             {
-              "file": "/firmware/resources/CS-ER-A05/firmware.bin",
+              "file": "/firmware/resources/CS-ER-A05/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -1835,7 +1869,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           "components": [],
           "parts": [
             {
-              "file": "/firmware/resources/CS-ER-A06/firmware.bin",
+              "file": "/firmware/resources/CS-ER-A06/{table}/firmware.bin",
               "offset": "0x0"
             }
           ]
@@ -2040,12 +2074,55 @@ const BOARDS = {
 
 const $ = (s, r = document) => r.querySelector(s);
 
+/* ==========================================================================
+   TABLES — the lab benches.
+   `id` is the folder name on disk and must not change once firmware is built.
+   `name` is what the teacher sees on the button. Rename these freely.
+   Delete a row to retire a table; add one (with a matching folder) to grow.
+   ========================================================================== */
+const TABLES = [
+  { id: 'T1',  name: 'T1'  },
+  { id: 'T2',  name: 'T2'  },
+  { id: 'T3',  name: 'T3'  },
+  { id: 'T4',  name: 'T4'  },
+  { id: 'T5',  name: 'T5'  },
+  { id: 'T6',  name: 'T6'  },
+  { id: 'T7',  name: 'T7'  },
+  { id: 'T8',  name: 'T8'  },
+  { id: 'T9',  name: 'T9'  },
+  { id: 'T10', name: 'T10' },
+  { id: 'T11', name: 'T11' },
+  { id: 'T12', name: 'T12' },
+  { id: 'T13', name: 'T13' },
+  { id: 'T14', name: 'T14' },
+  { id: 'T15', name: 'T15' },
+];
+const TABLE_KEY = 'cognospace-table';
+
 const state = {
   catalog: null, grade: 'all', query: '', category: 'all',
-  selected: null, custom: null,
+  selected: null, custom: null, table: null,
   port: null, family: null, connected: false, busy: false,
   avr: null, esp: null, transport: null,
 };
+
+/* A lab machine lives at one bench, so remember the last table used here. */
+(function restoreTable() {
+  const saved = localStorage.getItem(TABLE_KEY);
+  if (saved && TABLES.some((t) => t.id === saved)) state.table = saved;
+})();
+
+const tableName = (id) => TABLES.find((t) => t.id === id)?.name || id;
+
+/* Any path carrying {table} is per-table; anything else is shared firmware. */
+const needsTable = (a) =>
+  (a?.parts || [{ file: a?.file }]).some((p) => (p.file || '').includes('{table}'));
+
+function resolvePath(file) {
+  if (!file.includes('{table}')) return file;
+  if (!state.table) throw new Error('No table selected — pick a table before flashing.');
+  return file.replaceAll('{table}', state.table);
+}
 
 /* ---------- console ---------- */
 const out = $('#console');
@@ -2185,6 +2262,149 @@ function renderCards() {
   }
 }
 
+/* ---------- build availability ----------
+   A HEAD request tells us whether a build exists without downloading it.
+   Results are cached per path, so re-selecting an activity is instant. */
+const buildCache = new Map();
+
+async function buildExists(path) {
+  if (buildCache.has(path)) return buildCache.get(path);
+  const p = fetch(path.startsWith('/') ? path.slice(1) : path, { method: 'HEAD', cache: 'no-store' })
+    .then((r) => r.ok)
+    .catch(() => false);
+  buildCache.set(path, p);
+  return p;
+}
+
+/* Run jobs a few at a time so a full audit doesn't open 700 sockets. */
+async function pooled(items, limit, fn) {
+  const out = [];
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) {
+      const n = i++;
+      out[n] = await fn(items[n], n);
+    }
+  }));
+  return out;
+}
+
+const tablePathFor = (a, id) =>
+  (a.parts?.[0]?.file || a.file || '').replaceAll('{table}', id);
+
+/* ---------- table picker ---------- */
+function renderTables() {
+  const row = $('#tableRow');
+  const show = !!state.selected && needsTable(state.selected);
+  row.hidden = !show;
+  if (!show) return;
+
+  const act = state.selected;
+  const grid = $('#tableGrid');
+  grid.innerHTML = '';
+
+  for (const t of TABLES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tchip';
+    b.textContent = t.name;
+    b.dataset.table = t.id;
+    b.dataset.build = 'checking';
+    b.title = `Folder: ${t.id}`;
+    b.setAttribute('aria-pressed', String(state.table === t.id));
+    b.addEventListener('click', () => pickTable(t.id));
+    grid.append(b);
+  }
+
+  $('#tableNow').textContent = state.table ? tableName(state.table) : 'none picked';
+  paintHint();
+  probeTables(act);
+}
+
+function paintHint() {
+  const hint = $('#tablePath');
+  if (!state.table) { hint.innerHTML = '<b>Pick the table this Coggy belongs to.</b>'; return; }
+
+  const path = tablePathFor(state.selected, state.table);
+  const chip = $('#tableGrid')?.querySelector(`[data-table="${state.table}"]`);
+
+  if (chip?.dataset.build === 'missing') {
+    hint.innerHTML = '';
+    const warn = document.createElement('b');
+    warn.textContent = `No build uploaded at ${path} yet — flashing will fail.`;
+    hint.append(warn);
+  } else {
+    hint.textContent = path;
+  }
+}
+
+async function probeTables(act) {
+  const results = await pooled(TABLES, 6, (t) => buildExists(tablePathFor(act, t.id)));
+
+  if (state.selected !== act) return;           // teacher moved on while we probed
+
+  const grid = $('#tableGrid');
+  let ready = 0;
+  TABLES.forEach((t, i) => {
+    const b = grid.querySelector(`[data-table="${t.id}"]`);
+    if (!b) return;
+    b.dataset.build = results[i] ? 'ready' : 'missing';
+    if (results[i]) ready++;
+    else b.title = `No build uploaded for ${t.id} yet — selectable, but flashing will fail`;
+  });
+
+  paintHint();
+
+  if (!ready) log(`No builds uploaded yet for ${act.code}. Tables are still selectable.`, 'warn');
+}
+
+function pickTable(id) {
+  state.table = id;
+  localStorage.setItem(TABLE_KEY, id);
+  $('#tableGrid').querySelectorAll('.tchip').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.table === id)));
+  $('#tableNow').textContent = tableName(id);
+  paintHint();
+  updateFlashButton();
+  log(`Table set to ${tableName(id)}.`, 'info');
+}
+
+/* ---------- full audit ---------- */
+async function auditBuilds() {
+  const btn = $('#auditBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+
+  const jobs = [];
+  for (const a of allActivities()) {
+    if (!needsTable(a)) continue;
+    for (const t of TABLES) jobs.push({ code: a.code, table: t, path: tablePathFor(a, t.id) });
+  }
+
+  log(`Checking ${jobs.length} builds across ${TABLES.length} tables…`, 'info');
+  const found = await pooled(jobs, 8, (j) => buildExists(j.path));
+
+  const missing = jobs.filter((_, i) => !found[i]);
+  const byCode = new Map();
+  for (const m of missing) {
+    if (!byCode.has(m.code)) byCode.set(m.code, []);
+    byCode.get(m.code).push(m.table.name);
+  }
+
+  log(`${jobs.length - missing.length} of ${jobs.length} builds present.`, missing.length ? 'warn' : 'ok');
+  for (const [code, tables] of byCode) {
+    log(`${code} — missing ${tables.length}: ${tables.join(', ')}`, 'warn');
+  }
+  if (!missing.length) log('Every table has a build. Nothing to upload.', 'ok');
+
+  toast(missing.length ? `${missing.length} builds missing` : 'All builds present',
+        missing.length ? 'error' : 'ok');
+
+  btn.disabled = false;
+  btn.textContent = 'Check builds';
+}
+
 function select(a) {
   state.selected = a;
   state.custom = null;
@@ -2193,6 +2413,7 @@ function select(a) {
   $('#targetMeta').textContent = `${a.code} · ${BOARDS[a.board]?.label || a.board} · v${a.version}`;
   $('#boardSelect').value = a.board;
   renderCards();
+  renderTables();
   updateFlashButton();
   log(`Selected ${a.code} — ${a.name}`, 'info');
 }
@@ -2279,13 +2500,16 @@ async function hardClose() {
 
 /* ---------- flashing ---------- */
 function updateFlashButton() {
-  const ready = state.connected && (state.selected || state.custom) && !state.busy;
+  const tableMissing = !!state.selected && !state.custom && needsTable(state.selected) && !state.table;
+  const ready = state.connected && (state.selected || state.custom) && !tableMissing && !state.busy;
   $('#flashBtn').disabled = !ready;
   $('#flashHint').textContent = !state.connected
     ? 'Connect a Coggy to begin.'
     : !(state.selected || state.custom)
       ? 'Pick an activity, or drop your own build below.'
-      : 'Ready to write.';
+      : tableMissing
+        ? 'Pick a table above — each table has its own build.'
+        : `Ready to write${state.table && !state.custom ? ` to ${tableName(state.table)}` : ''}.`;
 }
 
 function setProgress(done, total, label) {
@@ -2298,6 +2522,9 @@ function setProgress(done, total, label) {
 async function fetchBinary(path) {
   const url = path.startsWith('/') ? path.slice(1) : path;
   const res = await fetch(url, { cache: 'no-store' });
+  if (res.status === 404) {
+    throw new Error(`No build uploaded at ${path}. Put a firmware.bin in that folder, or pick another table.`);
+  }
   if (!res.ok) throw new Error(`Firmware file not found at ${url} (HTTP ${res.status}).`);
   return new Uint8Array(await res.arrayBuffer());
 }
@@ -2316,9 +2543,10 @@ async function flashAvr() {
       : state.custom.bytes;
     log(`Using uploaded file ${state.custom.name}.`, 'info');
   } else {
-    const raw = await fetchBinary(state.selected.file);
+    const path = resolvePath(state.selected.parts?.[0]?.file || state.selected.file);
+    const raw = await fetchBinary(path);
     image = parseIntelHex(new TextDecoder().decode(raw));
-    log(`Loaded ${state.selected.code} (${image.length} bytes).`, 'info');
+    log(`Loaded ${state.selected.code}${state.table ? ` · ${tableName(state.table)}` : ''} (${image.length} bytes).`, 'info');
   }
   const profile = AVR_PROFILES[boardKey()] || AVR_PROFILES['arduino-uno'];
   log('Resetting the board into its bootloader…', 'info');
@@ -2336,9 +2564,10 @@ async function flashEsp() {
   } else {
     const defs = state.selected.parts || [{ file: state.selected.file, offset: '0x10000' }];
     for (const p of defs) {
-      const bytes = await fetchBinary(p.file);
+      const path = resolvePath(p.file);
+      const bytes = await fetchBinary(path);
       parts.push({ data: toBinaryString(bytes), address: parseInt(p.offset, 16) });
-      log(`Loaded ${p.file.split('/').pop()} → ${p.offset} (${bytes.length} bytes).`, 'info');
+      log(`Loaded ${state.selected.code}${state.table ? ` · ${tableName(state.table)}` : ''} → ${p.offset} (${bytes.length} bytes).`, 'info');
     }
   }
   if ($('#eraseAll').checked) log('Erasing the whole flash first — this takes a few seconds.', 'warn');
@@ -2397,6 +2626,7 @@ function wireDrop() {
     $('#targetMeta').textContent = `Uploaded build · ${(bytes.length / 1024).toFixed(1)} KB`;
     $('#customOffsetRow').hidden = ext !== 'bin';
     renderCards();
+    renderTables();
     updateFlashButton();
     log(`Staged ${file.name} (${bytes.length} bytes).`, 'info');
   };
@@ -2438,7 +2668,9 @@ window.addEventListener('hashchange', route);
   renderRail();
   renderCategories();
   renderCards();
+  renderTables();
   log(`Catalogue loaded — ${allActivities().length} activities across ${state.catalog.grades.length} classes.`, 'info');
+  if (state.table) log(`This machine last flashed ${tableName(state.table)}. Change it in the write panel.`, 'info');
 
   $('#connectBtn').addEventListener('click', () => (state.connected ? hardClose().then(() => log('Port closed.', 'info')) : connect()));
   $('#flashBtn').addEventListener('click', flash);
@@ -2449,6 +2681,7 @@ window.addEventListener('hashchange', route);
     out.dataset.empty = 'true';
     $('#lineCount').textContent = '0 lines';
   });
+  $('#auditBtn').addEventListener('click', auditBuilds);
   $('#saveLog').addEventListener('click', () => {
     const blob = new Blob([out.innerText], { type: 'text/plain' });
     const a = document.createElement('a');
