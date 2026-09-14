@@ -846,8 +846,9 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
       <div class="panel">
         <div class="panel__head"><h2>Board</h2></div>
         <div class="panel__body">
-          <label class="rail__title" for="boardSelect" style="padding-left:0;display:block">Target board</label>
-          <select class="select" id="boardSelect" style="width:100%;margin-bottom:.7rem"></select>
+          <div class="readout__row" style="margin-bottom:.7rem">
+            <span class="readout__k">Target</span><span class="readout__v">ESP32 Dev Module</span>
+          </div>
 
           <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
           <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
@@ -867,7 +868,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
           <button class="btn btn--block btn--ghost" id="connectBtn" type="button" style="margin-top:1rem">Connect a Coggy</button>
           <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.6rem">
-            CH340 and CP2102 adapters look identical to the browser, so pick the board you are holding before you connect. If a flash breaks up partway, lower the transfer speed.
+            Every Coggy is an ESP32 dev module, so there is nothing to pick — just press Connect. If the port list is empty, the CH340 or CP2102 driver is missing. If a flash breaks up partway, lower the transfer speed.
           </p>
         </div>
       </div>
@@ -893,15 +894,15 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
           <div class="progress__meta"><span id="progressLabel">idle</span><span id="progressPct">0%</span></div>
 
-          <label class="check"><input type="checkbox" id="eraseAll"> Erase the whole flash first (ESP only)</label>
+          <label class="check"><input type="checkbox" id="eraseAll"> Erase the whole flash first</label>
 
           <button class="btn btn--brand btn--block" id="flashBtn" type="button" disabled style="margin-top:1rem">Flash the Coggy</button>
           <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.55rem" id="flashHint">Connect a Coggy to begin.</p>
 
           <div class="drop" id="drop">
             <strong>Drop your own build here</strong>
-            .bin or .hex — the file stays on this machine
-            <input type="file" id="dropInput" accept=".bin,.hex" hidden>
+            .bin — the file stays on this machine
+            <input type="file" id="dropInput" accept=".bin" hidden>
           </div>
           <div id="customOffsetRow" hidden style="margin-top:.7rem">
             <label class="rail__title" for="customOffset" style="padding-left:0;display:block">Flash offset</label>
@@ -2541,162 +2542,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 })();
 
 /* ==========================================================================
-   2. Intel HEX parser — Arduino IDE exports .hex for AVR boards
-   ========================================================================== */
-function parseIntelHex(text) {
-  const lines = text.split(/\r?\n/);
-  const chunks = [];
-  let upper = 0, max = 0;
-
-  for (let i = 0; i < lines.length; i++) {
-    const l = lines[i].trim();
-    if (!l) continue;
-    if (l[0] !== ':') throw new Error(`Line ${i + 1} is not valid Intel HEX.`);
-
-    const bytes = [];
-    for (let p = 1; p + 1 < l.length; p += 2) bytes.push(parseInt(l.substr(p, 2), 16));
-
-    const len = bytes[0];
-    const addr = (bytes[1] << 8) | bytes[2];
-    const type = bytes[3];
-    const data = bytes.slice(4, 4 + len);
-
-    let sum = 0;
-    for (let b = 0; b < 4 + len; b++) sum += bytes[b];
-    if (((sum + bytes[4 + len]) & 0xff) !== 0) throw new Error(`Checksum failed on line ${i + 1}.`);
-
-    if (type === 0x00) {
-      const abs = upper + addr;
-      chunks.push({ addr: abs, data });
-      max = Math.max(max, abs + len);
-    } else if (type === 0x02) { upper = ((data[0] << 8) | data[1]) << 4; }
-    else if (type === 0x04) { upper = ((data[0] << 8) | data[1]) << 16; }
-    else if (type === 0x01) { break; }
-  }
-
-  if (!max) throw new Error('No program data found in the HEX file.');
-  const image = new Uint8Array(max).fill(0xff);
-  for (const c of chunks) image.set(c.data, c.addr);
-  return image;
-}
-
-/* ==========================================================================
-   3. STK500v1 — the Arduino Uno / Nano bootloader, over Web Serial
-   ========================================================================== */
-const SYNC = 0x30, ENTER = 0x50, LEAVE = 0x51, LOAD_ADDR = 0x55,
-      PROG_PAGE = 0x64, READ_SIGN = 0x75, EOP = 0x20, INSYNC = 0x14, OK_ = 0x10;
-
-const SIGNATURES = {
-  '1e950f': 'ATmega328P', '1e9514': 'ATmega328', '1e9516': 'ATmega328PB',
-  '1e9406': 'ATmega168', '1e930b': 'ATmega88', '1e9307': 'ATmega8',
-};
-
-const AVR_PROFILES = {
-  'arduino-uno':      { baud: 115200, pageSize: 128 },
-  'arduino-nano':     { baud: 115200, pageSize: 128 },
-  'arduino-nano-old': { baud: 57600,  pageSize: 128 },
-  'arduino-promini':  { baud: 57600,  pageSize: 128 },
-};
-
-class AvrFlasher {
-  constructor(port) { this.port = port; this.buf = []; this._reading = false; }
-
-  async open(baud) {
-    await this.port.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none', bufferSize: 4096 });
-    this._pump();
-  }
-
-  async _pump() {
-    this._reading = true;
-    this.reader = this.port.readable.getReader();
-    try {
-      while (this._reading) {
-        const { value, done } = await this.reader.read();
-        if (done) break;
-        if (value) for (const b of value) this.buf.push(b);
-      }
-    } catch (_) {} finally { try { this.reader.releaseLock(); } catch (_) {} }
-  }
-
-  async close() {
-    this._reading = false;
-    try { await this.reader?.cancel(); } catch (_) {}
-    /* cancel() resolves before _pump's finally releases the lock; closing while
-       the stream is still locked throws and leaves the port open for good. */
-    for (let i = 0; i < 30; i++) {
-      if (!this.port.readable?.locked && !this.port.writable?.locked) break;
-      await new Promise((r) => setTimeout(r, 80));
-    }
-    try { await this.port.close(); } catch (_) {}
-  }
-
-  async write(bytes) {
-    const w = this.port.writable.getWriter();
-    await w.write(new Uint8Array(bytes));
-    w.releaseLock();
-  }
-
-  async read(n, timeout = 900) {
-    const deadline = Date.now() + timeout;
-    while (this.buf.length < n) {
-      if (Date.now() > deadline)
-        throw new Error(`Board stopped responding (wanted ${n} bytes, got ${this.buf.length}).`);
-      await new Promise((r) => setTimeout(r, 8));
-    }
-    return this.buf.splice(0, n);
-  }
-
-  /* Pulse DTR/RTS so the bootloader gets its window */
-  async reset() {
-    await this.port.setSignals({ dataTerminalReady: false, requestToSend: false });
-    await new Promise((r) => setTimeout(r, 260));
-    await this.port.setSignals({ dataTerminalReady: true, requestToSend: true });
-    await new Promise((r) => setTimeout(r, 60));
-    await this.port.setSignals({ dataTerminalReady: false, requestToSend: false });
-    await new Promise((r) => setTimeout(r, 60));
-    this.buf.length = 0;
-  }
-
-  async cmd(bytes, expect = 0, timeout = 900) {
-    await this.write([...bytes, EOP]);
-    const head = await this.read(1, timeout);
-    if (head[0] !== INSYNC) throw new Error(`Bootloader out of sync (0x${head[0].toString(16)}).`);
-    const payload = expect ? await this.read(expect, timeout) : [];
-    const tail = await this.read(1, timeout);
-    if (tail[0] !== OK_) throw new Error(`Bootloader refused the command (0x${tail[0].toString(16)}).`);
-    return payload;
-  }
-
-  async sync(tries = 8) {
-    for (let i = 0; i < tries; i++) {
-      try { this.buf.length = 0; await this.cmd([SYNC], 0, 420); return true; }
-      catch (_) { await new Promise((r) => setTimeout(r, 90)); }
-    }
-    throw new Error('No bootloader response. Check the cable, the board type and the baud rate.');
-  }
-
-  async signature() {
-    const sig = await this.cmd([READ_SIGN], 3);
-    const hex = sig.map((b) => b.toString(16).padStart(2, '0')).join('');
-    return { hex, name: SIGNATURES[hex] || 'Unknown AVR' };
-  }
-
-  async writeFlash(image, pageSize = 128, onProgress = () => {}) {
-    await this.cmd([ENTER]);
-    const total = image.length;
-    for (let addr = 0; addr < total; addr += pageSize) {
-      const page = image.slice(addr, Math.min(addr + pageSize, total));
-      const word = addr >> 1;                       // STK500 addresses flash in words
-      await this.cmd([LOAD_ADDR, word & 0xff, (word >> 8) & 0xff]);
-      await this.cmd([PROG_PAGE, (page.length >> 8) & 0xff, page.length & 0xff, 0x46, ...page], 0, 2200);
-      onProgress(Math.min(addr + page.length, total), total);
-    }
-    await this.cmd([LEAVE]);
-  }
-}
-
-/* ==========================================================================
-   4. App
+   2. App
    ========================================================================== */
 /* esptool-js is pulled from a CDN at connect time. School networks throttle or
    block single hosts, so try mirrors in order instead of failing on the first. */
@@ -2723,20 +2569,9 @@ async function loadEsptool() {
     + 'Check the internet connection or the school firewall, then reload the page.');
 }
 
-/* ESP32 first — every activity in the catalogue is an ESP32 build, so this is
-   what the dropdown must default to. An Arduino default sends the Connect
-   button down the AVR bootloader path and the Coggy never answers. */
-const BOARDS = {
-  'esp32':        { family: 'esp', label: 'ESP32 (Coggy)' },
-  'esp32-s2':     { family: 'esp', label: 'ESP32-S2' },
-  'esp32-s3':     { family: 'esp', label: 'ESP32-S3' },
-  'esp32-c3':     { family: 'esp', label: 'ESP32-C3' },
-  'esp32-c6':     { family: 'esp', label: 'ESP32-C6' },
-  'esp8266':      { family: 'esp', label: 'ESP8266 / NodeMCU' },
-  'arduino-uno':  { family: 'avr', label: 'Arduino Uno' },
-  'arduino-nano': { family: 'avr', label: 'Arduino Nano' },
-};
-const BOARD_KEY = 'cognospace-board';
+/* This lab runs one controller: the ESP32 dev module under every Coggy.
+   There is no board picker any more — the target is fixed. */
+const BOARD_LABEL = 'ESP32 Dev Module';
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -2769,8 +2604,8 @@ const TABLE_KEY = 'cognospace-table';
 const state = {
   catalog: null, grade: 'all', query: '', category: 'all',
   selected: null, custom: null, table: null,
-  port: null, family: null, connected: false, busy: false,
-  avr: null, esp: null, transport: null,
+  port: null, connected: false, busy: false,
+  esp: null, transport: null,
 };
 
 /* A lab machine lives at one bench, so remember the last table used here. */
@@ -2921,7 +2756,7 @@ function renderCards() {
       <div class="card__name"></div>
       <div class="card__desc"></div>
       <div class="card__foot">
-        <span class="tag">${BOARDS[a.board]?.label || a.board}</span>
+        <span class="tag">${BOARD_LABEL}</span>
         <span class="tag">v${a.version}</span>
         ${a.category ? `<span class="tag">${a.category}</span>` : ''}
       </div>`;
@@ -3124,8 +2959,7 @@ function select(a) {
   state.custom = null;
   $('#customOffsetRow').hidden = true;
   $('#targetName').textContent = a.name;
-  $('#targetMeta').textContent = `${a.code} · ${BOARDS[a.board]?.label || a.board} · v${a.version}`;
-  setBoard(a.board);
+  $('#targetMeta').textContent = `${a.code} · ${BOARD_LABEL} · v${a.version}`;
   renderCards();
   renderTables();
   updateFlashButton();
@@ -3133,23 +2967,6 @@ function select(a) {
 }
 
 /* ---------- connect ---------- */
-const boardKey = () => $('#boardSelect').value;
-const family = () => BOARDS[boardKey()]?.family || 'esp';
-
-/* Changing the target after connecting leaves state.family pointing at the old
-   protocol, so flashing would use the wrong writer. Drop the link instead. */
-function setBoard(key) {
-  if (!BOARDS[key]) { log(`Unknown board "${key}" in the catalogue — leaving the target as it is.`, 'warn'); return; }
-  const sel = $('#boardSelect');
-  if (sel.value === key) return;
-  sel.value = key;
-  try { localStorage.setItem(BOARD_KEY, key); } catch (_) {}
-  if (state.connected && state.family !== BOARDS[key].family) {
-    log('Target board changed — disconnecting. Press Connect again.', 'warn');
-    hardClose();
-  }
-}
-
 function usbId(port) {
   const i = port.getInfo?.() || {};
   if (i.usbVendorId == null) return '—';
@@ -3195,8 +3012,6 @@ function explainConnectError(msg) {
   if (/wrong boot mode|Failed to connect|invalid head of packet|No serial data/i.test(msg))
     return 'The board never entered its bootloader. Hold the BOOT button, press Connect, and release BOOT once the log moves. '
          + 'If it still fails, the cable may be charge-only — use a data cable.';
-  if (/No bootloader response/i.test(msg))
-    return 'That is the Arduino bootloader check. If you are holding a Coggy, set Target board to ESP32 and connect again.';
   if (/No port selected|NotFoundError/i.test(msg))
     return 'No port was picked. If the list was empty, install the CH340 or CP2102 driver and replug the board.';
   return null;
@@ -3213,34 +3028,20 @@ async function connect() {
 
     port = await navigator.serial.requestPort();
     state.port = port;
-    state.family = family();
-    setStatus('busy', 'Connecting…');
-    log(`Target board: ${BOARDS[boardKey()]?.label || boardKey()}.`, 'info');
+    setStatus('busy', 'Connecting\u2026');
 
-    if (state.family === 'avr') {
-      const profile = AVR_PROFILES[boardKey()] || AVR_PROFILES['arduino-uno'];
-      const avr = new AvrFlasher(port);
-      state.avr = avr;                      // register BEFORE the handshake so a
-      await avr.open(profile.baud);         // failure can still be cleaned up
-      log(`Opened the port at ${profile.baud} baud.`, 'info');
-      await avr.reset();
-      await avr.sync();
-      const sig = await avr.signature();
-      setReadout({ chip: sig.name, adapter: 'USB serial', usb: usbId(port), mac: '—', flash: `sig ${sig.hex}` });
-      log(`Bootloader answered. Chip: ${sig.name} (${sig.hex}).`, 'ok');
-    } else {
-      const { ESPLoader, Transport } = await loadEsptool();
-      const transport = new Transport(port, false);   // tracing off — it floods the console
-      state.transport = transport;                    // register BEFORE main()
-      const baud = parseInt($('#baudSelect').value, 10) || 115200;
-      const loader = new ESPLoader({ transport, baudrate: baud, romBaudrate: 115200, terminal: espTerminal });
-      state.esp = loader;
-      const chip = await loader.main();
-      let mac = '—';
-      try { mac = await loader.chip.readMac(loader); } catch (_) {}
-      setReadout({ chip, adapter: 'USB serial', usb: usbId(port), mac, flash: 'read on flash' });
-      log(`Connected to ${chip}.`, 'ok');
-    }
+    const { ESPLoader, Transport } = await loadEsptool();
+    const transport = new Transport(port, false);   // tracing off — it floods the console
+    state.transport = transport;                    // register BEFORE main() so a
+    const baud = parseInt($('#baudSelect').value, 10) || 115200;   // failed handshake
+    const loader = new ESPLoader({ transport, baudrate: baud,      // can still be cleaned up
+      romBaudrate: 115200, terminal: espTerminal });
+    state.esp = loader;
+    const chip = await loader.main();
+    let mac = '\u2014';
+    try { mac = await loader.chip.readMac(loader); } catch (_) {}
+    setReadout({ chip, adapter: 'USB serial', usb: usbId(port), mac, flash: 'read on flash' });
+    log(`Connected to ${chip}.`, 'ok');
 
     state.connected = true;
     setStatus('ok', 'Connected');
@@ -3263,10 +3064,9 @@ async function connect() {
 
 async function hardClose() {
   const port = state.port;
-  try { await withTimeout(state.avr?.close(), 3000); } catch (_) {}
   try { await withTimeout(state.transport?.disconnect(), 3000); } catch (_) {}
   await forceClosePort(port);
-  state.avr = null; state.esp = null; state.transport = null; state.port = null;
+  state.esp = null; state.transport = null; state.port = null;
   state.connected = false;
   $('#connectBtn').textContent = 'Connect a Coggy';
   setStatus('idle', 'Not connected');
@@ -3311,27 +3111,6 @@ function toBinaryString(u8) {
   return s;
 }
 
-async function flashAvr() {
-  let image;
-  if (state.custom) {
-    image = state.custom.kind === 'hex'
-      ? parseIntelHex(new TextDecoder().decode(state.custom.bytes))
-      : state.custom.bytes;
-    log(`Using uploaded file ${state.custom.name}.`, 'info');
-  } else {
-    const path = resolvePath(state.selected.parts?.[0]?.file || state.selected.file);
-    const raw = await fetchBinary(path);
-    image = parseIntelHex(new TextDecoder().decode(raw));
-    log(`Loaded ${state.selected.code}${state.table ? ` · ${tableName(state.table)}` : ''} (${image.length} bytes).`, 'info');
-  }
-  const profile = AVR_PROFILES[boardKey()] || AVR_PROFILES['arduino-uno'];
-  log('Resetting the board into its bootloader…', 'info');
-  await state.avr.reset();
-  await state.avr.sync();
-  log('Writing flash…', 'info');
-  await state.avr.writeFlash(image, profile.pageSize, (d, t) => setProgress(d, t, `${d} / ${t} bytes`));
-}
-
 async function flashEsp() {
   const parts = [];
   if (state.custom) {
@@ -3364,7 +3143,7 @@ async function flash() {
   updateFlashButton();
   $('#progressBar').classList.add('is-active');
   try {
-    if (state.family === 'avr') await flashAvr(); else await flashEsp();
+    await flashEsp();
     $('#progressBar').classList.remove('is-active');
     setProgress(1, 1, 'Written');
     log('Flash complete. The Coggy is restarting.', 'ok');
@@ -3394,13 +3173,13 @@ function wireDrop() {
   const zone = $('#drop'), input = $('#dropInput');
   const accept = async (file) => {
     const ext = file.name.split('.').pop().toLowerCase();
-    if (!['bin', 'hex'].includes(ext)) { toast('Only .bin and .hex files can be flashed', 'error'); return; }
+    if (ext !== 'bin') { toast('Only .bin files can be flashed onto an ESP32', 'error'); return; }
     const bytes = new Uint8Array(await file.arrayBuffer());
-    state.custom = { name: file.name, bytes, kind: ext };
+    state.custom = { name: file.name, bytes };
     state.selected = null;
     $('#targetName').textContent = file.name;
     $('#targetMeta').textContent = `Uploaded build · ${(bytes.length / 1024).toFixed(1)} KB`;
-    $('#customOffsetRow').hidden = ext !== 'bin';
+    $('#customOffsetRow').hidden = false;
     renderCards();
     renderTables();
     updateFlashButton();
@@ -3437,20 +3216,6 @@ window.addEventListener('hashchange', route);
     : 'This browser cannot flash. Open the page in Chrome, Edge or Opera on a desktop.';
   if (!supported) { setStatus('error', 'Browser not supported'); $('#connectBtn').disabled = true; }
 
-  $('#boardSelect').innerHTML = Object.entries(BOARDS)
-    .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
-
-  let savedBoard = null;
-  try { savedBoard = localStorage.getItem(BOARD_KEY); } catch (_) {}
-  $('#boardSelect').value = BOARDS[savedBoard] ? savedBoard : 'esp32';
-  $('#boardSelect').addEventListener('change', (e) => {
-    const key = e.target.value;
-    try { localStorage.setItem(BOARD_KEY, key); } catch (_) {}
-    if (state.connected && state.family !== BOARDS[key]?.family) {
-      log('Target board changed — disconnecting. Press Connect again.', 'warn');
-      hardClose();
-    }
-  });
 
   renderHomeGrades();
   renderRail();
