@@ -2621,6 +2621,12 @@ class AvrFlasher {
   async close() {
     this._reading = false;
     try { await this.reader?.cancel(); } catch (_) {}
+    /* cancel() resolves before _pump's finally releases the lock; closing while
+       the stream is still locked throws and leaves the port open for good. */
+    for (let i = 0; i < 30; i++) {
+      if (!this.port.readable?.locked && !this.port.writable?.locked) break;
+      await new Promise((r) => setTimeout(r, 80));
+    }
     try { await this.port.close(); } catch (_) {}
   }
 
@@ -2692,18 +2698,45 @@ class AvrFlasher {
 /* ==========================================================================
    4. App
    ========================================================================== */
-const ESPTOOL_CDN = 'https://unpkg.com/esptool-js@0.5.4/bundle.js';
+/* esptool-js is pulled from a CDN at connect time. School networks throttle or
+   block single hosts, so try mirrors in order instead of failing on the first. */
+const ESPTOOL_VERSION = '0.5.4';
+const ESPTOOL_CDNS = [
+  `https://cdn.jsdelivr.net/npm/esptool-js@${ESPTOOL_VERSION}/bundle.js`,
+  `https://unpkg.com/esptool-js@${ESPTOOL_VERSION}/bundle.js`,
+  `https://esm.sh/esptool-js@${ESPTOOL_VERSION}`,
+];
+let _espModule = null;
+async function loadEsptool() {
+  if (_espModule) return _espModule;
+  for (const url of ESPTOOL_CDNS) {
+    try {
+      const mod = await import(url);
+      if (!mod.ESPLoader || !mod.Transport) throw new Error('bad module shape');
+      _espModule = mod;
+      return mod;
+    } catch (_) {
+      log(`Flasher library did not load from ${new URL(url).host} — trying the next mirror.`, 'warn');
+    }
+  }
+  throw new Error('Could not load the ESP flasher library from any mirror. '
+    + 'Check the internet connection or the school firewall, then reload the page.');
+}
 
+/* ESP32 first — every activity in the catalogue is an ESP32 build, so this is
+   what the dropdown must default to. An Arduino default sends the Connect
+   button down the AVR bootloader path and the Coggy never answers. */
 const BOARDS = {
-  'arduino-uno':  { family: 'avr', label: 'Arduino Uno' },
-  'arduino-nano': { family: 'avr', label: 'Arduino Nano' },
-  'esp32':        { family: 'esp', label: 'ESP32' },
-  'esp8266':      { family: 'esp', label: 'ESP8266 / NodeMCU' },
+  'esp32':        { family: 'esp', label: 'ESP32 (Coggy)' },
   'esp32-s2':     { family: 'esp', label: 'ESP32-S2' },
   'esp32-s3':     { family: 'esp', label: 'ESP32-S3' },
   'esp32-c3':     { family: 'esp', label: 'ESP32-C3' },
   'esp32-c6':     { family: 'esp', label: 'ESP32-C6' },
+  'esp8266':      { family: 'esp', label: 'ESP8266 / NodeMCU' },
+  'arduino-uno':  { family: 'avr', label: 'Arduino Uno' },
+  'arduino-nano': { family: 'avr', label: 'Arduino Nano' },
 };
+const BOARD_KEY = 'cognospace-board';
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -3092,7 +3125,7 @@ function select(a) {
   $('#customOffsetRow').hidden = true;
   $('#targetName').textContent = a.name;
   $('#targetMeta').textContent = `${a.code} · ${BOARDS[a.board]?.label || a.board} · v${a.version}`;
-  $('#boardSelect').value = a.board;
+  setBoard(a.board);
   renderCards();
   renderTables();
   updateFlashButton();
@@ -3102,6 +3135,20 @@ function select(a) {
 /* ---------- connect ---------- */
 const boardKey = () => $('#boardSelect').value;
 const family = () => BOARDS[boardKey()]?.family || 'esp';
+
+/* Changing the target after connecting leaves state.family pointing at the old
+   protocol, so flashing would use the wrong writer. Drop the link instead. */
+function setBoard(key) {
+  if (!BOARDS[key]) { log(`Unknown board "${key}" in the catalogue — leaving the target as it is.`, 'warn'); return; }
+  const sel = $('#boardSelect');
+  if (sel.value === key) return;
+  sel.value = key;
+  try { localStorage.setItem(BOARD_KEY, key); } catch (_) {}
+  if (state.connected && state.family !== BOARDS[key].family) {
+    log('Target board changed — disconnecting. Press Connect again.', 'warn');
+    hardClose();
+  }
+}
 
 function usbId(port) {
   const i = port.getInfo?.() || {};
@@ -3121,34 +3168,76 @@ function setReadout(d) {
   $('#roFlash').textContent = d.flash;
 }
 
+/* esptool's own disconnect() spins forever if a stream never unlocks, so every
+   teardown call is raced against a timer. A stuck close must not freeze the UI. */
+const withTimeout = (p, ms) => Promise.race([
+  Promise.resolve(p),
+  new Promise((_, rej) => setTimeout(() => rej(new Error('teardown timed out')), ms)),
+]);
+
+/* The single biggest cause of "it connected once and now nothing works" is a
+   SerialPort left open with locked streams after a failed handshake. Wait for
+   the locks to clear, then close it for real. */
+async function forceClosePort(port) {
+  if (!port) return;
+  for (let i = 0; i < 30; i++) {
+    if (!port.readable?.locked && !port.writable?.locked) break;
+    await new Promise((r) => setTimeout(r, 80));
+  }
+  try { await port.close(); } catch (_) {}
+}
+
+function explainConnectError(msg) {
+  if (/already open/i.test(msg))
+    return 'That port was still open from the last attempt. Unplug the Coggy, plug it back in, and press Connect again.';
+  if (/Failed to fetch dynamically imported module|mirror/i.test(msg))
+    return 'The flasher library could not be downloaded. Check the internet connection or firewall and reload the page.';
+  if (/wrong boot mode|Failed to connect|invalid head of packet|No serial data/i.test(msg))
+    return 'The board never entered its bootloader. Hold the BOOT button, press Connect, and release BOOT once the log moves. '
+         + 'If it still fails, the cable may be charge-only — use a data cable.';
+  if (/No bootloader response/i.test(msg))
+    return 'That is the Arduino bootloader check. If you are holding a Coggy, set Target board to ESP32 and connect again.';
+  if (/No port selected|NotFoundError/i.test(msg))
+    return 'No port was picked. If the list was empty, install the CH340 or CP2102 driver and replug the board.';
+  return null;
+}
+
 async function connect() {
   if (!('serial' in navigator)) return;
+  if (state.busy) return;
+  let port = null;
   try {
-    state.busy = true; updateFlashButton();
-    const port = await navigator.serial.requestPort();
+    state.busy = true;
+    $('#connectBtn').disabled = true;
+    updateFlashButton();
+
+    port = await navigator.serial.requestPort();
     state.port = port;
     state.family = family();
+    setStatus('busy', 'Connecting…');
+    log(`Target board: ${BOARDS[boardKey()]?.label || boardKey()}.`, 'info');
 
     if (state.family === 'avr') {
       const profile = AVR_PROFILES[boardKey()] || AVR_PROFILES['arduino-uno'];
       const avr = new AvrFlasher(port);
-      await avr.open(profile.baud);
+      state.avr = avr;                      // register BEFORE the handshake so a
+      await avr.open(profile.baud);         // failure can still be cleaned up
       log(`Opened the port at ${profile.baud} baud.`, 'info');
       await avr.reset();
       await avr.sync();
       const sig = await avr.signature();
-      state.avr = avr;
       setReadout({ chip: sig.name, adapter: 'USB serial', usb: usbId(port), mac: '—', flash: `sig ${sig.hex}` });
       log(`Bootloader answered. Chip: ${sig.name} (${sig.hex}).`, 'ok');
     } else {
-      const { ESPLoader, Transport } = await import(ESPTOOL_CDN);
-      const transport = new Transport(port, true);
+      const { ESPLoader, Transport } = await loadEsptool();
+      const transport = new Transport(port, false);   // tracing off — it floods the console
+      state.transport = transport;                    // register BEFORE main()
       const baud = parseInt($('#baudSelect').value, 10) || 115200;
       const loader = new ESPLoader({ transport, baudrate: baud, romBaudrate: 115200, terminal: espTerminal });
+      state.esp = loader;
       const chip = await loader.main();
       let mac = '—';
       try { mac = await loader.chip.readMac(loader); } catch (_) {}
-      state.esp = loader; state.transport = transport;
       setReadout({ chip, adapter: 'USB serial', usb: usbId(port), mac, flash: 'read on flash' });
       log(`Connected to ${chip}.`, 'ok');
     }
@@ -3158,19 +3247,25 @@ async function connect() {
     $('#connectBtn').textContent = 'Disconnect';
     toast('Coggy connected');
   } catch (err) {
-    log(err.message || String(err), 'err');
+    const msg = err?.message || String(err);
+    log(msg, 'err');
+    const hint = explainConnectError(msg);
+    if (hint) log(hint, 'warn');
+    await hardClose();                 // always leaves the port closed and unlocked
     setStatus('error', 'Not connected');
-    toast(err.message || 'Could not connect', 'error');
-    await hardClose();
+    toast(msg, 'error');
   } finally {
-    state.busy = false; updateFlashButton();
+    state.busy = false;
+    $('#connectBtn').disabled = false;
+    updateFlashButton();
   }
 }
 
 async function hardClose() {
-  try { await state.avr?.close(); } catch (_) {}
-  try { await state.transport?.disconnect(); } catch (_) {}
-  try { if (!state.avr && !state.transport) await state.port?.close(); } catch (_) {}
+  const port = state.port;
+  try { await withTimeout(state.avr?.close(), 3000); } catch (_) {}
+  try { await withTimeout(state.transport?.disconnect(), 3000); } catch (_) {}
+  await forceClosePort(port);
   state.avr = null; state.esp = null; state.transport = null; state.port = null;
   state.connected = false;
   $('#connectBtn').textContent = 'Connect a Coggy';
@@ -3344,6 +3439,18 @@ window.addEventListener('hashchange', route);
 
   $('#boardSelect').innerHTML = Object.entries(BOARDS)
     .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+
+  let savedBoard = null;
+  try { savedBoard = localStorage.getItem(BOARD_KEY); } catch (_) {}
+  $('#boardSelect').value = BOARDS[savedBoard] ? savedBoard : 'esp32';
+  $('#boardSelect').addEventListener('change', (e) => {
+    const key = e.target.value;
+    try { localStorage.setItem(BOARD_KEY, key); } catch (_) {}
+    if (state.connected && state.family !== BOARDS[key]?.family) {
+      log('Target board changed — disconnecting. Press Connect again.', 'warn');
+      hardClose();
+    }
+  });
 
   renderHomeGrades();
   renderRail();
