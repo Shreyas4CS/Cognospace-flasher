@@ -10,6 +10,13 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/coggy-icon.png">
 <link rel="apple-touch-icon" href="assets/coggy-icon-180.png">
 
+<!-- The flasher library is fetched before anyone presses Connect. Drop the
+     esptool-js bundle at vendor/esptool-js/bundle.js and this line warms it;
+     the CDN mirrors below are only a fallback. -->
+<link rel="modulepreload" href="vendor/esptool-js/bundle.js">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
 <script>
 /* paint the right theme before first paint */
 (function(){
@@ -852,10 +859,10 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
           <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
           <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
-            <option value="115200">115200 — default, most reliable</option>
+            <option value="115200">115200 — slowest, most forgiving</option>
             <option value="230400">230400 — a little quicker</option>
             <option value="460800">460800 — quick</option>
-            <option value="921600">921600 — fastest, needs a good cable</option>
+            <option value="921600" selected>921600 — default, needs a good cable</option>
           </select>
 
           <div class="readout">
@@ -1776,12 +1783,11 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
         },
         {
           "code": "CS-G07-AI01",
-          "name": "Coming soon",
+          "name": "Structured vs Unstructured Data",
           "category": "AI",
           "board": "esp32",
-          "version": "0.0.0",
-          "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "version": "1.0.0",
+          "description": "Understanding structured and unstructured data, by collecting sensor data and feeding it to a chatbot.",
           "components": [],
           "parts": [
             {
@@ -2544,30 +2550,59 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 /* ==========================================================================
    2. App
    ========================================================================== */
-/* esptool-js is pulled from a CDN at connect time. School networks throttle or
-   block single hosts, so try mirrors in order instead of failing on the first. */
+/* esptool-js used to be pulled from a CDN *inside* connect(), so the first
+   press paid for a 200 KB download before a single byte hit the serial line —
+   and on a throttled school network each dead mirror burned a full TCP timeout.
+   Now: a self-hosted copy comes first, every attempt is capped, and the whole
+   thing is started at page load so it is already in memory by the time anyone
+   presses Connect.
+
+   To self-host: npm pack esptool-js@0.5.4, then copy bundle.js out of the
+   tarball to vendor/esptool-js/bundle.js next to this file. */
 const ESPTOOL_VERSION = '0.5.4';
-const ESPTOOL_CDNS = [
+const ESPTOOL_SOURCES = [
+  'vendor/esptool-js/bundle.js',
   `https://cdn.jsdelivr.net/npm/esptool-js@${ESPTOOL_VERSION}/bundle.js`,
   `https://unpkg.com/esptool-js@${ESPTOOL_VERSION}/bundle.js`,
   `https://esm.sh/esptool-js@${ESPTOOL_VERSION}`,
 ];
-let _espModule = null;
-async function loadEsptool() {
-  if (_espModule) return _espModule;
-  for (const url of ESPTOOL_CDNS) {
-    try {
-      const mod = await import(url);
-      if (!mod.ESPLoader || !mod.Transport) throw new Error('bad module shape');
-      _espModule = mod;
-      return mod;
-    } catch (_) {
-      log(`Flasher library did not load from ${new URL(url).host} — trying the next mirror.`, 'warn');
+const SOURCE_TIMEOUT_MS = 5000;
+
+const raceTimeout = (p, ms, what) => Promise.race([
+  Promise.resolve(p),
+  new Promise((_, rej) => setTimeout(() => rej(new Error(`${what} timed out`)), ms)),
+]);
+
+/* The promise is cached, not the module, so a prewarm still in flight is reused
+   by the click rather than started over. A rejection clears it so a later press
+   can try again once the network comes back. */
+let _espPromise = null;
+let _espTried = [];
+function loadEsptool() {
+  if (_espPromise) return _espPromise;
+  _espTried = [];
+  _espPromise = (async () => {
+    for (const url of ESPTOOL_SOURCES) {
+      const host = url.startsWith('http') ? new URL(url).host : 'this server';
+      try {
+        const mod = await raceTimeout(import(url), SOURCE_TIMEOUT_MS, `download from ${host}`);
+        if (!mod.ESPLoader || !mod.Transport) throw new Error('bad module shape');
+        _espTried.push({ host, ok: true });
+        return mod;
+      } catch (_) {
+        _espTried.push({ host, ok: false });
+      }
     }
-  }
-  throw new Error('Could not load the ESP flasher library from any mirror. '
-    + 'Check the internet connection or the school firewall, then reload the page.');
+    throw new Error('Could not load the ESP flasher library from any source. '
+      + 'Check the internet connection or the school firewall, then reload the page.');
+  })();
+  _espPromise.catch(() => { _espPromise = null; });
+  return _espPromise;
 }
+
+/* Called once from boot(). Silent — nothing is logged unless a real connect
+   later needs to explain itself. */
+function prewarmEsptool() { loadEsptool().catch(() => {}); }
 
 /* This lab runs one controller: the ESP32 dev module under every Coggy.
    There is no board picker any more — the target is fixed. */
@@ -2631,21 +2666,47 @@ function resolvePath(file) {
 
 /* ---------- console ---------- */
 const out = $('#console');
+const lineCountEl = $('#lineCount');
+const MAX_LINES = 600;
 const stamp = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 };
+
+/* esptool emits a burst of lines during the handshake. Appending one node at a
+   time and then reading scrollHeight forced a synchronous reflow per line, so
+   the page juddered exactly when the user was watching it. Queue instead, and
+   flush the whole batch once per frame. */
+let _pending = [];
+let _flushQueued = false;
+
 function log(text, kind = 'info') {
+  _pending.push([text, kind, stamp()]);
+  if (_flushQueued) return;
+  _flushQueued = true;
+  requestAnimationFrame(flushLog);
+}
+
+function flushLog() {
+  _flushQueued = false;
+  if (!_pending.length) return;
   if (out.dataset.empty === 'true') { out.textContent = ''; out.dataset.empty = 'false'; }
-  const el = document.createElement('span');
-  el.className = `line line--${kind}`;
-  const t = document.createElement('span');
-  t.className = 'line__t';
-  t.textContent = stamp();
-  el.append(t, document.createTextNode(text));
-  out.append(el);
+  const frag = document.createDocumentFragment();
+  for (const [text, kind, ts] of _pending) {
+    const el = document.createElement('span');
+    el.className = `line line--${kind}`;
+    const t = document.createElement('span');
+    t.className = 'line__t';
+    t.textContent = ts;
+    el.append(t, document.createTextNode(text));
+    frag.append(el);
+  }
+  _pending.length = 0;
+  out.append(frag);
+  /* An unbounded log makes the page crawl by the fourth period of the day. */
+  while (out.childElementCount > MAX_LINES) out.firstElementChild.remove();
   out.scrollTop = out.scrollHeight;
-  $('#lineCount').textContent = `${out.childElementCount} lines`;
+  lineCountEl.textContent = `${out.childElementCount} lines`;
 }
 const espTerminal = {
   clean() {},
@@ -2879,6 +2940,7 @@ function pickTable(id) {
   paintHint();
   updateFlashButton();
   log(`Table set to ${tableName(id)}.`, 'info');
+  warmFirmware(state.selected);
 }
 
 /* ---------- table guide ---------- */
@@ -2964,6 +3026,18 @@ function select(a) {
   renderTables();
   updateFlashButton();
   log(`Selected ${a.code} — ${a.name}`, 'info');
+  warmFirmware(a);
+}
+
+/* Pull the build down while the student is still plugging in the cable, so the
+   write starts the moment Flash is pressed. */
+function warmFirmware(a) {
+  if (!a || (needsTable(a) && !state.table)) return;
+  const defs = a.parts || [{ file: a.file }];
+  for (const p of defs) {
+    if (!p.file) continue;
+    try { prefetchBinary(resolvePath(p.file)).catch(() => {}); } catch (_) {}
+  }
 }
 
 /* ---------- connect ---------- */
@@ -2997,18 +3071,48 @@ const withTimeout = (p, ms) => Promise.race([
    the locks to clear, then close it for real. */
 async function forceClosePort(port) {
   if (!port) return;
-  for (let i = 0; i < 30; i++) {
+  /* Poll fast and give up early. The old 30 × 80 ms loop meant a child holding
+     BOOT had to wait several seconds before the button came back. */
+  const t0 = performance.now();
+  while (performance.now() - t0 < 800) {
     if (!port.readable?.locked && !port.writable?.locked) break;
-    await new Promise((r) => setTimeout(r, 80));
+    await new Promise((r) => setTimeout(r, 20));
   }
   try { await port.close(); } catch (_) {}
+}
+
+/* Chrome remembers ports this origin has been granted, so a bench that flashed
+   yesterday can connect with no chooser dialog at all. Filtering by adapter
+   also shortens the list when the dialog does appear. */
+const ADAPTER_VIDS = [
+  0x1a86,  // CH340 / CH9102
+  0x10c4,  // CP210x
+  0x0403,  // FTDI
+  0x303a,  // Espressif native USB
+];
+
+async function pickPort({ forceDialog = false } = {}) {
+  if (!forceDialog) {
+    try {
+      const known = await navigator.serial.getPorts();
+      const usable = known.filter((p) => ADAPTER_VIDS.includes(p.getInfo?.().usbVendorId));
+      if (usable.length === 1) return usable[0];
+    } catch (_) { /* fall through to the dialog */ }
+  }
+  return navigator.serial.requestPort({
+    filters: ADAPTER_VIDS.map((usbVendorId) => ({ usbVendorId })),
+  });
 }
 
 function explainConnectError(msg) {
   if (/already open/i.test(msg))
     return 'That port was still open from the last attempt. Unplug the Coggy, plug it back in, and press Connect again.';
-  if (/Failed to fetch dynamically imported module|mirror/i.test(msg))
-    return 'The flasher library could not be downloaded. Check the internet connection or firewall and reload the page.';
+  if (/Failed to fetch dynamically imported module|flasher library|timed out/i.test(msg)) {
+    const tried = _espTried.filter((t) => !t.ok).map((t) => t.host).join(', ');
+    return 'The flasher library could not be downloaded'
+      + (tried ? ` (tried ${tried})` : '')
+      + '. Put a copy at vendor/esptool-js/bundle.js on this server so the lab never depends on the internet for it.';
+  }
   if (/wrong boot mode|Failed to connect|invalid head of packet|No serial data/i.test(msg))
     return 'The board never entered its bootloader. Hold the BOOT button, press Connect, and release BOOT once the log moves. '
          + 'If it still fails, the cable may be charge-only — use a data cable.';
@@ -3017,20 +3121,28 @@ function explainConnectError(msg) {
   return null;
 }
 
-async function connect() {
+async function connect({ forceDialog = false } = {}) {
   if (!('serial' in navigator)) return;
   if (state.busy) return;
   let port = null;
+  let usedRemembered = false;
   try {
     state.busy = true;
     $('#connectBtn').disabled = true;
     updateFlashButton();
 
-    port = await navigator.serial.requestPort();
+    const t0 = performance.now();
+    const grantedBefore = forceDialog ? [] : await navigator.serial.getPorts().catch(() => []);
+    port = await pickPort({ forceDialog });
+    usedRemembered = !forceDialog && grantedBefore.includes(port);
     state.port = port;
     setStatus('busy', 'Connecting\u2026');
+    if (usedRemembered) log('Using the adapter this machine already has permission for.', 'info');
 
+    const t1 = performance.now();
     const { ESPLoader, Transport } = await loadEsptool();
+    const t2 = performance.now();
+
     const transport = new Transport(port, false);   // tracing off — it floods the console
     state.transport = transport;                    // register BEFORE main() so a
     const baud = parseInt($('#baudSelect').value, 10) || 115200;   // failed handshake
@@ -3038,15 +3150,21 @@ async function connect() {
       romBaudrate: 115200, terminal: espTerminal });
     state.esp = loader;
     const chip = await loader.main();
-    let mac = '\u2014';
-    try { mac = await loader.chip.readMac(loader); } catch (_) {}
-    setReadout({ chip, adapter: 'USB serial', usb: usbId(port), mac, flash: 'read on flash' });
-    log(`Connected to ${chip}.`, 'ok');
+    const t3 = performance.now();
 
+    /* Report connected straight away. Reading the MAC is another ROM round trip
+       and nobody should be made to wait through it. */
     state.connected = true;
     setStatus('ok', 'Connected');
     $('#connectBtn').textContent = 'Disconnect';
+    setReadout({ chip, adapter: 'USB serial', usb: usbId(port), mac: 'reading\u2026', flash: 'read on flash' });
+    log(`Connected to ${chip}.`, 'ok');
+    log(`port ${(t1 - t0) | 0} ms \u00b7 library ${(t2 - t1) | 0} ms \u00b7 handshake ${(t3 - t2) | 0} ms`, 'info');
     toast('Coggy connected');
+
+    loader.chip.readMac(loader)
+      .then((mac) => { if (state.esp === loader) $('#roMac').textContent = mac || '\u2014'; })
+      .catch(() => { if (state.esp === loader) $('#roMac').textContent = '\u2014'; });
   } catch (err) {
     const msg = err?.message || String(err);
     log(msg, 'err');
@@ -3054,6 +3172,15 @@ async function connect() {
     if (hint) log(hint, 'warn');
     await hardClose();                 // always leaves the port closed and unlocked
     setStatus('error', 'Not connected');
+
+    /* A remembered port can go stale — the board was swapped, or unplugged and
+       moved to another socket. One silent retry with the chooser open. */
+    if (usedRemembered && !/No port selected|NotFoundError/i.test(msg)) {
+      log('That remembered adapter did not answer. Opening the port list\u2026', 'warn');
+      state.busy = false;
+      $('#connectBtn').disabled = false;
+      return connect({ forceDialog: true });
+    }
     toast(msg, 'error');
   } finally {
     state.busy = false;
@@ -3064,7 +3191,7 @@ async function connect() {
 
 async function hardClose() {
   const port = state.port;
-  try { await withTimeout(state.transport?.disconnect(), 3000); } catch (_) {}
+  try { await withTimeout(state.transport?.disconnect(), 1200); } catch (_) {}
   await forceClosePort(port);
   state.esp = null; state.transport = null; state.port = null;
   state.connected = false;
@@ -3095,14 +3222,26 @@ function setProgress(done, total, label) {
   $('#progressLabel').textContent = label || '';
 }
 
-async function fetchBinary(path) {
+/* 'no-store' re-downloaded the same build on all fifteen flashes of a period.
+   'no-cache' still revalidates, so a fresh build is never missed, but an
+   unchanged file comes back as a 304. */
+const _binCache = new Map();
+
+function prefetchBinary(path) {
   const url = path.startsWith('/') ? path.slice(1) : path;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (res.status === 404) {
-    throw new Error(`No build uploaded at ${path}. Put a firmware.bin in that folder, or pick another table.`);
-  }
-  if (!res.ok) throw new Error(`Firmware file not found at ${url} (HTTP ${res.status}).`);
-  return new Uint8Array(await res.arrayBuffer());
+  if (_binCache.has(url)) return _binCache.get(url);
+  const p = fetch(url, { cache: 'no-cache' }).then(async (res) => {
+    if (res.status === 404) throw new Error(`No build uploaded at ${path}. Put a firmware.bin in that folder, or pick another table.`);
+    if (!res.ok) throw new Error(`Firmware file not found at ${url} (HTTP ${res.status}).`);
+    return new Uint8Array(await res.arrayBuffer());
+  });
+  p.catch(() => { _binCache.delete(url); });   // never cache a failure
+  _binCache.set(url, p);
+  return p;
+}
+
+async function fetchBinary(path) {
+  return prefetchBinary(path);
 }
 
 function toBinaryString(u8) {
@@ -3216,6 +3355,8 @@ window.addEventListener('hashchange', route);
     : 'This browser cannot flash. Open the page in Chrome, Edge or Opera on a desktop.';
   if (!supported) { setStatus('error', 'Browser not supported'); $('#connectBtn').disabled = true; }
 
+  /* Fetch the flasher library now, not on the first click. */
+  if (supported) prewarmEsptool();
 
   renderHomeGrades();
   renderRail();
@@ -3225,16 +3366,23 @@ window.addEventListener('hashchange', route);
   log(`Catalogue loaded — ${allActivities().length} activities across ${state.catalog.grades.length} classes.`, 'info');
   if (state.table) log(`This machine last flashed ${tableName(state.table)}. Change it in the write panel.`, 'info');
 
-  $('#connectBtn').addEventListener('click', () => (state.connected ? hardClose().then(() => log('Port closed.', 'info')) : connect()));
+  /* Shift-click forces the port chooser open — for when a bench swaps adapters. */
+  $('#connectBtn').addEventListener('click', (e) => {
+    if (state.connected) { hardClose().then(() => log('Port closed.', 'info')); return; }
+    connect({ forceDialog: e.shiftKey });
+  });
   $('#flashBtn').addEventListener('click', flash);
   $('#searchInput').addEventListener('input', (e) => { state.query = e.target.value; renderCards(); });
   $('#categoryFilter').addEventListener('change', (e) => { state.category = e.target.value; renderCards(); });
   $('#clearConsole').addEventListener('click', () => {
+    _pending.length = 0;                 // drop anything queued for the next frame
     out.textContent = 'Console cleared. Connect a Coggy to begin.';
     out.dataset.empty = 'true';
-    $('#lineCount').textContent = '0 lines';
+    lineCountEl.textContent = '0 lines';
   });
-  $('#auditBtn').addEventListener('click', auditBuilds);
+  /* Checking builds is the natural "look at the server again" action, so let it
+     throw away anything held in memory from an earlier build. */
+  $('#auditBtn').addEventListener('click', () => { _binCache.clear(); auditBuilds(); });
   $('#saveLog').addEventListener('click', () => {
     const blob = new Blob([out.innerText], { type: 'text/plain' });
     const a = document.createElement('a');
