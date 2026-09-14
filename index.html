@@ -215,22 +215,28 @@ p{max-width:68ch}
   color:var(--text-3)}
 .tables__now{font-family:var(--font-mono);font-size:var(--t-xs);color:var(--brand-deep);margin-left:auto}
 [data-theme="dark"] .tables__now{color:var(--brand)}
-.tables__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:.4rem}
-.tchip{padding:.4rem .3rem;border-radius:var(--r-sm);border:1px solid var(--border);
-  background:var(--surface-2);color:var(--text-2);cursor:pointer;text-align:center;
-  display:flex;flex-direction:column;gap:.05rem;overflow:hidden;
+.tables__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.35rem}
+.tchip{position:relative;padding:.34rem .4rem .38rem;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);
+  cursor:pointer;text-align:left;display:block;overflow:hidden;
   transition:background 140ms var(--ease),border-color 140ms var(--ease),color 140ms var(--ease)}
-.tchip__id{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:700;line-height:1.2}
-.tchip__nm{font-size:.68rem;line-height:1.2;opacity:.8;
+.tchip__id{display:block;font-family:var(--font-mono);font-size:.6rem;font-weight:600;
+  line-height:1;letter-spacing:.04em;opacity:.6}
+.tchip__nm{display:block;font-size:.86rem;font-weight:600;line-height:1.25;margin-top:.1rem;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tchip:hover{border-color:var(--brand-line);color:var(--text)}
-.tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700;
+.tchip:hover{border-color:var(--brand-line);color:var(--text);background:var(--surface-3)}
+.tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;
   box-shadow:0 3px 10px rgba(245,130,30,.3)}
-.tchip[data-build="missing"]{opacity:.62;border-style:dashed;color:var(--text-3)}
-.tchip[data-build="missing"]::after{content:' ·';color:var(--warn);font-weight:700}
+.tchip[aria-pressed="true"] .tchip__id{opacity:.85}
+.tchip[data-build="missing"]{border-style:dashed;color:var(--text-3)}
+.tchip[data-build="missing"] .tchip__nm{opacity:.75}
+/* amber corner dot marks "no build yet" without taking a line of its own */
+.tchip[data-build="missing"]::after{content:'';position:absolute;top:5px;right:5px;
+  width:5px;height:5px;border-radius:50%;background:var(--warn)}
 .tchip[data-build="missing"][aria-pressed="true"]{background:var(--warn);border-color:var(--warn);
-  color:#fff;opacity:1;box-shadow:0 3px 10px rgba(217,164,0,.3)}
-.tchip[data-build="checking"]{opacity:.6}
+  color:#fff;box-shadow:0 3px 10px rgba(217,164,0,.3)}
+.tchip[data-build="missing"][aria-pressed="true"]::after{background:#fff}
+.tchip[data-build="checking"]{opacity:.55}
 .tables__hint{font-size:var(--t-xs);color:var(--text-3);margin-top:.5rem}
 .tables__hint b{color:var(--warn)}
 
@@ -1051,11 +1057,12 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
         },
         {
           "code": "CS-G03-AI01",
-          "name": "Introduction to AI",
+          "name": "Coming soon",
           "category": "AI",
           "board": "esp32",
-          "version": "1.0.0",
-          "description": "Introduction to AI, choosing a right dataset for the application.",
+          "version": "0.0.0",
+          "soon": true,
+          "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2949,8 +2956,7 @@ function renderTables() {
     b.querySelector('.tchip__nm').textContent = t.name;
     b.dataset.table = t.id;
     b.dataset.build = 'checking';
-    b.title = `${t.id} — ${t.name}`;
-    b.setAttribute('aria-pressed', String(state.table === t.id));
+    b.title = `${t.id} — ${t.name}`;    b.setAttribute('aria-pressed', String(state.table === t.id));
     b.addEventListener('click', () => pickTable(t.id));
     grid.append(b);
   }
