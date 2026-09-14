@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coggy Flasher — classroom firmware, straight from the browser</title>
+<meta name="description" content="Flash your Coggy for every CognoSpace activity, straight from the browser. Organised by class, with a unique code for every activity.">
+<meta name="theme-color" content="#F5821E">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/coggy-icon.png">
+<link rel="apple-touch-icon" href="assets/coggy-icon-180.png">
+
+<script>
+/* paint the right theme before first paint */
+(function(){
+  var s = localStorage.getItem('cognospace-theme');
+  var m = s || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', m);
+  document.documentElement.style.colorScheme = m;
+})();
+</script>
+
+<style>
+/* ==========================================================================
+   CognoSpace Flasher
+   Brand: orange #F5821E, charcoal #414042 (sampled from the CognoSpace mark)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --brand:#F5821E; --brand-deep:#C9620C;
+  --brand-soft:rgba(245,130,30,.14); --brand-line:rgba(245,130,30,.32);
+  --ok:#2FAE63; --warn:#D9A400; --err:#E0484B;
+  --font-ui:'Space Grotesk',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --t-xs:.75rem; --t-sm:.875rem; --t-md:1rem; --t-lg:1.25rem;
+  --t-xl:1.563rem; --t-2xl:1.953rem; --t-3xl:2.441rem; --t-4xl:3.052rem;
+  --r-sm:6px; --r-md:10px; --r-lg:16px; --r-xl:24px;
+  --gutter:clamp(1.25rem,4vw,3.5rem); --shell:1240px;
+  --speed:260ms; --ease:cubic-bezier(.22,.61,.36,1);
+}
+:root,[data-theme="light"]{
+  --bg:#EFF2F6; --bg-2:#E4E9F0; --surface:#FFF; --surface-2:#F7F9FC; --surface-3:#ECF0F5;
+  --border:#D5DBE4; --border-soft:#E4E9F0;
+  --text:#24262B; --text-2:#565C66; --text-3:#868D99;
+  --console-bg:#1A1D23; --console-fg:#D6DCE5;
+  --shadow-1:0 1px 2px rgba(20,26,38,.06),0 4px 14px rgba(20,26,38,.05);
+  --shadow-2:0 18px 48px rgba(20,26,38,.13);
+  --logo-filter:none; --grid-line:rgba(65,64,66,.06);
+}
+[data-theme="dark"]{
+  --bg:#101216; --bg-2:#0A0B0E; --surface:#181B21; --surface-2:#1E222A; --surface-3:#262B34;
+  --border:#2C313B; --border-soft:#23272F;
+  --text:#E8EBF0; --text-2:#A2AAB8; --text-3:#717A88;
+  --console-bg:#0B0D10; --console-fg:#CBD3DE;
+  --brand-soft:rgba(245,130,30,.16); --brand-line:rgba(245,130,30,.38);
+  --shadow-1:0 1px 2px rgba(0,0,0,.5),0 6px 20px rgba(0,0,0,.35);
+  --shadow-2:0 22px 60px rgba(0,0,0,.55);
+  --logo-filter:brightness(1.06); --grid-line:rgba(255,255,255,.05);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:var(--font-ui);font-size:var(--t-md);line-height:1.6;color:var(--text);
+  background:var(--bg);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  transition:background var(--speed) var(--ease),color var(--speed) var(--ease)}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{line-height:1.15;font-weight:600;letter-spacing:-.02em}
+h1{font-size:var(--t-4xl);font-weight:700;letter-spacing:-.035em}
+h2{font-size:var(--t-2xl)} h3{font-size:var(--t-lg)}
+p{max-width:68ch}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:3px}
+::selection{background:var(--brand);color:#fff}
+
+.shell{width:100%;max-width:var(--shell);margin-inline:auto;padding-inline:var(--gutter)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:.55rem;padding:.72rem 1.25rem;
+  border-radius:var(--r-md);border:1px solid var(--border);font-size:var(--t-sm);font-weight:600;
+  letter-spacing:-.01em;cursor:pointer;background:var(--surface-2);color:var(--text);
+  transition:background 160ms var(--ease),border-color 160ms var(--ease),
+    transform 120ms var(--ease),box-shadow 160ms var(--ease),opacity 160ms}
+.btn:hover:not(:disabled){background:var(--surface-3)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn--brand{background:var(--brand);border-color:var(--brand);color:#fff;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 6px 18px rgba(245,130,30,.28)}
+.btn--brand:hover:not(:disabled){background:var(--brand-deep);border-color:var(--brand-deep)}
+.btn--ghost{background:transparent}
+.btn--ghost:hover:not(:disabled){background:var(--surface-2)}
+.btn--sm{padding:.45rem .8rem;font-size:var(--t-xs);border-radius:var(--r-sm)}
+.btn--block{width:100%;justify-content:center}
+.btn--lg{padding:.95rem 1.6rem;font-size:var(--t-md)}
+
+/* an activity code is data, so it gets the mono face */
+.code{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:500;letter-spacing:.02em;
+  padding:.2rem .5rem;border-radius:var(--r-sm);background:var(--brand-soft);
+  color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap}
+[data-theme="dark"] .code{color:var(--brand)}
+.tag{font-size:var(--t-xs);padding:.18rem .5rem;border-radius:999px;background:var(--surface-3);
+  color:var(--text-2);border:1px solid var(--border-soft);white-space:nowrap}
+
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text-3);flex:none;position:relative}
+.dot[data-state="ok"]{background:var(--ok)}
+.dot[data-state="busy"]{background:var(--warn)}
+.dot[data-state="error"]{background:var(--err)}
+.dot[data-state="ok"]::after{content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:1px solid var(--ok);opacity:.5;animation:halo 2.4s var(--ease) infinite}
+@keyframes halo{0%{transform:scale(.6);opacity:.6}70%{transform:scale(1.5);opacity:0}100%{opacity:0}}
+
+/* ---------- masthead ---------- */
+.masthead{position:sticky;top:0;z-index:60;
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--border-soft)}
+.masthead__inner{display:flex;align-items:center;gap:1.25rem;height:66px}
+.brandmark{display:flex;align-items:center;gap:.7rem;flex:none}
+.brandmark img{height:50px;width:auto;filter:var(--logo-filter)}
+.brandmark__word{font-size:var(--t-xl);font-weight:600;color:var(--text-2);letter-spacing:-.01em}
+.brandmark__word--x{font-size:2rem;font-weight:600;color:var(--text-2);letter-spacing:-.01em}
+.masthead__nav{margin-left:auto;display:flex;align-items:center;gap:.35rem}
+.masthead__link{padding:.4rem .7rem;border-radius:var(--r-sm);font-size:var(--t-sm);
+  color:var(--text-2);cursor:pointer;background:none;border:0;transition:color 140ms,background 140ms}
+.masthead__link:hover{color:var(--text);background:var(--surface-2)}
+
+.theme-toggle{width:38px;height:38px;display:grid;place-items:center;border-radius:var(--r-md);
+  border:1px solid var(--border);background:var(--surface);cursor:pointer;overflow:hidden;position:relative}
+.theme-toggle svg{width:17px;height:17px;stroke:var(--text-2);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;position:absolute;
+  transition:transform 420ms var(--ease),opacity 260ms var(--ease)}
+.theme-toggle:hover svg{stroke:var(--brand)}
+.theme-toggle .i-sun{opacity:0;transform:rotate(-70deg) scale(.4)}
+.theme-toggle .i-moon{opacity:1;transform:rotate(0) scale(1)}
+[data-theme="dark"] .theme-toggle .i-sun{opacity:1;transform:rotate(0) scale(1)}
+[data-theme="dark"] .theme-toggle .i-moon{opacity:0;transform:rotate(70deg) scale(.4)}
+
+/* ---------- views ---------- */
+.view[hidden]{display:none}
+[hidden]{display:none!important}
+
+/* ==========================================================================
+   LANDING
+   ========================================================================== */
+.hero{position:relative;overflow:hidden;padding-block:clamp(3rem,9vw,6.5rem) clamp(3rem,8vw,5rem)}
+.hero::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 20%,transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 20%,transparent 78%);
+  pointer-events:none}
+.hero__grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr);
+  gap:clamp(2rem,5vw,4.5rem);align-items:center}
+.hero__title{font-size:clamp(2.2rem,5.4vw,3.6rem);text-wrap:balance}
+.hero__lede{margin-top:1.1rem;font-size:var(--t-lg);color:var(--text-2);max-width:42ch}
+.hero__actions{margin-top:2rem;display:flex;flex-wrap:wrap;gap:.75rem}
+
+.support{display:inline-flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border-radius:999px;
+  background:var(--surface);border:1px solid var(--border);font-size:var(--t-sm);color:var(--text-2);
+  box-shadow:var(--shadow-1)}
+.hero .support{margin-top:1.75rem}
+
+.board-stage{position:relative}
+
+/* single orchestrated page-load reveal */
+.reveal{opacity:0;transform:translateY(14px)}
+.js-loaded .reveal{animation:rise 700ms var(--ease) forwards;animation-delay:var(--d,0ms)}
+@keyframes rise{to{opacity:1;transform:none}}
+
+.section{padding-block:clamp(2.5rem,6vw,4.5rem)}
+.section__head{margin-bottom:1.75rem}
+.section__head p{color:var(--text-2);margin-top:.5rem}
+
+.grade-rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1rem}
+.grade-card{position:relative;display:block;padding:1.3rem 1.25rem 1.15rem;border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-1);
+  overflow:hidden;cursor:pointer;text-align:left;
+  transition:border-color 180ms var(--ease),transform 180ms var(--ease),box-shadow 180ms var(--ease)}
+.grade-card:hover{border-color:var(--brand-line);transform:translateY(-3px);box-shadow:var(--shadow-2)}
+.grade-card::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:0;
+  background:linear-gradient(90deg,var(--brand),var(--brand-deep));transition:width 340ms var(--ease)}
+.grade-card:hover::after{width:100%}
+.grade-card__t{margin-top:.5rem;font-weight:600;font-size:var(--t-sm)}
+.grade-card__c{margin-top:.15rem;font-size:var(--t-xs);color:var(--text-3)}
+
+/* genuinely a sequence, so numbering is meaningful */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.25rem;counter-reset:step}
+.step{padding:1.4rem 1.25rem;border-left:2px solid var(--border);transition:border-color 200ms var(--ease)}
+.step:hover{border-left-color:var(--brand)}
+.step::before{counter-increment:step;content:counter(step,decimal-leading-zero);display:block;
+  font-family:var(--font-mono);font-size:var(--t-sm);color:var(--brand);margin-bottom:.6rem}
+.step h3{margin-bottom:.4rem}
+.step p{color:var(--text-2);font-size:var(--t-sm)}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;
+  background:var(--border-soft);border:1px solid var(--border-soft);border-radius:var(--r-lg);overflow:hidden}
+.fact{background:var(--surface);padding:1.5rem 1.35rem}
+.fact__k{font-family:var(--font-mono);font-size:var(--t-xl);font-weight:700}
+.fact__v{color:var(--text-2);font-size:var(--t-sm);margin-top:.3rem}
+
+.callout{display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:clamp(1.75rem,4vw,2.75rem);
+  border-radius:var(--r-xl);
+  background:radial-gradient(120% 160% at 100% 0%,var(--brand-soft),transparent 62%),var(--surface);
+  border:1px solid var(--border);box-shadow:var(--shadow-1)}
+.callout h2{font-size:var(--t-xl)}
+.callout p{color:var(--text-2);margin-top:.4rem;font-size:var(--t-sm)}
+.callout .btn{margin-left:auto}
+
+/* ---------- table picker ---------- */
+.tables{margin-top:.9rem;padding-top:.9rem;border-top:1px dashed var(--border)}
+.tables__head{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.55rem}
+.tables__label{font-size:var(--t-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-3)}
+.tables__now{font-family:var(--font-mono);font-size:var(--t-xs);color:var(--brand-deep);margin-left:auto}
+[data-theme="dark"] .tables__now{color:var(--brand)}
+.tables__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:.4rem}
+.tchip{padding:.4rem .3rem;border-radius:var(--r-sm);border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text-2);cursor:pointer;text-align:center;
+  display:flex;flex-direction:column;gap:.05rem;overflow:hidden;
+  transition:background 140ms var(--ease),border-color 140ms var(--ease),color 140ms var(--ease)}
+.tchip__id{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:700;line-height:1.2}
+.tchip__nm{font-size:.68rem;line-height:1.2;opacity:.8;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tchip:hover{border-color:var(--brand-line);color:var(--text)}
+.tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700;
+  box-shadow:0 3px 10px rgba(245,130,30,.3)}
+.tchip[data-build="missing"]{opacity:.62;border-style:dashed;color:var(--text-3)}
+.tchip[data-build="missing"]::after{content:' ·';color:var(--warn);font-weight:700}
+.tchip[data-build="missing"][aria-pressed="true"]{background:var(--warn);border-color:var(--warn);
+  color:#fff;opacity:1;box-shadow:0 3px 10px rgba(217,164,0,.3)}
+.tchip[data-build="checking"]{opacity:.6}
+.tables__hint{font-size:var(--t-xs);color:var(--text-3);margin-top:.5rem}
+.tables__hint b{color:var(--warn)}
+
+/* ---------- table guide modal ---------- */
+.modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:1.25rem}
+.modal__scrim{position:absolute;inset:0;background:rgba(12,14,18,.55);
+  backdrop-filter:blur(3px);animation:fade 180ms var(--ease)}
+@keyframes fade{from{opacity:0}}
+.modal__box{position:relative;width:min(640px,100%);max-height:86vh;display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);
+  box-shadow:var(--shadow-2);overflow:hidden;animation:pop 220ms var(--ease)}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.modal__head{display:flex;align-items:flex-start;gap:1rem;padding:1.35rem 1.5rem 1rem;
+  border-bottom:1px solid var(--border-soft)}
+.modal__head h2{font-size:var(--t-xl)}
+.modal__head p{margin-top:.3rem;font-size:var(--t-sm);color:var(--text-2)}
+.modal__x{margin-left:auto;flex:none;width:34px;height:34px;display:grid;place-items:center;
+  border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-2);
+  color:var(--text-2);font-size:1.35rem;line-height:1;cursor:pointer;
+  transition:background 140ms var(--ease),color 140ms var(--ease)}
+.modal__x:hover{background:var(--surface-3);color:var(--text)}
+.modal__body{padding:1.25rem 1.5rem;overflow:auto}
+.modal__foot{padding:1rem 1.5rem;border-top:1px solid var(--border-soft);
+  display:flex;justify-content:flex-end;background:var(--surface-2)}
+
+.guide__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem}
+.guide__row{display:flex;align-items:center;gap:.7rem;padding:.6rem .75rem;
+  border:1px solid var(--border-soft);border-radius:var(--r-md);background:var(--surface-2)}
+.guide__id{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:700;
+  padding:.2rem .45rem;border-radius:var(--r-sm);background:var(--brand-soft);
+  color:var(--brand-deep);border:1px solid var(--brand-line);flex:none}
+[data-theme="dark"] .guide__id{color:var(--brand)}
+.guide__name{font-size:var(--t-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guide__note{margin-top:1.1rem;font-size:var(--t-xs);color:var(--text-3);max-width:none}
+.guide__note code{font-family:var(--font-mono);font-size:.95em;padding:.1rem .3rem;
+  border-radius:4px;background:var(--surface-3)}
+
+.foot__made{font-weight:600;color:var(--text-2);text-align:center;flex:none}
+
+@media (max-width:860px){
+  .hero__grid{grid-template-columns:1fr}
+  .board-stage{order:-1;max-width:620px;margin-inline:auto}
+  .callout .btn{margin-left:0}
+}
+
+/* ---------- Coggy isometric model ---------- */
+.coggy{width:100%;height:auto;overflow:visible;display:block}
+.iso-title{font-family:var(--font-ui);font-size:34px;font-weight:700;fill:var(--text);letter-spacing:-.025em}
+.iso-sub{font-family:var(--font-mono);font-size:12.5px;fill:var(--text-3);letter-spacing:.04em}
+.silk{font-family:var(--font-mono);font-size:5px;fill:var(--silk);letter-spacing:.1em}
+.silk--big{font-size:9px;fill:var(--silk-2);letter-spacing:.2em;font-weight:700}
+.trace-base{fill:none;stroke:var(--silk);stroke-width:1.2;opacity:.5}
+.trace-live{fill:none;stroke:var(--brand);stroke-width:1.5;stroke-dasharray:5 46;
+  animation:coggyCurrent 4s linear infinite}
+@keyframes coggyCurrent{to{stroke-dashoffset:-204}}
+.blink.f-t{animation:coggyBlink 2.2s steps(1,end) infinite}
+@keyframes coggyBlink{0%,52%{opacity:1}53%,100%{opacity:.28}}
+
+/* board + component faces — both themes */
+:root{
+  --silk:#7E838B; --silk-2:#AEB4BD;
+  --pcb-t:#1D2027; --pcb-a:#15171C; --pcb-b:#101216;
+}
+[data-theme="dark"]{
+  --silk:#7A808A; --silk-2:#B6BCC6;
+  --pcb-t:#252A33; --pcb-a:#1A1E25; --pcb-b:#14171D;
+}
+.c-board.f-t{fill:var(--pcb-t)}.c-board.f-a{fill:var(--pcb-a)}.c-board.f-b{fill:var(--pcb-b)}
+.c-pcbmod.f-t{fill:#2B3038}.c-pcbmod.f-a{fill:#1F232A}.c-pcbmod.f-b{fill:#191C22}
+.c-can.f-t{fill:#CBC09F}.c-can.f-a{fill:#A79D82}.c-can.f-b{fill:#8C846E}
+.c-metal.f-t{fill:#C6CCD4}.c-metal.f-a{fill:#A4ABB4}.c-metal.f-b{fill:#8B9299}
+.c-switch.f-t{fill:#DCE1E7}.c-switch.f-a{fill:#F5821E}.c-switch.f-b{fill:#C9620C}
+.c-jack.f-t{fill:#2C3038}.c-jack.f-a{fill:#1F2329}.c-jack.f-b{fill:#181A1F}
+.c-conn.f-t{fill:#F1F3F6}.c-conn.f-a{fill:#D3D8DF}.c-conn.f-b{fill:#BAC1CA}
+.c-blue.f-t{fill:#2E63AE}.c-blue.f-a{fill:#224B83}.c-blue.f-b{fill:#1B3C68}
+.c-cap.f-t{fill:#3C424B}.c-cap.f-a{fill:#2B3037}.c-cap.f-b{fill:#23272D}
+.c-ind.f-t{fill:#4C525A}.c-ind.f-a{fill:#383D44}.c-ind.f-b{fill:#2D3138}
+.c-ic.f-t{fill:#282B31}.c-ic.f-a{fill:#1C1F24}.c-ic.f-b{fill:#16181C}
+.c-btn.f-t{fill:#9AA2AC}.c-btn.f-a{fill:#7C838C}.c-btn.f-b{fill:#666C74}
+.c-small.f-t{fill:#5C636C}.c-small.f-a{fill:#464C54}.c-small.f-b{fill:#393E45}
+.c-buzzer.f-t{fill:#2E323A}.c-buzzer.f-a{fill:#202429}.c-buzzer.f-b{fill:#1A1C21}
+.c-led-r.f-t{fill:#E0484B}.c-led-r.f-a{fill:#B23639}.c-led-r.f-b{fill:#8E2B2E}
+.c-led-g.f-t{fill:#2FAE63}.c-led-g.f-a{fill:#248A4E}.c-led-g.f-b{fill:#1D6E3E}
+.c-header.f-t{fill:#3C4149}.c-header.f-a{fill:#2B2F35}.c-header.f-b{fill:#23262B}
+.c-heat.f-t{fill:#828992}.c-heat.f-a{fill:#606670}.c-heat.f-b{fill:#4C5158}
+
+
+/* ---------- brand logo, light + dark ---------- */
+.logo{display:block;line-height:0;position:relative}
+.logo img{height:45px;width:auto;transition:opacity 260ms var(--ease)}
+.logo--dark{position:absolute;inset:0;opacity:0}
+[data-theme="dark"] .logo--light{opacity:0}
+[data-theme="dark"] .logo--dark{opacity:1}
+.brandmark{transition:transform 200ms var(--ease),opacity 200ms}
+.brandmark:hover{transform:translateY(-1px);opacity:.88}
+a.brandmark__word{padding:.3rem .55rem;border-radius:var(--r-sm);transition:background 150ms,color 150ms}
+a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
+
+/* ---------- group colours ---------- */
+.grade-card{--gc:var(--brand)}
+.grade-card__n{font-family:var(--font-mono);font-size:var(--t-3xl);font-weight:700;line-height:1;color:var(--gc);transition:transform 220ms var(--ease)}
+.grade-card::after{background:linear-gradient(90deg,var(--gc),color-mix(in srgb,var(--gc) 55%,var(--brand)))}
+.grade-card:hover{border-color:color-mix(in srgb,var(--gc) 45%,var(--border))}
+.grade-card:hover .grade-card__n{transform:translateY(-2px) scale(1.04)}
+.grade-card::before{content:'';position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:radial-gradient(120% 120% at 100% 0%,color-mix(in srgb,var(--gc) 18%,transparent),transparent 62%);
+  transition:opacity 280ms var(--ease)}
+.grade-card:hover::before{opacity:1}
+
+.rail__btn{--gc:var(--brand)}
+.rail__btn[aria-pressed="true"]{background:color-mix(in srgb,var(--gc) 15%,transparent);
+  color:color-mix(in srgb,var(--gc) 78%,var(--text));box-shadow:inset 2px 0 0 var(--gc)}
+[data-theme="dark"] .rail__btn[aria-pressed="true"]{color:color-mix(in srgb,var(--gc) 60%,#fff)}
+
+.card{--gc:var(--brand);overflow:hidden}
+.card::before{content:'';position:absolute;left:0;top:0;height:2px;width:100%;
+  background:var(--gc);opacity:0;transition:opacity 200ms var(--ease)}
+.card:hover::before,.card[aria-selected="true"]::before{opacity:1}
+.card:hover{border-color:color-mix(in srgb,var(--gc) 45%,var(--border));transform:translateY(-2px)}
+.card[aria-selected="true"]{border-color:var(--gc);box-shadow:0 0 0 1px var(--gc),var(--shadow-1)}
+.card .code{background:color-mix(in srgb,var(--gc) 13%,transparent);
+  border-color:color-mix(in srgb,var(--gc) 34%,transparent);
+  color:color-mix(in srgb,var(--gc) 80%,var(--text))}
+[data-theme="dark"] .card .code{color:color-mix(in srgb,var(--gc) 62%,#fff)}
+
+/* ---------- schematic doodles around the board ---------- */
+.dd{fill:none;stroke:var(--brand);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.6;transition:opacity 400ms var(--ease),stroke-width 400ms var(--ease)}
+[data-theme="dark"] .dd{opacity:.68}
+.dd--fill{fill:var(--brand);stroke:none;opacity:.75}
+.js-loaded .f1{animation:ddFloat 6s var(--ease) infinite}
+.js-loaded .f2{animation:ddFloat 7.6s var(--ease) infinite;animation-delay:-2.1s}
+.js-loaded .f3{animation:ddFloat 5.2s var(--ease) infinite;animation-delay:-3.4s}
+@keyframes ddFloat{0%,100%{transform:translateY(0) rotate(0)}
+  50%{transform:translateY(-8px) rotate(2.5deg)}}
+.board-stage:hover .dd{opacity:1;stroke-width:3}
+
+.coggy-shadow{fill:#0B0D10;opacity:.1;transition:opacity 400ms var(--ease),transform 400ms var(--ease)}
+[data-theme="dark"] .coggy-shadow{fill:#000;opacity:.42}
+.coggy-lift{transition:transform 500ms var(--ease)}
+.board-stage:hover .coggy-lift{transform:translateY(-12px)}
+.board-stage:hover .coggy-shadow{opacity:.06;transform:scale(.95)}
+[data-theme="dark"] .board-stage:hover .coggy-shadow{opacity:.3}
+
+/* ---------- the board talks ---------- */
+.board-stage{position:relative}
+.coggy-says{
+  position:absolute;left:50%;top:11.5%;transform:translateX(-50%);
+  z-index:2;width:max-content;max-width:min(84%,380px);
+  padding:.62rem 1rem;border-radius:14px;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:var(--shadow-1);
+  transition:transform 500ms var(--ease),box-shadow 400ms var(--ease)}
+.coggy-says::after{content:'';position:absolute;left:50%;bottom:-7px;
+  width:12px;height:12px;margin-left:-6px;transform:rotate(45deg);
+  background:var(--surface);border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);border-bottom-right-radius:3px}
+.coggy-says__t{margin:0;font-size:var(--t-sm);color:var(--text);
+  text-align:center;white-space:nowrap;line-height:1.4;min-height:1.4em}
+.caret{display:inline-block;width:2px;height:1em;margin-left:2px;
+  vertical-align:-2px;background:var(--brand);animation:caretBlink 1s steps(1,end) infinite}
+@keyframes caretBlink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.board-stage:hover .coggy-says{transform:translateX(-50%) translateY(-6px);box-shadow:var(--shadow-2)}
+@media (max-width:520px){
+  .coggy-says{max-width:88%}
+  .coggy-says__t{white-space:normal;font-size:var(--t-xs)}
+}
+
+/* ---------- footer ---------- */
+.foot{border-top:1px solid var(--border-soft);margin-top:5rem;padding-block:3rem 1.5rem;
+  background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--brand) 4%,transparent))}
+.foot__grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:2.5rem}
+.foot__brand .logo img{height:34px}
+.foot__blurb{margin-top:1rem;font-size:var(--t-sm);color:var(--text-2);max-width:34ch;line-height:1.65}
+.foot__site{display:inline-flex;align-items:center;gap:.35rem;margin-top:1rem;font-size:var(--t-sm);
+  font-weight:600;color:var(--brand);transition:gap 180ms var(--ease)}
+.foot__site svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.foot__site:hover{gap:.6rem}
+.foot__col{display:flex;flex-direction:column;gap:.55rem}
+.foot__col h3{font-size:var(--t-xs);font-weight:600;color:var(--text);margin-bottom:.35rem;
+  letter-spacing:.06em;text-transform:uppercase}
+.foot__col a,.foot__col span{font-size:var(--t-sm);color:var(--text-3)}
+.foot__col a{position:relative;width:fit-content;transition:color 160ms}
+.foot__col a::after{content:'';position:absolute;left:0;bottom:-2px;height:1px;width:0;
+  background:var(--brand);transition:width 240ms var(--ease)}
+.foot__col a:hover{color:var(--text)}
+.foot__col a:hover::after{width:100%}
+.foot__ok{display:inline-flex;align-items:center;gap:.4rem}
+.foot__bar{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:center;
+  margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--border-soft);
+  font-size:var(--t-xs);color:var(--text-3)}
+.foot__made strong{color:var(--brand);font-weight:600}
+.foot__year{margin-left:auto}
+@media (max-width:900px){
+  .foot__grid{grid-template-columns:1fr 1fr;gap:2rem}
+  .foot__brand{grid-column:1/-1}
+  .foot__year{margin-left:0}
+}
+
+/* ==========================================================================
+   FLASHER WORKSPACE
+   ========================================================================== */
+.workspace{display:grid;grid-template-columns:216px minmax(0,1fr) 372px;gap:1.25rem;
+  align-items:start;max-width:1500px;margin-inline:auto;padding:1.5rem var(--gutter) 3rem}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-1)}
+.panel__head{display:flex;align-items:center;gap:.6rem;padding:.9rem 1.1rem;
+  border-bottom:1px solid var(--border-soft)}
+.panel__head h2{font-size:var(--t-sm);font-weight:600;letter-spacing:-.005em}
+.panel__body{padding:1.1rem}
+
+.rail{position:sticky;top:84px}
+.rail__title{font-size:var(--t-xs);color:var(--text-3);padding:0 .55rem .5rem;font-weight:500}
+.rail__btn{display:flex;align-items:center;gap:.6rem;width:100%;padding:.55rem .7rem;border:0;
+  background:transparent;border-radius:var(--r-sm);cursor:pointer;text-align:left;
+  font-size:var(--t-sm);color:var(--text-2);transition:background 140ms,color 140ms}
+.rail__btn:hover{background:var(--surface-2);color:var(--text)}
+.rail__btn[aria-pressed="true"]{background:var(--brand-soft);color:var(--brand-deep);font-weight:600}
+[data-theme="dark"] .rail__btn[aria-pressed="true"]{color:var(--brand)}
+.rail__btn .n{margin-left:auto;font-family:var(--font-mono);font-size:var(--t-xs);color:var(--text-3)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:1.1rem}
+.search{flex:1 1 220px;display:flex;align-items:center;gap:.55rem;padding:.55rem .85rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md)}
+.search input{flex:1;border:0;background:transparent;outline:none;font-size:var(--t-sm)}
+.search input::placeholder{color:var(--text-3)}
+.search svg{width:15px;height:15px;stroke:var(--text-3);fill:none;stroke-width:2}
+.select{padding:.55rem .8rem;border-radius:var(--r-md);border:1px solid var(--border);
+  background:var(--surface);font-size:var(--t-sm);cursor:pointer}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:.9rem}
+.card{position:relative;display:flex;flex-direction:column;gap:.6rem;padding:1.05rem;text-align:left;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);cursor:pointer;
+  transition:border-color 160ms var(--ease),box-shadow 160ms var(--ease)}
+.card:hover{border-color:var(--brand-line);box-shadow:var(--shadow-1)}
+.card[aria-selected="true"]{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),var(--shadow-1)}
+.card__top{display:flex;align-items:center;gap:.5rem}
+.card__name{font-weight:600;font-size:var(--t-sm);line-height:1.35}
+.card__desc{font-size:var(--t-xs);color:var(--text-2);line-height:1.55}
+.card__foot{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:auto;padding-top:.3rem}
+
+.empty{padding:3rem 1.5rem;text-align:center;color:var(--text-3);
+  border:1px dashed var(--border);border-radius:var(--r-lg)}
+.empty strong{display:block;color:var(--text-2);margin-bottom:.3rem}
+
+.dock{position:sticky;top:84px;display:grid;gap:1.25rem}
+.readout{display:grid;gap:.5rem}
+.readout__row{display:flex;justify-content:space-between;gap:1rem;font-size:var(--t-xs);
+  padding-bottom:.45rem;border-bottom:1px dashed var(--border-soft)}
+.readout__row:last-child{border-bottom:0;padding-bottom:0}
+.readout__k{color:var(--text-3)}
+.readout__v{font-family:var(--font-mono);color:var(--text);text-align:right;word-break:break-all}
+
+.target{margin-top:1rem;padding:.9rem;border-radius:var(--r-md);background:var(--surface-2);
+  border:1px solid var(--border-soft)}
+.target__label{font-size:var(--t-xs);color:var(--text-3);margin-bottom:.35rem}
+.target__name{font-weight:600;font-size:var(--t-sm)}
+
+.progress{margin-top:1rem;height:8px;border-radius:999px;background:var(--surface-3);overflow:hidden}
+.progress__bar{height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--brand),#FFB25E);transition:width 220ms var(--ease)}
+.progress__bar.is-active{
+  background-image:linear-gradient(90deg,var(--brand),#FFB25E),
+    repeating-linear-gradient(45deg,rgba(255,255,255,.22) 0 8px,transparent 8px 16px);
+  background-blend-mode:overlay;animation:stripes 700ms linear infinite}
+@keyframes stripes{to{background-position:0 0,32px 0}}
+.progress__meta{display:flex;justify-content:space-between;font-size:var(--t-xs);color:var(--text-3);
+  margin-top:.45rem;font-family:var(--font-mono)}
+
+.check{display:flex;align-items:center;gap:.55rem;font-size:var(--t-xs);color:var(--text-2);
+  margin-top:.9rem;cursor:pointer}
+.check input{accent-color:var(--brand);width:15px;height:15px}
+
+.console{background:var(--console-bg);border-color:transparent}
+.console .panel__head{border-bottom-color:rgba(255,255,255,.08)}
+.console .panel__head h2{color:#E8EBF0}
+.console__out{font-family:var(--font-mono);font-size:11.5px;line-height:1.7;color:var(--console-fg);
+  padding:.9rem 1rem;height:232px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+.console__out::-webkit-scrollbar{width:8px}
+.console__out::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
+.line{display:block}
+.line--info{color:#8FA3BC} .line--ok{color:#58D68D}
+.line--warn{color:#F2C14E} .line--err{color:#F1746F} .line--io{color:#CBD3DE}
+.line__t{color:#5C6879;margin-right:.55rem}
+@keyframes lineIn{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:none}}
+.js-loaded .line{animation:lineIn 180ms var(--ease)}
+
+.drop{margin-top:1rem;padding:1.15rem;border:1.5px dashed var(--border);border-radius:var(--r-md);
+  text-align:center;cursor:pointer;color:var(--text-3);font-size:var(--t-xs);
+  transition:border-color 160ms,background 160ms,color 160ms}
+.drop:hover,.drop.is-over{border-color:var(--brand);background:var(--brand-soft);color:var(--text-2)}
+.drop strong{display:block;color:var(--text-2);font-size:var(--t-sm);margin-bottom:.25rem}
+
+.banner{max-width:1500px;margin:1rem auto 0;display:flex;gap:.8rem;align-items:flex-start;
+  padding:1rem 1.1rem;border-radius:var(--r-md);border:1px solid var(--err);
+  background:color-mix(in srgb,var(--err) 10%,var(--surface));font-size:var(--t-sm)}
+.banner[hidden]{display:none}
+.banner strong{display:block;margin-bottom:.15rem}
+
+.toast-wrap{position:fixed;right:1.25rem;bottom:1.25rem;display:grid;gap:.6rem;z-index:200}
+.toast{display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-2);
+  font-size:var(--t-sm);animation:toastIn 280ms var(--ease);max-width:340px}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.toast.is-out{animation:toastOut 220ms var(--ease) forwards}
+@keyframes toastOut{to{opacity:0;transform:translateY(6px)}}
+
+@media (max-width:1180px){
+  .workspace{grid-template-columns:190px minmax(0,1fr)}
+  .dock{grid-column:1/-1;position:static;grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .workspace{grid-template-columns:1fr}
+  .rail{position:static;display:flex;flex-wrap:wrap;gap:.4rem}
+  .rail__title{width:100%}
+  .rail__btn{width:auto}
+  .dock{grid-template-columns:1fr}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="shell masthead__inner" style="max-width:1500px">
+    <a class="brandmark" href="https://www.cognospace.in" target="_blank" rel="noopener" title="CognoSpace — www.cognospace.in">
+      <span class="logo">
+        <img class="logo--light" src="assets/cognospace-logo.png" alt="CognoSpace">
+        <img class="logo--dark" src="assets/cognospace-logo-dark.png" alt="" aria-hidden="true">
+      </span>
+    </a>
+    <a class="brandmark__word" href="#/">Coggy Flasher</a>
+    <nav class="masthead__nav">
+      <span class="support" id="statusPill" style="padding:.35rem .75rem" hidden>
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Not connected</span>
+      </span>
+      <a class="masthead__link" href="#/">Home</a>
+      <a class="masthead__link" href="#/flash">Flasher</a>
+      <button class="masthead__link" id="guideBtn" type="button">Table guide</button>
+      <button class="theme-toggle" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- ==================== LANDING VIEW ==================== -->
+<div class="view" id="viewHome">
+<main>
+
+  <section class="hero">
+    <div class="shell hero__grid">
+      <div>
+        <h1 class="hero__title reveal" style="--d:60ms">Every activity, every class, ready to flash onto a Coggy in thirty seconds.</h1>
+        <p class="hero__lede reveal" style="--d:160ms">
+          Plug a Coggy into any lab computer, pick the activity code from the shelf,
+          and write the firmware straight from this page. No drivers, no IDE, nothing to install.
+        </p>
+        <div class="hero__actions reveal" style="--d:240ms">
+          <a class="btn btn--brand btn--lg" href="#/flash">Open the flasher</a>
+          <a class="btn btn--ghost btn--lg" href="#grades">Browse by grade</a>
+        </div>
+        <div class="support reveal" style="--d:320ms">
+          <span class="dot" id="supportDot"></span>
+          <span id="supportText">Checking this browser…</span>
+        </div>
+      </div>
+
+      <!-- the hero is the thing students actually touch: current running into a board -->
+      <div class="board-stage reveal" style="--d:140ms">
+        <div class="coggy-says" aria-live="polite">
+          <p class="coggy-says__t"><span id="coggyLine"></span><span class="caret"></span></p>
+        </div>
+        <svg class="coggy" viewBox="0 0 760 565" role="img" aria-label="Labelled isometric model of the CognoSpace Coggy board">
+        <text class="iso-title" x="380" y="34" text-anchor="middle">CognoSpace Coggy</text>
+        <text class="iso-sub" x="380" y="54" text-anchor="middle">Built-in . BLE </text>
+        <g class="doodles" aria-hidden="true">
+  <g transform="translate(24,104)"><g class="dd-sym f1" transform="scale(1.05)"><path class="dd" d="M0 0h10l4-8 8 16 8-16 8 16 4-8h10"/></g></g>
+  <g transform="translate(152,84)"><g class="dd-sym f2"><path class="dd" d="M0 0h14M14-11v22M26-11v22M26 0h14"/></g></g>
+  <g transform="translate(34,182)"><g class="dd-sym f3"><path class="dd" d="M0 0h10M10-9l18 9-18 9zM28-9v18M28 0h10M16-14l9-9M19-23h6v6M25-14l9-9M28-23h6v6"/></g></g>
+  <g transform="translate(182,146)"><g class="dd-sym f2"><path class="dd" d="M0-12v12M-14 0h28M-9 7h18M-4 14h8"/></g></g>
+  <g transform="translate(118,208)"><g class="dd-sym f1"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+  <g transform="translate(22,262)"><g class="dd-sym f3"><path class="dd" d="M0 0h6a6 6 0 0 1 12 0a6 6 0 0 1 12 0a6 6 0 0 1 12 0a6 6 0 0 1 12 0h6"/></g></g>
+  <g transform="translate(104,268)"><g class="dd-sym f1" transform="scale(0.9)"><circle class="dd" cx="16" cy="0" r="15"/><path class="dd" d="M0 0h7M7-10v20M7-4l14-9M7 4l14 9M21-13h9M21 13h9M15 7l7 3-2-7"/></g></g>
+  <g transform="translate(30,462)"><g class="dd-sym f2"><path class="dd" d="M0 0h38v30H0zM8 0v-8M19 0v-8M30 0v-8M8 30v8M19 30v8M30 30v8M0 8h-8M0 22h-8M38 8h8M38 22h8"/></g></g>
+  <g transform="translate(30,540)"><g class="dd-sym f1"><path class="dd" d="M0 0h10M10-13v26M18-7v14M18 0h4M22-13v26M30-7v14M30 0h10"/></g></g>
+  <g transform="translate(146,486)"><g class="dd-sym f3"><path class="dd" d="M0 0h8M8-7v14M30-7v14M30 0h8M5-13h28M19-13v-9"/></g></g>
+  <g transform="translate(150,546)"><g class="dd-sym f2" transform="scale(0.9)"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+  <g transform="translate(664,92)"><g class="dd-sym f1"><path class="dd" d="M0 22a30 30 0 0 1 44 0M8 30a19 19 0 0 1 28 0M16 38a9 9 0 0 1 12 0"/><circle class="dd dd--fill" cx="22" cy="46" r="3.5"/></g></g>
+  <g transform="translate(578,86)"><g class="dd-sym f2"><path class="dd" d="M0 0h10M10-9l18 9-18 9zM28-9v18M28 0h10"/></g></g>
+  <g transform="translate(686,176)"><g class="dd-sym f3"><path class="dd" d="M0 0h8M8-13v26M14-10h12v20H14zM32-13v26M32 0h8"/></g></g>
+  <g transform="translate(582,178)"><g class="dd-sym f1"><path class="dd" d="M0 0h10l4-8 8 16 8-16 8 16 4-8h10M26-24v13M21-14l5 5 5-5"/></g></g>
+  <g transform="translate(698,264)"><g class="dd-sym f2" transform="scale(0.9)"><circle class="dd" cx="16" cy="0" r="15"/><path class="dd" d="M9 5l4-10 3 10 4-10 3 10M-6 0h7M31 0h7"/></g></g>
+  <g transform="translate(642,214)"><g class="dd-sym f3" transform="scale(0.9)"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+  <g transform="translate(596,462)"><g class="dd-sym f1"><path class="dd" d="M0-9h8l11-11v40L8 9H0zM26-9a13 13 0 0 1 0 18M33-15a21 21 0 0 1 0 30"/></g></g>
+  <g transform="translate(686,420)"><g class="dd-sym f3"><path class="dd" d="M0 0h8M8-13l21 13-21 13zM35 0h8"/></g></g>
+  <g transform="translate(596,534)"><g class="dd-sym f2"><path class="dd" d="M0 0h9M13-3l17-11M34 0h9"/></g></g>
+  <g transform="translate(692,508)"><g class="dd-sym f1"><circle class="dd" cx="0" cy="0" r="8"/><circle class="dd dd--fill" cx="0" cy="0" r="3"/></g></g>
+</g>
+        <ellipse class="coggy-shadow" cx="380" cy="512" rx="252" ry="26"/>
+        
+        <g class="coggy-lift"><g transform="translate(422.2,125.8)">
+        <polygon class="c-board f-a" points="-396.2,219.6 -84.5,399.5 -84.5,408.7 -396.2,228.7"/><polygon class="c-board f-b" points="311.7,170.8 -84.5,399.5 -84.5,408.7 311.7,179.9"/><polygon class="c-board f-t" points="0.0,-9.1 311.7,170.8 -84.5,399.5 -396.2,219.6"/>
+        <g transform="matrix(2.6414,1.5250,-2.6414,1.5250,0,0)"><text class="silk silk--big" x="11" y="137">COGGY</text><text class="silk" x="46" y="139">www.cognospace.in</text><path class="trace-base" d="M10,136 H58 V147 H106"/><path class="trace-live" d="M10,136 H58 V147 H106"/></g>
+        <polygon class="c-conn f-a" points="17.7,3.2 39.5,15.8 39.5,31.0 17.7,18.4"/><polygon class="c-conn f-b" points="54.5,7.1 39.5,15.8 39.5,31.0 54.5,22.3"/><polygon class="c-conn f-t" points="32.7,-5.5 54.5,7.1 39.5,15.8 17.7,3.2"/>
+        <polygon class="c-switch f-a" points="-25.0,-16.7 18.6,8.4 18.6,35.9 -25.0,10.7"/><polygon class="c-switch f-b" points="46.3,-7.6 18.6,8.4 18.6,35.9 46.3,19.9"/><polygon class="c-switch f-t" points="2.7,-32.8 46.3,-7.6 18.6,8.4 -25.0,-16.7"/>
+        <polygon class="c-small f-a" points="44.0,36.7 65.8,49.3 65.8,55.4 44.0,42.8"/><polygon class="c-small f-b" points="73.0,45.2 65.8,49.3 65.8,55.4 73.0,51.3"/><polygon class="c-small f-t" points="51.2,32.6 73.0,45.2 65.8,49.3 44.0,36.7"/>
+        <polygon class="c-small f-a" points="-10.2,36.2 11.6,48.8 11.6,57.9 -10.2,45.3"/><polygon class="c-small f-b" points="29.0,38.7 11.6,48.8 11.6,57.9 29.0,47.9"/><polygon class="c-small f-t" points="7.2,26.1 29.0,38.7 11.6,48.8 -10.2,36.2"/>
+        <polygon class="c-jack f-a" points="65.3,29.3 102.7,50.9 102.7,84.5 65.3,62.9"/><polygon class="c-jack f-b" points="130.5,34.9 102.7,50.9 102.7,84.5 130.5,68.5"/><polygon class="c-jack f-t" points="93.1,13.3 130.5,34.9 102.7,50.9 65.3,29.3"/>
+        <polygon class="c-conn f-a" points="-121.5,57.1 -88.7,76.0 -88.7,94.3 -121.5,75.4"/><polygon class="c-conn f-b" points="-65.7,62.7 -88.7,76.0 -88.7,94.3 -65.7,81.0"/><polygon class="c-conn f-t" points="-98.5,43.8 -65.7,62.7 -88.7,76.0 -121.5,57.1"/>
+        <polygon class="c-conn f-a" points="-150.0,73.5 -117.3,92.4 -117.3,110.7 -150.0,91.8"/><polygon class="c-conn f-b" points="-94.3,79.2 -117.3,92.4 -117.3,110.7 -94.3,97.5"/><polygon class="c-conn f-t" points="-127.0,60.3 -94.3,79.2 -117.3,92.4 -150.0,73.5"/>
+        <polygon class="c-conn f-a" points="-178.5,90.0 -145.8,108.9 -145.8,127.2 -178.5,108.3"/><polygon class="c-conn f-b" points="-122.8,95.6 -145.8,108.9 -145.8,127.2 -122.8,113.9"/><polygon class="c-conn f-t" points="-155.5,76.7 -122.8,95.6 -145.8,108.9 -178.5,90.0"/>
+        <polygon class="c-conn f-a" points="-230.0,119.7 -195.7,139.5 -195.7,157.8 -230.0,138.0"/><polygon class="c-conn f-b" points="-163.2,120.8 -195.7,139.5 -195.7,157.8 -163.2,139.1"/><polygon class="c-conn f-t" points="-197.5,101.0 -163.2,120.8 -195.7,139.5 -230.0,119.7"/>
+        <polygon class="c-conn f-a" points="-277.6,147.2 -243.3,167.0 -243.3,185.3 -277.6,165.5"/><polygon class="c-conn f-b" points="-210.8,148.2 -243.3,167.0 -243.3,185.3 -210.8,166.5"/><polygon class="c-conn f-t" points="-245.1,128.4 -210.8,148.2 -243.3,167.0 -277.6,147.2"/>
+        <polygon class="c-blue f-a" points="-145.1,151.8 -54.7,204.0 -54.7,213.2 -145.1,161.0"/><polygon class="c-blue f-b" points="93.9,118.2 -54.7,204.0 -54.7,213.2 93.9,127.4"/><polygon class="c-blue f-t" points="3.5,66.1 93.9,118.2 -54.7,204.0 -145.1,151.8"/>
+        <polygon class="c-small f-a" points="-176.0,204.6 -165.1,210.9 -165.1,215.8 -176.0,209.5"/><polygon class="c-small f-b" points="-141.4,197.2 -165.1,210.9 -165.1,215.8 -141.4,202.0"/><polygon class="c-small f-t" points="-152.3,190.9 -141.4,197.2 -165.1,210.9 -176.0,204.6"/>
+        <polygon class="c-small f-a" points="-153.3,217.7 -142.4,224.0 -142.4,228.9 -153.3,222.6"/><polygon class="c-small f-b" points="-118.6,210.3 -142.4,224.0 -142.4,228.9 -118.6,215.2"/><polygon class="c-small f-t" points="-129.5,204.0 -118.6,210.3 -142.4,224.0 -153.3,217.7"/>
+        <polygon class="c-led-r f-a" points="-210.7,217.2 -195.1,226.2 -195.1,236.0 -210.7,227.0"/><polygon class="c-led-r f-b" points="-176.5,215.4 -195.1,226.2 -195.1,236.0 -176.5,225.2"/><polygon class="c-led-r f-t" points="-192.1,206.4 -176.5,215.4 -195.1,226.2 -210.7,217.2"/>
+        <polygon class="c-conn f-a" points="-299.6,203.1 -268.4,221.1 -268.4,239.4 -299.6,221.4"/><polygon class="c-conn f-b" points="-235.9,202.3 -268.4,221.1 -268.4,239.4 -235.9,220.6"/><polygon class="c-conn f-t" points="-267.1,184.3 -235.9,202.3 -268.4,221.1 -299.6,203.1"/>
+        <polygon class="c-conn f-a" points="136.5,206.9 166.1,224.0 166.1,242.3 136.5,225.2"/><polygon class="c-conn f-b" points="189.0,210.7 166.1,224.0 166.1,242.3 189.0,229.0"/><polygon class="c-conn f-t" points="159.4,193.6 189.0,210.7 166.1,224.0 136.5,206.9"/>
+        <polygon class="c-small f-a" points="-80.6,232.2 -67.5,239.8 -67.5,244.7 -80.6,237.1"/><polygon class="c-small f-b" points="-48.5,228.8 -67.5,239.8 -67.5,244.7 -48.5,233.7"/><polygon class="c-small f-t" points="-61.6,221.3 -48.5,228.8 -67.5,239.8 -80.6,232.2"/>
+        <polygon class="c-led-g blink f-a" points="-188.9,229.8 -173.3,238.8 -173.3,248.6 -188.9,239.6"/><polygon class="c-led-g blink f-b" points="-154.7,228.0 -173.3,238.8 -173.3,248.6 -154.7,237.8"/><polygon class="c-led-g blink f-t" points="-170.3,219.0 -154.7,228.0 -173.3,238.8 -188.9,229.8"/>
+        <polygon class="c-pcbmod f-a" points="-4.8,172.2 112.1,239.7 112.1,250.0 -4.8,182.5"/><polygon class="c-pcbmod f-b" points="278.5,143.6 112.1,239.7 112.1,250.0 278.5,153.9"/><polygon class="c-pcbmod f-t" points="161.7,76.1 278.5,143.6 112.1,239.7 -4.8,172.2"/>
+        <polygon class="c-small f-a" points="-61.0,243.6 -47.9,251.1 -47.9,256.0 -61.0,248.5"/><polygon class="c-small f-b" points="-28.8,240.2 -47.9,251.1 -47.9,256.0 -28.8,245.0"/><polygon class="c-small f-t" points="-41.9,232.6 -28.8,240.2 -47.9,251.1 -61.0,243.6"/>
+        <polygon class="c-conn f-a" points="105.5,224.7 135.2,241.8 135.2,260.1 105.5,243.0"/><polygon class="c-conn f-b" points="158.1,228.6 135.2,241.8 135.2,260.1 158.1,246.9"/><polygon class="c-conn f-t" points="128.5,211.5 158.1,228.6 135.2,241.8 105.5,224.7"/>
+        <polygon class="c-conn f-a" points="-261.6,225.1 -230.4,243.0 -230.4,261.3 -261.6,243.4"/><polygon class="c-conn f-b" points="-197.9,224.3 -230.4,243.0 -230.4,261.3 -197.9,242.6"/><polygon class="c-conn f-t" points="-229.1,206.3 -197.9,224.3 -230.4,243.0 -261.6,225.1"/>
+        <polygon class="c-small f-a" points="-41.3,254.9 -28.2,262.5 -28.2,267.4 -41.3,259.8"/><polygon class="c-small f-b" points="-9.2,251.5 -28.2,262.5 -28.2,267.4 -9.2,256.4"/><polygon class="c-small f-t" points="-22.3,243.9 -9.2,251.5 -28.2,262.5 -41.3,254.9"/>
+        <polygon class="c-small f-a" points="-123.4,256.9 -110.3,264.5 -110.3,269.4 -123.4,261.8"/><polygon class="c-small f-b" points="-91.3,253.5 -110.3,264.5 -110.3,269.4 -91.3,258.4"/><polygon class="c-small f-t" points="-104.4,246.0 -91.3,253.5 -110.3,264.5 -123.4,256.9"/>
+        <polygon class="c-conn f-a" points="74.6,242.6 104.3,259.7 104.3,278.0 74.6,260.9"/><polygon class="c-conn f-b" points="127.2,246.4 104.3,259.7 104.3,278.0 127.2,264.7"/><polygon class="c-conn f-t" points="97.6,229.3 127.2,246.4 104.3,259.7 74.6,242.6"/>
+        <polygon class="c-small f-a" points="-21.7,266.3 -8.6,273.8 -8.6,278.7 -21.7,271.1"/><polygon class="c-small f-b" points="10.4,262.8 -8.6,273.8 -8.6,278.7 10.4,267.7"/><polygon class="c-small f-t" points="-2.7,255.3 10.4,262.8 -8.6,273.8 -21.7,266.3"/>
+        <polygon class="c-ic f-a" points="-53.8,220.5 25.6,266.4 25.6,280.2 -53.8,234.3"/><polygon class="c-ic f-b" points="65.3,243.6 25.6,266.4 25.6,280.2 65.3,257.3"/><polygon class="c-ic f-t" points="-14.2,197.7 65.3,243.6 25.6,266.4 -53.8,220.5"/>
+        <polygon class="c-small f-a" points="-103.7,268.3 -90.7,275.8 -90.7,280.7 -103.7,273.2"/><polygon class="c-small f-b" points="-71.6,264.9 -90.7,275.8 -90.7,280.7 -71.6,269.7"/><polygon class="c-small f-t" points="-84.7,257.3 -71.6,264.9 -90.7,275.8 -103.7,268.3"/>
+        <polygon class="c-conn f-a" points="-223.5,247.0 -192.4,265.0 -192.4,283.3 -223.5,265.3"/><polygon class="c-conn f-b" points="-159.9,246.2 -192.4,265.0 -192.4,283.3 -159.9,264.5"/><polygon class="c-conn f-t" points="-191.0,228.2 -159.9,246.2 -192.4,265.0 -223.5,247.0"/>
+        <polygon class="c-small f-a" points="-84.1,279.6 -71.0,287.2 -71.0,292.1 -84.1,284.5"/><polygon class="c-small f-b" points="-52.0,276.2 -71.0,287.2 -71.0,292.1 -52.0,281.1"/><polygon class="c-small f-t" points="-65.1,268.6 -52.0,276.2 -71.0,287.2 -84.1,279.6"/>
+        <polygon class="c-small f-a" points="-64.5,291.0 -51.4,298.5 -51.4,303.4 -64.5,295.8"/><polygon class="c-small f-b" points="-32.4,287.5 -51.4,298.5 -51.4,303.4 -32.4,292.4"/><polygon class="c-small f-t" points="-45.5,280.0 -32.4,287.5 -51.4,298.5 -64.5,291.0"/>
+        <polygon class="c-conn f-a" points="-185.5,269.0 -154.3,287.0 -154.3,305.3 -185.5,287.3"/><polygon class="c-conn f-b" points="-121.9,268.2 -154.3,287.0 -154.3,305.3 -121.9,286.5"/><polygon class="c-conn f-t" points="-153.0,250.2 -121.9,268.2 -154.3,287.0 -185.5,269.0"/>
+        <polygon class="c-header f-a" points="-38.3,282.3 -14.3,296.1 -14.3,312.9 -38.3,299.1"/><polygon class="c-header f-b" points="30.9,270.1 -14.3,296.1 -14.3,312.9 30.9,286.8"/><polygon class="c-header f-t" points="6.9,256.2 30.9,270.1 -14.3,296.1 -38.3,282.3"/>
+        <polygon class="c-conn f-a" points="-147.5,290.9 -116.3,308.9 -116.3,327.2 -147.5,309.2"/><polygon class="c-conn f-b" points="-83.8,290.2 -116.3,308.9 -116.3,327.2 -83.8,308.5"/><polygon class="c-conn f-t" points="-115.0,272.2 -83.8,290.2 -116.3,308.9 -147.5,290.9"/>
+        <polygon class="c-heat f-a" points="-17.6,280.4 12.7,297.8 12.7,334.4 -17.6,317.0"/><polygon class="c-heat f-b" points="66.2,267.0 12.7,297.8 12.7,334.4 66.2,303.6"/><polygon class="c-heat f-t" points="35.9,249.5 66.2,267.0 12.7,297.8 -17.6,280.4"/>
+        <polygon class="c-conn f-a" points="-109.5,312.9 -78.3,330.9 -78.3,349.2 -109.5,331.2"/><polygon class="c-conn f-b" points="-45.8,312.1 -78.3,330.9 -78.3,349.2 -45.8,330.4"/><polygon class="c-conn f-t" points="-77.0,294.1 -45.8,312.1 -78.3,330.9 -109.5,312.9"/>
+        <path class="c-buzzer f-a" d="M-204.8,160.3 A22.9,13.2 0 0 0 -159.0,160.3 L-159.0,178.6 A22.9,13.2 0 0 1 -204.8,178.6 Z"/><ellipse class="c-buzzer f-t" cx="-181.9" cy="160.3" rx="22.9" ry="13.2"/>
+        <path class="c-cap f-a" d="M-138.4,181.4 A16.7,9.7 0 0 0 -104.9,181.4 L-104.9,199.7 A16.7,9.7 0 0 1 -138.4,199.7 Z"/><ellipse class="c-cap f-t" cx="-121.7" cy="181.4" rx="16.7" ry="9.7"/>
+        <polygon class="c-ic f-a" points="3.3,119.3 25.1,131.9 25.1,147.2 3.3,134.6"/><polygon class="c-ic f-b" points="54.8,114.8 25.1,131.9 25.1,147.2 54.8,130.0"/><polygon class="c-ic f-t" points="33.0,102.2 54.8,114.8 25.1,131.9 3.3,119.3"/>
+        <path class="c-cap f-a" d="M10.0,83.8 A24.2,14.0 0 0 0 58.5,83.8 L58.5,111.3 A24.2,14.0 0 0 1 10.0,111.3 Z"/><ellipse class="c-cap f-t" cx="34.3" cy="83.8" rx="24.2" ry="14.0"/>
+        <path class="c-ind f-a" d="M-86.8,121.5 A29.1,16.8 0 0 0 -28.7,121.5 L-28.7,142.8 A29.1,16.8 0 0 1 -86.8,142.8 Z"/><ellipse class="c-ind f-t" cx="-57.7" cy="121.5" rx="29.1" ry="16.8"/>
+        <path class="c-cap f-a" d="M-96.7,155.7 A24.2,14.0 0 0 0 -48.2,155.7 L-48.2,180.1 A24.2,14.0 0 0 1 -96.7,180.1 Z"/><ellipse class="c-cap f-t" cx="-72.4" cy="155.7" rx="24.2" ry="14.0"/>
+        <polygon class="c-btn f-a" points="142.1,88.5 154.6,95.7 154.6,101.8 142.1,94.6"/><polygon class="c-btn f-b" points="170.4,86.5 154.6,95.7 154.6,101.8 170.4,92.6"/><polygon class="c-btn f-t" points="158.0,79.3 170.4,86.5 154.6,95.7 142.1,88.5"/>
+        <polygon class="c-metal f-a" points="192.3,96.1 225.0,115.0 225.0,124.1 192.3,105.2"/><polygon class="c-metal f-b" points="236.9,108.1 225.0,115.0 225.0,124.1 236.9,117.2"/><polygon class="c-metal f-t" points="204.2,89.2 236.9,108.1 225.0,115.0 192.3,96.1"/>
+        <polygon class="c-btn f-a" points="235.6,142.5 248.1,149.6 248.1,155.7 235.6,148.6"/><polygon class="c-btn f-b" points="264.0,140.5 248.1,149.6 248.1,155.7 264.0,146.6"/><polygon class="c-btn f-t" points="251.5,133.3 264.0,140.5 248.1,149.6 235.6,142.5"/>
+        <polygon class="c-can f-a" points="48.3,155.7 121.6,198.0 121.6,210.8 48.3,168.5"/><polygon class="c-can f-b" points="188.9,159.1 121.6,198.0 121.6,210.8 188.9,171.9"/><polygon class="c-can f-t" points="115.7,116.8 188.9,159.1 121.6,198.0 48.3,155.7"/>
+        </g></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="grades">
+    <div class="shell">
+      <div class="section__head">
+        <h2>The shelf, by class</h2>
+        <p>Each activity carries a code students can read out loud, so a teacher can say “flash CS-G07-A05” and every Coggy in the room ends up running the same firmware.</p>
+      </div>
+      <div class="grade-rail" id="homeGrades"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section__head">
+        <h2>How upload the code into the coggy</h2>
+        <p>Three moves, the same every time, on any machine in the lab.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <h3>Plug in the Coggy</h3>
+          <p>Connect over USB and press Connect. The browser asks which port to use once, then reads the chip, the adapter and the MAC address back to you.</p>
+        </div>
+        <div class="step">
+          <h3>Pick the activity code</h3>
+          <p>Filter by grade or search the code. The card shows the board it targets, the version and the components the activity needs.</p>
+        </div>
+        <div class="step">
+          <h3>Write and watch</h3>
+          <p>Press Flash. The console prints every step, and the serial output appears as soon as the board restarts — useful evidence for a lab record.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="facts">
+        <div class="fact"><div class="fact__k" id="factActivities">—</div><div class="fact__v">activities on the shelf</div></div>
+        <div class="fact"><div class="fact__k" id="factGrades">—</div><div class="fact__v">classes covered</div></div>
+        <div class="fact"><div class="fact__k">0</div><div class="fact__v">drivers a student installs</div></div>
+        <div class="fact"><div class="fact__k">100%</div><div class="fact__v">of firmware stays on the machine</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="callout">
+        <div>
+          <h2>Adding your own activity</h2>
+          <p>Export the compiled binary from the Arduino IDE, drop it into the class folder, add one entry to the catalogue block in this file, and push. Vercel rebuilds in seconds.</p>
+        </div>
+        <a class="btn btn--brand" href="#/flash">Open the flasher</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <div class="foot__grid">
+
+      <div class="foot__brand">
+        <a class="logo logo--foot" href="https://www.cognospace.in" target="_blank" rel="noopener">
+          <img class="logo--light" src="assets/cognospace-logo.png" alt="CognoSpace">
+          <img class="logo--dark" src="assets/cognospace-logo-dark.png" alt="" aria-hidden="true">
+        </a>
+        <p class="foot__blurb">Experiential learning for schools — robotics, IoT and AI, built around boards students can hold.</p>
+        <a class="foot__site" href="https://www.cognospace.in" target="_blank" rel="noopener">
+          www.cognospace.in
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      </div>
+
+      <nav class="foot__col" aria-label="Flasher">
+        <h3>Flasher</h3>
+        <a href="#/flash">Open the flasher</a>
+        <a href="#grades">Browse by class</a>
+        <a href="#how">How it works</a>
+      </nav>
+
+      <nav class="foot__col" aria-label="Requirements">
+        <h3>Requirements</h3>
+        <span>Chrome, Edge or Opera</span>
+        <span>Desktop only</span>
+        <span>CH340 / CP2102 driver</span>
+      </nav>
+
+      <div class="foot__col">
+        <h3>Built with</h3>
+        <span>esptool-js</span>
+        <span>Web Serial API</span>
+        <span class="foot__ok"><span class="dot" id="footDot"></span><span id="footText">checking browser…</span></span>
+      </div>
+
+    </div>
+
+    <div class="foot__bar">
+      <span class="foot__made">Designed and developed by <strong>CognoSpace</strong> for educators and mentors</span>
+      <span class="foot__year">© <span id="footYear">2026</span> CognoSpace · Hyderabad</span>
+    </div>
+  </div>
+</footer>
+</div>
+
+<!-- ==================== FLASHER VIEW ==================== -->
+<div class="view" id="viewFlash" hidden>
+
+  <div class="banner" id="banner" hidden>
+    <span class="dot" data-state="error" style="margin-top:.45rem"></span>
+    <div>
+      <strong>This browser cannot talk to a Coggy.</strong>
+      Web Serial runs in Chrome, Edge and Opera on desktop only. Firefox, Safari and every mobile browser are out. The page also has to be served over HTTPS or localhost.
+    </div>
+  </div>
+
+  <main class="workspace">
+
+    <aside class="rail">
+      <div class="rail__title">Shelf</div>
+      <div id="gradeRail"></div>
+    </aside>
+
+    <section>
+      <div class="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="searchInput" type="search" placeholder="Search a code, name or component" aria-label="Search activities">
+        </label>
+        <select class="select" id="categoryFilter" aria-label="Filter by module"></select>
+        <span class="tag" id="resultCount">—</span>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <aside class="dock">
+
+      <div class="panel">
+        <div class="panel__head"><h2>Board</h2></div>
+        <div class="panel__body">
+          <label class="rail__title" for="boardSelect" style="padding-left:0;display:block">Target board</label>
+          <select class="select" id="boardSelect" style="width:100%;margin-bottom:.7rem"></select>
+
+          <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
+          <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
+            <option value="115200">115200 — default, most reliable</option>
+            <option value="230400">230400 — a little quicker</option>
+            <option value="460800">460800 — quick</option>
+            <option value="921600">921600 — fastest, needs a good cable</option>
+          </select>
+
+          <div class="readout">
+            <div class="readout__row"><span class="readout__k">Chip</span><span class="readout__v" id="roChip">Not connected</span></div>
+            <div class="readout__row"><span class="readout__k">Adapter</span><span class="readout__v" id="roAdapter">—</span></div>
+            <div class="readout__row"><span class="readout__k">USB ID</span><span class="readout__v" id="roUsb">—</span></div>
+            <div class="readout__row"><span class="readout__k">MAC</span><span class="readout__v" id="roMac">—</span></div>
+            <div class="readout__row"><span class="readout__k">Flash</span><span class="readout__v" id="roFlash">—</span></div>
+          </div>
+
+          <button class="btn btn--block btn--ghost" id="connectBtn" type="button" style="margin-top:1rem">Connect a Coggy</button>
+          <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.6rem">
+            CH340 and CP2102 adapters look identical to the browser, so pick the board you are holding before you connect. If a flash breaks up partway, lower the transfer speed.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head"><h2>Write firmware</h2></div>
+        <div class="panel__body">
+          <div class="target">
+            <div class="target__label">Selected</div>
+            <div class="target__name" id="targetName">Nothing selected</div>
+            <div style="font-size:var(--t-xs);color:var(--text-3);margin-top:.2rem" id="targetMeta">Pick an activity from the shelf</div>
+
+            <div class="tables" id="tableRow" hidden>
+              <div class="tables__head">
+                <span class="tables__label">Table</span>
+                <span class="tables__now" id="tableNow">none picked</span>
+              </div>
+              <div class="tables__grid" id="tableGrid"></div>
+              <p class="tables__hint" id="tablePath">Pick the table this Coggy belongs to.</p>
+            </div>
+          </div>
+
+          <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
+          <div class="progress__meta"><span id="progressLabel">idle</span><span id="progressPct">0%</span></div>
+
+          <label class="check"><input type="checkbox" id="eraseAll"> Erase the whole flash first (ESP only)</label>
+
+          <button class="btn btn--brand btn--block" id="flashBtn" type="button" disabled style="margin-top:1rem">Flash the Coggy</button>
+          <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.55rem" id="flashHint">Connect a Coggy to begin.</p>
+
+          <div class="drop" id="drop">
+            <strong>Drop your own build here</strong>
+            .bin or .hex — the file stays on this machine
+            <input type="file" id="dropInput" accept=".bin,.hex" hidden>
+          </div>
+          <div id="customOffsetRow" hidden style="margin-top:.7rem">
+            <label class="rail__title" for="customOffset" style="padding-left:0;display:block">Flash offset</label>
+            <input class="select" id="customOffset" value="0x10000" style="width:100%">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel console">
+        <div class="panel__head">
+          <h2>Console</h2>
+          <span class="tag" id="lineCount" style="margin-left:auto">0 lines</span>
+          <button class="btn btn--sm btn--ghost" id="auditBtn" type="button">Check builds</button>
+          <button class="btn btn--sm btn--ghost" id="saveLog" type="button">Save log</button>
+          <button class="btn btn--sm btn--ghost" id="clearConsole" type="button">Clear</button>
+        </div>
+        <div class="console__out" id="console" data-empty="true">Connect a Coggy to begin. Everything the flasher does is logged here.</div>
+      </div>
+
+    </aside>
+  </main>
+</div>
+
+<!-- ==================== TABLE GUIDE ==================== -->
+<div class="modal" id="guide" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="modal__head">
+      <div>
+        <h2 id="guideTitle">Table guide</h2>
+        <p>Which bench is which. The code is the folder on disk; the name is what the room calls it.</p>
+      </div>
+      <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal__body">
+      <div class="guide__grid" id="guideGrid"></div>
+      <p class="guide__note">
+        Names live in the <code>TABLES</code> list near the top of the script in this file.
+        Edit <code>name</code> freely — but leave <code>id</code> alone once firmware is built,
+        because it is the folder the flasher reads from.
+      </p>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--brand" type="button" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+
+<!-- ==========================================================================
+     THE CATALOGUE — this is the only block you edit to add activities
+     ========================================================================== -->
+<script type="application/json" id="catalog">
+{
+  "org": "CognoSpace",
+  "grades": [
+    {
+      "grade": 3,
+      "title": "Mechatronics",
+      "activities": [
+        {
+          "code": "CS-G03-A01",
+          "name": "Traffic Signals",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Red, amber and green LEDs cycle on a timed loop the way a real junction does.",
+          "components": [
+            "LED x3",
+            "220 ohm resistors"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-03/CS-G03-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G03-A02",
+          "name": "Music LEDs",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "LEDs flash in time with a melody played on the buzzer.",
+          "components": [
+            "LED x4",
+            "Buzzer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-03/CS-G03-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G03-A03",
+          "name": "Digital Dice",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A button press rolls a random number from one to six and shows it on the display.",
+          "components": [
+            "Push button",
+            "7-segment / OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-03/CS-G03-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G03-A04",
+          "name": "2 Way Switch",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Two switches control one lamp from either end, like a staircase light.",
+          "components": [
+            "Push button x2",
+            "LED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-03/CS-G03-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G03-A05",
+          "name": "Door Bell",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A push button plays a chime on the buzzer and lights an indicator.",
+          "components": [
+            "Push button",
+            "Buzzer",
+            "LED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-03/CS-G03-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#E2683C"
+    },
+    {
+      "grade": 4,
+      "title": "Mechatronics",
+      "activities": [
+        {
+          "code": "CS-G04-A01",
+          "name": "Timer & Stopwatch",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Start, stop and reset a stopwatch from two buttons, with the count on the OLED.",
+          "components": [
+            "Push button x2",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-04/CS-G04-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G04-A02",
+          "name": "Digital Measuring Tape",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "An ultrasonic sensor reads distance and shows it in centimetres.",
+          "components": [
+            "HC-SR04",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-04/CS-G04-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G04-A03",
+          "name": "Rain Detection",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A rain sensor sounds an alert the moment water lands on the board.",
+          "components": [
+            "Rain sensor",
+            "Buzzer",
+            "LED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-04/CS-G04-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G04-A04",
+          "name": "Cognojump Game",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A reaction game on the OLED — press the button to jump the obstacle.",
+          "components": [
+            "Push button",
+            "SSD1306 OLED",
+            "Buzzer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-04/CS-G04-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G04-A05",
+          "name": "Weather Station",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Temperature and humidity from a DHT sensor, updated on screen every two seconds.",
+          "components": [
+            "DHT11",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-04/CS-G04-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#E09A22"
+    },
+    {
+      "grade": 5,
+      "title": "Mechatronics",
+      "activities": [
+        {
+          "code": "CS-G05-A01",
+          "name": "Automatic Gate",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "An IR sensor spots a vehicle and a servo swings the gate open, then closes it again.",
+          "components": [
+            "IR sensor",
+            "SG90 servo"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-05/CS-G05-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G05-A02",
+          "name": "Soil Moisture Test",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Reads a soil probe and shows dry, damp or wet with a percentage.",
+          "components": [
+            "Soil moisture sensor",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-05/CS-G05-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G05-A03",
+          "name": "Motor Speed Control",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A potentiometer sets motor speed through PWM, with the duty cycle on screen.",
+          "components": [
+            "DC motor",
+            "L298N",
+            "10k potentiometer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-05/CS-G05-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G05-A04",
+          "name": "Calculator using OLED",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A keypad calculator that does the four basic operations on the OLED.",
+          "components": [
+            "4x4 keypad",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-05/CS-G05-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G05-A05",
+          "name": "Smart Fan",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Fan speed follows room temperature, stepping up as the room warms.",
+          "components": [
+            "DHT11",
+            "DC fan",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-05/CS-G05-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#5DA33E"
+    },
+    {
+      "grade": 6,
+      "title": "Mechatronics & AI",
+      "activities": [
+        {
+          "code": "CS-G06-A01",
+          "name": "Automatic Rain Hanger",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A rain sensor pulls the clothesline under cover and rolls it back out when dry.",
+          "components": [
+            "Rain sensor",
+            "DC motor",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-06/CS-G06-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G06-A02",
+          "name": "Secure Home",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A keypad code arms a PIR alarm that sounds when someone walks in.",
+          "components": [
+            "PIR",
+            "4x4 keypad",
+            "Buzzer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-06/CS-G06-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G06-A03",
+          "name": "Smart Light",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "The lamp comes on only when there is motion and the room is already dark.",
+          "components": [
+            "PIR",
+            "LDR",
+            "Relay"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-06/CS-G06-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G06-A04",
+          "name": "Wireless Notice Board",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Send a message from a phone and it appears on the display.",
+          "components": [
+            "SSD1306 OLED",
+            "ESP32 Bluetooth"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-06/CS-G06-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G06-A05",
+          "name": "Visitor Counter",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A pair of IR beams counts people in and out and keeps a running total.",
+          "components": [
+            "IR sensor x2",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-06/CS-G06-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#22A183"
+    },
+    {
+      "grade": 7,
+      "title": "Mechatronics & AI",
+      "activities": [
+        {
+          "code": "CS-G07-A01",
+          "name": "Smart Watering System",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Soil moisture drives a pump, watering only when the reading drops below a set point.",
+          "components": [
+            "Soil moisture sensor",
+            "Relay",
+            "Pump"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-07/CS-G07-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G07-A02",
+          "name": "Automatic Railway Gate",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "IR sensors detect an approaching train and close the crossing gate in time.",
+          "components": [
+            "IR sensor x2",
+            "SG90 servo",
+            "Buzzer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-07/CS-G07-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G07-A03",
+          "name": "Morse Code Flasher",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Type a word over serial and it blinks out in Morse on an LED and buzzer.",
+          "components": [
+            "LED",
+            "Buzzer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-07/CS-G07-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G07-A04",
+          "name": "Smart Parking System",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "IR sensors in each bay report free and occupied slots on the display.",
+          "components": [
+            "IR sensor x4",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-07/CS-G07-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G07-A05",
+          "name": "ADAS Car",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Ultrasonic sensing warns of obstacles and brakes the car automatically.",
+          "components": [
+            "HC-SR04",
+            "Gear motors",
+            "L298N",
+            "Buzzer"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-07/CS-G07-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#2E8BC0"
+    },
+    {
+      "grade": 8,
+      "title": "Robotics & IoT/Automation, AI",
+      "activities": [
+        {
+          "code": "CS-G08-A01",
+          "name": "Basics of Robotics",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Drive forward, reverse and turn through a motor driver — the foundation every later robot builds on.",
+          "components": [
+            "Gear motors x2",
+            "L298N",
+            "Battery pack"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A02",
+          "name": "Gripper",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A servo gripper opens and closes on command, with a grip-strength limit.",
+          "components": [
+            "SG90 servo",
+            "Gripper kit"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A03",
+          "name": "Human Following Robot",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Ultrasonic and IR sensors keep the robot a fixed distance behind a person.",
+          "components": [
+            "HC-SR04",
+            "IR sensor x2",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A04",
+          "name": "Bluetooth Controlled Robot",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Drive the robot from a phone app over the ESP32's Bluetooth.",
+          "components": [
+            "Gear motors x2",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A05",
+          "name": "Perseverance Rover - Bluetooth",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A six-wheel rover with a servo arm, driven from a phone over Bluetooth.",
+          "components": [
+            "Gear motors x6",
+            "L298N x2",
+            "SG90 servo"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A06",
+          "name": "Introduction to Automation/IoT",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Joins the classroom Wi-Fi, prints its IP and blinks an LED from a browser.",
+          "components": [
+            "ESP32 DevKit",
+            "LED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A06/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A07",
+          "name": "Home Automation",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Switch appliances on a relay board from a web page on the local network.",
+          "components": [
+            "4-channel relay",
+            "ESP32 DevKit"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A07/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A08",
+          "name": "Automatic Street Lights",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "An LDR switches the lamp at dusk and the state is reported online.",
+          "components": [
+            "LDR",
+            "Relay",
+            "LED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A08/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A09",
+          "name": "Sensor Integration to Thingspeak",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Pushes sensor readings to a ThingSpeak channel every fifteen seconds.",
+          "components": [
+            "DHT11",
+            "ESP32 DevKit"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A09/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G08-A10",
+          "name": "Weather Monitoring using Webserver",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "The ESP32 hosts a live page showing temperature, humidity and a short history.",
+          "components": [
+            "DHT22",
+            "ESP32 DevKit"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-08/CS-G08-A10/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#4C6ED6"
+    },
+    {
+      "grade": 9,
+      "title": "Advanced Robotics & IoT/Automation, AI",
+      "activities": [
+        {
+          "code": "CS-G09-A01",
+          "name": "Basics of Robotics",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Motor driver control, speed ramps and turning geometry, ready for the projects that follow.",
+          "components": [
+            "Gear motors x2",
+            "L298N",
+            "Battery pack"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A02",
+          "name": "Obstacle Avoiding Robot",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A scanning ultrasonic head finds a clear path and steers around obstacles.",
+          "components": [
+            "HC-SR04",
+            "SG90 servo",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A03",
+          "name": "Edge Avoiding Robot",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "IR sensors watch for a table edge and reverse before the robot falls.",
+          "components": [
+            "IR sensor x2",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A04",
+          "name": "Robotic Arm",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A four-servo arm moves through saved positions and can be taught new ones.",
+          "components": [
+            "SG90 servo x4",
+            "Arm kit"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A05",
+          "name": "Perseverance Rover - Wifi",
+          "category": "Mechatronics",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "The rover drives over Wi-Fi from a browser, with live telemetry on the page.",
+          "components": [
+            "Gear motors x6",
+            "L298N x2",
+            "SG90 servo"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A06",
+          "name": "Introduction to Automation/IoT",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Wi-Fi setup, a first web request and an LED controlled from the browser.",
+          "components": [
+            "ESP32 DevKit",
+            "LED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A06/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A07",
+          "name": "Home Monitoring using Webserver",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Hosts a dashboard showing motion, temperature and door state in one page.",
+          "components": [
+            "PIR",
+            "DHT11",
+            "Reed switch"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A07/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A08",
+          "name": "Weather Station using Thingspeak",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Logs readings to ThingSpeak and charts them over days rather than seconds.",
+          "components": [
+            "DHT22",
+            "ESP32 DevKit"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A08/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A09",
+          "name": "Smart Agriculture Monitoring",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Soil, light and humidity are logged online and a pump runs on a threshold.",
+          "components": [
+            "Soil moisture sensor",
+            "DHT11",
+            "Relay",
+            "Pump"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A09/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-G09-A10",
+          "name": "WiFi-Rover",
+          "category": "IoT/Automation",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "A rover controlled from any browser on the same network, no app needed.",
+          "components": [
+            "Gear motors x4",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/grade-09/CS-G09-A10/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ],
+      "color": "#8A5CD4"
+    },
+    {
+      "grade": "resources",
+      "label": "Educator Resources",
+      "short": "🚀",
+      "title": "Educator Resources",
+      "color": "#C2517F",
+      "activities": [
+        {
+          "code": "CS-ER-A01",
+          "name": "Mechatronics kit Testing",
+          "category": "Educator Resources",
+          "board": "esp32",
+          "version": "3",
+          "description": "Connect Coggy over Bluetooth or a USB cable, pick your pins, and watch every sensor report back in real time.",
+          "components": [],
+          "parts": [
+            {
+              "file": "/firmware/resources/CS-ER-A01/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-ER-A02",
+          "name": "coming soon",
+          "category": "Educator Resources",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Coming soon",
+          "components": [
+            "Any sensor",
+            "SSD1306 OLED"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/resources/CS-ER-A02/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-ER-A03",
+          "name": "Coming soon",
+          "category": "Educator Resources",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Coming soon",
+          "components": [
+            "Gear motor",
+            "L298N"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/resources/CS-ER-A03/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-ER-A04",
+          "name": "Coming soon",
+          "category": "Educator Resources",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Coming soon",
+          "components": [
+            "SG90 servo"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/resources/CS-ER-A04/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-ER-A05",
+          "name": "Coming soon",
+          "category": "Educator Resources",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Coming soon",
+          "components": [
+            "Any I2C device"
+          ],
+          "parts": [
+            {
+              "file": "/firmware/resources/CS-ER-A05/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        },
+        {
+          "code": "CS-ER-A06",
+          "name": "Coming soon",
+          "category": "Educator Resources",
+          "board": "esp32",
+          "version": "1.0.0",
+          "description": "Coming soon",
+          "components": [],
+          "parts": [
+            {
+              "file": "/firmware/resources/CS-ER-A06/{table}/firmware.bin",
+              "offset": "0x0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+
+<script type="module">
+/* ==========================================================================
+   1. Theme
+   ========================================================================== */
+(function () {
+  const KEY = 'cognospace-theme';
+  const root = document.documentElement;
+  const apply = (m) => {
+    root.setAttribute('data-theme', m);
+    root.style.colorScheme = m;
+    document.querySelectorAll('[data-theme-toggle]').forEach((b) =>
+      b.setAttribute('aria-label', m === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
+  };
+  apply(root.getAttribute('data-theme') || 'light');
+  document.querySelectorAll('[data-theme-toggle]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(KEY, next);
+      apply(next);
+    }));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem(KEY)) apply(e.matches ? 'dark' : 'light');
+  });
+  requestAnimationFrame(() => document.body.classList.add('js-loaded'));
+})();
+
+/* ==========================================================================
+   2. Intel HEX parser — Arduino IDE exports .hex for AVR boards
+   ========================================================================== */
+function parseIntelHex(text) {
+  const lines = text.split(/\r?\n/);
+  const chunks = [];
+  let upper = 0, max = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+    if (l[0] !== ':') throw new Error(`Line ${i + 1} is not valid Intel HEX.`);
+
+    const bytes = [];
+    for (let p = 1; p + 1 < l.length; p += 2) bytes.push(parseInt(l.substr(p, 2), 16));
+
+    const len = bytes[0];
+    const addr = (bytes[1] << 8) | bytes[2];
+    const type = bytes[3];
+    const data = bytes.slice(4, 4 + len);
+
+    let sum = 0;
+    for (let b = 0; b < 4 + len; b++) sum += bytes[b];
+    if (((sum + bytes[4 + len]) & 0xff) !== 0) throw new Error(`Checksum failed on line ${i + 1}.`);
+
+    if (type === 0x00) {
+      const abs = upper + addr;
+      chunks.push({ addr: abs, data });
+      max = Math.max(max, abs + len);
+    } else if (type === 0x02) { upper = ((data[0] << 8) | data[1]) << 4; }
+    else if (type === 0x04) { upper = ((data[0] << 8) | data[1]) << 16; }
+    else if (type === 0x01) { break; }
+  }
+
+  if (!max) throw new Error('No program data found in the HEX file.');
+  const image = new Uint8Array(max).fill(0xff);
+  for (const c of chunks) image.set(c.data, c.addr);
+  return image;
+}
+
+/* ==========================================================================
+   3. STK500v1 — the Arduino Uno / Nano bootloader, over Web Serial
+   ========================================================================== */
+const SYNC = 0x30, ENTER = 0x50, LEAVE = 0x51, LOAD_ADDR = 0x55,
+      PROG_PAGE = 0x64, READ_SIGN = 0x75, EOP = 0x20, INSYNC = 0x14, OK_ = 0x10;
+
+const SIGNATURES = {
+  '1e950f': 'ATmega328P', '1e9514': 'ATmega328', '1e9516': 'ATmega328PB',
+  '1e9406': 'ATmega168', '1e930b': 'ATmega88', '1e9307': 'ATmega8',
+};
+
+const AVR_PROFILES = {
+  'arduino-uno':      { baud: 115200, pageSize: 128 },
+  'arduino-nano':     { baud: 115200, pageSize: 128 },
+  'arduino-nano-old': { baud: 57600,  pageSize: 128 },
+  'arduino-promini':  { baud: 57600,  pageSize: 128 },
+};
+
+class AvrFlasher {
+  constructor(port) { this.port = port; this.buf = []; this._reading = false; }
+
+  async open(baud) {
+    await this.port.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none', bufferSize: 4096 });
+    this._pump();
+  }
+
+  async _pump() {
+    this._reading = true;
+    this.reader = this.port.readable.getReader();
+    try {
+      while (this._reading) {
+        const { value, done } = await this.reader.read();
+        if (done) break;
+        if (value) for (const b of value) this.buf.push(b);
+      }
+    } catch (_) {} finally { try { this.reader.releaseLock(); } catch (_) {} }
+  }
+
+  async close() {
+    this._reading = false;
+    try { await this.reader?.cancel(); } catch (_) {}
+    try { await this.port.close(); } catch (_) {}
+  }
+
+  async write(bytes) {
+    const w = this.port.writable.getWriter();
+    await w.write(new Uint8Array(bytes));
+    w.releaseLock();
+  }
+
+  async read(n, timeout = 900) {
+    const deadline = Date.now() + timeout;
+    while (this.buf.length < n) {
+      if (Date.now() > deadline)
+        throw new Error(`Board stopped responding (wanted ${n} bytes, got ${this.buf.length}).`);
+      await new Promise((r) => setTimeout(r, 8));
+    }
+    return this.buf.splice(0, n);
+  }
+
+  /* Pulse DTR/RTS so the bootloader gets its window */
+  async reset() {
+    await this.port.setSignals({ dataTerminalReady: false, requestToSend: false });
+    await new Promise((r) => setTimeout(r, 260));
+    await this.port.setSignals({ dataTerminalReady: true, requestToSend: true });
+    await new Promise((r) => setTimeout(r, 60));
+    await this.port.setSignals({ dataTerminalReady: false, requestToSend: false });
+    await new Promise((r) => setTimeout(r, 60));
+    this.buf.length = 0;
+  }
+
+  async cmd(bytes, expect = 0, timeout = 900) {
+    await this.write([...bytes, EOP]);
+    const head = await this.read(1, timeout);
+    if (head[0] !== INSYNC) throw new Error(`Bootloader out of sync (0x${head[0].toString(16)}).`);
+    const payload = expect ? await this.read(expect, timeout) : [];
+    const tail = await this.read(1, timeout);
+    if (tail[0] !== OK_) throw new Error(`Bootloader refused the command (0x${tail[0].toString(16)}).`);
+    return payload;
+  }
+
+  async sync(tries = 8) {
+    for (let i = 0; i < tries; i++) {
+      try { this.buf.length = 0; await this.cmd([SYNC], 0, 420); return true; }
+      catch (_) { await new Promise((r) => setTimeout(r, 90)); }
+    }
+    throw new Error('No bootloader response. Check the cable, the board type and the baud rate.');
+  }
+
+  async signature() {
+    const sig = await this.cmd([READ_SIGN], 3);
+    const hex = sig.map((b) => b.toString(16).padStart(2, '0')).join('');
+    return { hex, name: SIGNATURES[hex] || 'Unknown AVR' };
+  }
+
+  async writeFlash(image, pageSize = 128, onProgress = () => {}) {
+    await this.cmd([ENTER]);
+    const total = image.length;
+    for (let addr = 0; addr < total; addr += pageSize) {
+      const page = image.slice(addr, Math.min(addr + pageSize, total));
+      const word = addr >> 1;                       // STK500 addresses flash in words
+      await this.cmd([LOAD_ADDR, word & 0xff, (word >> 8) & 0xff]);
+      await this.cmd([PROG_PAGE, (page.length >> 8) & 0xff, page.length & 0xff, 0x46, ...page], 0, 2200);
+      onProgress(Math.min(addr + page.length, total), total);
+    }
+    await this.cmd([LEAVE]);
+  }
+}
+
+/* ==========================================================================
+   4. App
+   ========================================================================== */
+const ESPTOOL_CDN = 'https://unpkg.com/esptool-js@0.5.4/bundle.js';
+
+const BOARDS = {
+  'arduino-uno':  { family: 'avr', label: 'Arduino Uno' },
+  'arduino-nano': { family: 'avr', label: 'Arduino Nano' },
+  'esp32':        { family: 'esp', label: 'ESP32' },
+  'esp8266':      { family: 'esp', label: 'ESP8266 / NodeMCU' },
+  'esp32-s2':     { family: 'esp', label: 'ESP32-S2' },
+  'esp32-s3':     { family: 'esp', label: 'ESP32-S3' },
+  'esp32-c3':     { family: 'esp', label: 'ESP32-C3' },
+  'esp32-c6':     { family: 'esp', label: 'ESP32-C6' },
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+
+/* ==========================================================================
+   TABLES — the lab benches.
+   `id` is the folder name on disk. Do NOT change it once firmware is built.
+   `name` is what the room calls the bench — shown in the Table guide and on
+   hover. Rename these freely; they are placeholders.
+   Delete a row to retire a table; add one (with a matching folder) to grow.
+   ========================================================================== */
+const TABLES = [
+  { id: 'T1',  name: 'Tesla'      },
+  { id: 'T2',  name: 'Kalam'      },
+  { id: 'T3',  name: 'Curie'      },
+  { id: 'T4',  name: 'Newton'     },
+  { id: 'T5',  name: 'Bose'       },
+  { id: 'T6',  name: 'Ada'        },
+  { id: 'T7',  name: 'Raman'      },
+  { id: 'T8',  name: 'Turing'     },
+  { id: 'T9',  name: 'Hopper'     },
+  { id: 'T10', name: 'Edison'     },
+  { id: 'T11', name: 'Sarabhai'   },
+  { id: 'T12', name: 'Faraday'    },
+  { id: 'T13', name: 'Bhabha'     },
+  { id: 'T14', name: 'Volta'      },
+  { id: 'T15', name: 'Ramanujan'  },
+];
+const TABLE_KEY = 'cognospace-table';
+
+const state = {
+  catalog: null, grade: 'all', query: '', category: 'all',
+  selected: null, custom: null, table: null,
+  port: null, family: null, connected: false, busy: false,
+  avr: null, esp: null, transport: null,
+};
+
+/* A lab machine lives at one bench, so remember the last table used here. */
+(function restoreTable() {
+  const saved = localStorage.getItem(TABLE_KEY);
+  if (saved && TABLES.some((t) => t.id === saved)) state.table = saved;
+})();
+
+const tableName = (id) => {
+  const t = TABLES.find((x) => x.id === id);
+  return t ? `${t.id} · ${t.name}` : id;
+};
+
+/* Any path carrying {table} is per-table; anything else is shared firmware. */
+const needsTable = (a) =>
+  (a?.parts || [{ file: a?.file }]).some((p) => (p.file || '').includes('{table}'));
+
+function resolvePath(file) {
+  if (!file.includes('{table}')) return file;
+  if (!state.table) throw new Error('No table selected — pick a table before flashing.');
+  return file.replaceAll('{table}', state.table);
+}
+
+/* ---------- console ---------- */
+const out = $('#console');
+const stamp = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+};
+function log(text, kind = 'info') {
+  if (out.dataset.empty === 'true') { out.textContent = ''; out.dataset.empty = 'false'; }
+  const el = document.createElement('span');
+  el.className = `line line--${kind}`;
+  const t = document.createElement('span');
+  t.className = 'line__t';
+  t.textContent = stamp();
+  el.append(t, document.createTextNode(text));
+  out.append(el);
+  out.scrollTop = out.scrollHeight;
+  $('#lineCount').textContent = `${out.childElementCount} lines`;
+}
+const espTerminal = {
+  clean() {},
+  writeLine(d) { log(String(d).trimEnd(), 'io'); },
+  write(d) { const s = String(d).trim(); if (s) log(s, 'io'); },
+};
+
+/* ---------- toasts ---------- */
+function toast(msg, kind = 'ok') {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="dot" data-state="${kind === 'error' ? 'error' : 'ok'}"></span><span></span>`;
+  el.lastElementChild.textContent = msg;
+  $('#toasts').append(el);
+  setTimeout(() => { el.classList.add('is-out'); setTimeout(() => el.remove(), 240); }, 4200);
+}
+
+/* ---------- catalogue ---------- */
+try {
+  state.catalog = JSON.parse($('#catalog').textContent);
+} catch (err) {
+  state.catalog = { grades: [] };
+  console.error('Catalogue JSON is malformed:', err);
+}
+
+const allActivities = () => state.catalog.grades.flatMap((g) =>
+  g.activities.map((a) => ({ ...a, grade: g.grade, label: g.label, color: g.color, gradeTitle: g.title })));
+
+function renderHomeGrades() {
+  const wrap = $('#homeGrades');
+  wrap.innerHTML = '';
+  for (const g of state.catalog.grades) {
+    const a = document.createElement('a');
+    a.className = 'grade-card';
+    a.href = '#/flash';
+    a.dataset.grade = g.grade;
+    if (g.color) a.style.setProperty('--gc', g.color);
+    a.innerHTML = `<div class="grade-card__n">${g.short || g.grade}</div>
+      <div class="grade-card__t"></div>
+      <div class="grade-card__c">${g.activities.length} ${g.activities.length === 1 ? 'activity' : 'activities'}</div>`;
+    a.querySelector('.grade-card__t').textContent = g.title;
+    a.addEventListener('click', () => { state.grade = String(g.grade); renderRail(); renderCards(); });
+    wrap.append(a);
+  }
+  $('#factActivities').textContent = allActivities().length;
+  $('#factGrades').textContent = state.catalog.grades.length;
+}
+
+function renderRail() {
+  const wrap = $('#gradeRail');
+  const rows = [
+    { key: 'all', label: 'All classes', n: allActivities().length },
+    ...state.catalog.grades.map((g) => ({ key: String(g.grade), label: g.label || `Class ${g.grade}`, sub: g.title, n: g.activities.length, color: g.color })),
+  ];
+  wrap.innerHTML = '';
+  for (const r of rows) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'rail__btn';
+    b.setAttribute('aria-pressed', String(state.grade === r.key));
+    if (r.color) b.style.setProperty('--gc', r.color);
+    b.innerHTML = `<span>${r.label}</span><span class="n">${r.n}</span>`;
+    if (r.sub) b.title = r.sub;
+    b.addEventListener('click', () => { state.grade = r.key; renderRail(); renderCards(); });
+    wrap.append(b);
+  }
+}
+
+function renderCategories() {
+  const cats = [...new Set(allActivities().map((a) => a.category).filter(Boolean))].sort();
+  $('#categoryFilter').innerHTML = '<option value="all">All modules</option>' +
+    cats.map((c) => `<option value="${c}">${c}</option>`).join('');
+}
+
+function visible() {
+  const q = state.query.trim().toLowerCase();
+  return allActivities().filter((a) => {
+    if (state.grade !== 'all' && String(a.grade) !== state.grade) return false;
+    if (state.category !== 'all' && a.category !== state.category) return false;
+    if (!q) return true;
+    return [a.code, a.name, a.description, a.category, ...(a.components || [])]
+      .join(' ').toLowerCase().includes(q);
+  });
+}
+
+function renderCards() {
+  const wrap = $('#cards');
+  const list = visible();
+  $('#resultCount').textContent = `${list.length} ${list.length === 1 ? 'activity' : 'activities'}`;
+
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <strong>Nothing matches that yet</strong>
+      Clear the search, or add the activity to the catalogue block in this file.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = '';
+  for (const a of list) {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'card';
+    card.setAttribute('aria-selected', String(state.selected?.code === a.code));
+    if (a.color) card.style.setProperty('--gc', a.color);
+    card.innerHTML = `<div class="card__top">
+        <span class="code">${a.code}</span><span class="tag">${a.label || `Class ${a.grade}`}</span>
+      </div>
+      <div class="card__name"></div>
+      <div class="card__desc"></div>
+      <div class="card__foot">
+        <span class="tag">${BOARDS[a.board]?.label || a.board}</span>
+        <span class="tag">v${a.version}</span>
+        ${a.category ? `<span class="tag">${a.category}</span>` : ''}
+      </div>`;
+    card.querySelector('.card__name').textContent = a.name;
+    card.querySelector('.card__desc').textContent = a.description || '';
+    card.addEventListener('click', () => select(a));
+    wrap.append(card);
+  }
+}
+
+/* ---------- build availability ----------
+   A HEAD request tells us whether a build exists without downloading it.
+   Results are cached per path, so re-selecting an activity is instant. */
+const buildCache = new Map();
+
+async function buildExists(path) {
+  if (buildCache.has(path)) return buildCache.get(path);
+  const p = fetch(path.startsWith('/') ? path.slice(1) : path, { method: 'HEAD', cache: 'no-store' })
+    .then((r) => r.ok)
+    .catch(() => false);
+  buildCache.set(path, p);
+  return p;
+}
+
+/* Run jobs a few at a time so a full audit doesn't open 700 sockets. */
+async function pooled(items, limit, fn) {
+  const out = [];
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) {
+      const n = i++;
+      out[n] = await fn(items[n], n);
+    }
+  }));
+  return out;
+}
+
+const tablePathFor = (a, id) =>
+  (a.parts?.[0]?.file || a.file || '').replaceAll('{table}', id);
+
+/* ---------- table picker ---------- */
+function renderTables() {
+  const row = $('#tableRow');
+  const show = !!state.selected && needsTable(state.selected);
+  row.hidden = !show;
+  if (!show) return;
+
+  const act = state.selected;
+  const grid = $('#tableGrid');
+  grid.innerHTML = '';
+
+  for (const t of TABLES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tchip';
+    b.innerHTML = '<span class="tchip__id"></span><span class="tchip__nm"></span>';
+    b.querySelector('.tchip__id').textContent = t.id;
+    b.querySelector('.tchip__nm').textContent = t.name;
+    b.dataset.table = t.id;
+    b.dataset.build = 'checking';
+    b.title = `${t.id} — ${t.name}`;
+    b.setAttribute('aria-pressed', String(state.table === t.id));
+    b.addEventListener('click', () => pickTable(t.id));
+    grid.append(b);
+  }
+
+  $('#tableNow').textContent = state.table ? tableName(state.table) : 'none picked';
+  paintHint();
+  probeTables(act);
+}
+
+function paintHint() {
+  const hint = $('#tablePath');
+  if (!state.table) { hint.innerHTML = '<b>Pick the table this Coggy belongs to.</b>'; return; }
+
+  const path = tablePathFor(state.selected, state.table);
+  const chip = $('#tableGrid')?.querySelector(`[data-table="${state.table}"]`);
+
+  if (chip?.dataset.build === 'missing') {
+    hint.innerHTML = '';
+    const warn = document.createElement('b');
+    warn.textContent = `No build uploaded at ${path} yet — flashing will fail.`;
+    hint.append(warn);
+  } else {
+    hint.textContent = path;
+  }
+}
+
+async function probeTables(act) {
+  const results = await pooled(TABLES, 6, (t) => buildExists(tablePathFor(act, t.id)));
+
+  if (state.selected !== act) return;           // teacher moved on while we probed
+
+  const grid = $('#tableGrid');
+  let ready = 0;
+  TABLES.forEach((t, i) => {
+    const b = grid.querySelector(`[data-table="${t.id}"]`);
+    if (!b) return;
+    b.dataset.build = results[i] ? 'ready' : 'missing';
+    if (results[i]) ready++;
+    else b.title = `No build uploaded for ${t.id} yet — selectable, but flashing will fail`;
+  });
+
+  paintHint();
+
+  if (!ready) log(`No builds uploaded yet for ${act.code}. Tables are still selectable.`, 'warn');
+}
+
+function pickTable(id) {
+  state.table = id;
+  localStorage.setItem(TABLE_KEY, id);
+  $('#tableGrid').querySelectorAll('.tchip').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.table === id)));
+  $('#tableNow').textContent = tableName(id);
+  paintHint();
+  updateFlashButton();
+  log(`Table set to ${tableName(id)}.`, 'info');
+}
+
+/* ---------- table guide ---------- */
+function renderGuide() {
+  const grid = $('#guideGrid');
+  grid.innerHTML = '';
+  for (const t of TABLES) {
+    const row = document.createElement('div');
+    row.className = 'guide__row';
+    row.innerHTML = '<span class="guide__id"></span><span class="guide__name"></span>';
+    row.querySelector('.guide__id').textContent = t.id;
+    row.querySelector('.guide__name').textContent = t.name;
+    grid.append(row);
+  }
+}
+
+function openGuide() {
+  renderGuide();
+  $('#guide').hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#guide').querySelector('.modal__x')?.focus();
+}
+
+function closeGuide() {
+  $('#guide').hidden = true;
+  document.body.style.overflow = '';
+  $('#guideBtn')?.focus();
+}
+
+function wireGuide() {
+  $('#guideBtn').addEventListener('click', openGuide);
+  $('#guide').addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]')) closeGuide();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#guide').hidden) closeGuide();
+  });
+}
+
+/* ---------- full audit ---------- */
+async function auditBuilds() {
+  const btn = $('#auditBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+
+  const jobs = [];
+  for (const a of allActivities()) {
+    if (!needsTable(a)) continue;
+    for (const t of TABLES) jobs.push({ code: a.code, table: t, path: tablePathFor(a, t.id) });
+  }
+
+  log(`Checking ${jobs.length} builds across ${TABLES.length} tables…`, 'info');
+  const found = await pooled(jobs, 8, (j) => buildExists(j.path));
+
+  const missing = jobs.filter((_, i) => !found[i]);
+  const byCode = new Map();
+  for (const m of missing) {
+    if (!byCode.has(m.code)) byCode.set(m.code, []);
+    byCode.get(m.code).push(m.table.name);
+  }
+
+  log(`${jobs.length - missing.length} of ${jobs.length} builds present.`, missing.length ? 'warn' : 'ok');
+  for (const [code, tables] of byCode) {
+    log(`${code} — missing ${tables.length}: ${tables.join(', ')}`, 'warn');
+  }
+  if (!missing.length) log('Every table has a build. Nothing to upload.', 'ok');
+
+  toast(missing.length ? `${missing.length} builds missing` : 'All builds present',
+        missing.length ? 'error' : 'ok');
+
+  btn.disabled = false;
+  btn.textContent = 'Check builds';
+}
+
+function select(a) {
+  state.selected = a;
+  state.custom = null;
+  $('#customOffsetRow').hidden = true;
+  $('#targetName').textContent = a.name;
+  $('#targetMeta').textContent = `${a.code} · ${BOARDS[a.board]?.label || a.board} · v${a.version}`;
+  $('#boardSelect').value = a.board;
+  renderCards();
+  renderTables();
+  updateFlashButton();
+  log(`Selected ${a.code} — ${a.name}`, 'info');
+}
+
+/* ---------- connect ---------- */
+const boardKey = () => $('#boardSelect').value;
+const family = () => BOARDS[boardKey()]?.family || 'esp';
+
+function usbId(port) {
+  const i = port.getInfo?.() || {};
+  if (i.usbVendorId == null) return '—';
+  const h = (n) => '0x' + n.toString(16).padStart(4, '0');
+  return `${h(i.usbVendorId)}:${h(i.usbProductId ?? 0)}`;
+}
+function setStatus(s, text) {
+  $('#statusDot').dataset.state = s === 'idle' ? '' : s;
+  $('#statusText').textContent = text;
+}
+function setReadout(d) {
+  $('#roChip').textContent = d.chip;
+  $('#roAdapter').textContent = d.adapter;
+  $('#roUsb').textContent = d.usb;
+  $('#roMac').textContent = d.mac;
+  $('#roFlash').textContent = d.flash;
+}
+
+async function connect() {
+  if (!('serial' in navigator)) return;
+  try {
+    state.busy = true; updateFlashButton();
+    const port = await navigator.serial.requestPort();
+    state.port = port;
+    state.family = family();
+
+    if (state.family === 'avr') {
+      const profile = AVR_PROFILES[boardKey()] || AVR_PROFILES['arduino-uno'];
+      const avr = new AvrFlasher(port);
+      await avr.open(profile.baud);
+      log(`Opened the port at ${profile.baud} baud.`, 'info');
+      await avr.reset();
+      await avr.sync();
+      const sig = await avr.signature();
+      state.avr = avr;
+      setReadout({ chip: sig.name, adapter: 'USB serial', usb: usbId(port), mac: '—', flash: `sig ${sig.hex}` });
+      log(`Bootloader answered. Chip: ${sig.name} (${sig.hex}).`, 'ok');
+    } else {
+      const { ESPLoader, Transport } = await import(ESPTOOL_CDN);
+      const transport = new Transport(port, true);
+      const baud = parseInt($('#baudSelect').value, 10) || 115200;
+      const loader = new ESPLoader({ transport, baudrate: baud, romBaudrate: 115200, terminal: espTerminal });
+      const chip = await loader.main();
+      let mac = '—';
+      try { mac = await loader.chip.readMac(loader); } catch (_) {}
+      state.esp = loader; state.transport = transport;
+      setReadout({ chip, adapter: 'USB serial', usb: usbId(port), mac, flash: 'read on flash' });
+      log(`Connected to ${chip}.`, 'ok');
+    }
+
+    state.connected = true;
+    setStatus('ok', 'Connected');
+    $('#connectBtn').textContent = 'Disconnect';
+    toast('Coggy connected');
+  } catch (err) {
+    log(err.message || String(err), 'err');
+    setStatus('error', 'Not connected');
+    toast(err.message || 'Could not connect', 'error');
+    await hardClose();
+  } finally {
+    state.busy = false; updateFlashButton();
+  }
+}
+
+async function hardClose() {
+  try { await state.avr?.close(); } catch (_) {}
+  try { await state.transport?.disconnect(); } catch (_) {}
+  try { if (!state.avr && !state.transport) await state.port?.close(); } catch (_) {}
+  state.avr = null; state.esp = null; state.transport = null; state.port = null;
+  state.connected = false;
+  $('#connectBtn').textContent = 'Connect a Coggy';
+  setStatus('idle', 'Not connected');
+  setReadout({ chip: 'Not connected', adapter: '—', usb: '—', mac: '—', flash: '—' });
+  updateFlashButton();
+}
+
+/* ---------- flashing ---------- */
+function updateFlashButton() {
+  const tableMissing = !!state.selected && !state.custom && needsTable(state.selected) && !state.table;
+  const ready = state.connected && (state.selected || state.custom) && !tableMissing && !state.busy;
+  $('#flashBtn').disabled = !ready;
+  $('#flashHint').textContent = !state.connected
+    ? 'Connect a Coggy to begin.'
+    : !(state.selected || state.custom)
+      ? 'Pick an activity, or drop your own build below.'
+      : tableMissing
+        ? 'Pick a table above — each table has its own build.'
+        : `Ready to write${state.table && !state.custom ? ` to ${tableName(state.table)}` : ''}.`;
+}
+
+function setProgress(done, total, label) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  $('#progressBar').style.width = pct + '%';
+  $('#progressPct').textContent = pct + '%';
+  $('#progressLabel').textContent = label || '';
+}
+
+async function fetchBinary(path) {
+  const url = path.startsWith('/') ? path.slice(1) : path;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (res.status === 404) {
+    throw new Error(`No build uploaded at ${path}. Put a firmware.bin in that folder, or pick another table.`);
+  }
+  if (!res.ok) throw new Error(`Firmware file not found at ${url} (HTTP ${res.status}).`);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+function toBinaryString(u8) {
+  let s = '';
+  for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return s;
+}
+
+async function flashAvr() {
+  let image;
+  if (state.custom) {
+    image = state.custom.kind === 'hex'
+      ? parseIntelHex(new TextDecoder().decode(state.custom.bytes))
+      : state.custom.bytes;
+    log(`Using uploaded file ${state.custom.name}.`, 'info');
+  } else {
+    const path = resolvePath(state.selected.parts?.[0]?.file || state.selected.file);
+    const raw = await fetchBinary(path);
+    image = parseIntelHex(new TextDecoder().decode(raw));
+    log(`Loaded ${state.selected.code}${state.table ? ` · ${tableName(state.table)}` : ''} (${image.length} bytes).`, 'info');
+  }
+  const profile = AVR_PROFILES[boardKey()] || AVR_PROFILES['arduino-uno'];
+  log('Resetting the board into its bootloader…', 'info');
+  await state.avr.reset();
+  await state.avr.sync();
+  log('Writing flash…', 'info');
+  await state.avr.writeFlash(image, profile.pageSize, (d, t) => setProgress(d, t, `${d} / ${t} bytes`));
+}
+
+async function flashEsp() {
+  const parts = [];
+  if (state.custom) {
+    parts.push({ data: toBinaryString(state.custom.bytes), address: parseInt($('#customOffset').value, 16) || 0x10000 });
+    log(`Using uploaded file ${state.custom.name}.`, 'info');
+  } else {
+    const defs = state.selected.parts || [{ file: state.selected.file, offset: '0x10000' }];
+    for (const p of defs) {
+      const path = resolvePath(p.file);
+      const bytes = await fetchBinary(path);
+      parts.push({ data: toBinaryString(bytes), address: parseInt(p.offset, 16) });
+      log(`Loaded ${state.selected.code}${state.table ? ` · ${tableName(state.table)}` : ''} → ${p.offset} (${bytes.length} bytes).`, 'info');
+    }
+  }
+  if ($('#eraseAll').checked) log('Erasing the whole flash first — this takes a few seconds.', 'warn');
+
+  await state.esp.writeFlash({
+    fileArray: parts,
+    flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep',
+    eraseAll: $('#eraseAll').checked,
+    compress: true,
+    reportProgress: (i, written, total) => setProgress(written, total, `part ${i + 1} · ${written} / ${total}`),
+  });
+  try { await state.esp.after(); } catch (_) {}
+}
+
+async function flash() {
+  if (state.busy) return;
+  state.busy = true;
+  updateFlashButton();
+  $('#progressBar').classList.add('is-active');
+  try {
+    if (state.family === 'avr') await flashAvr(); else await flashEsp();
+    $('#progressBar').classList.remove('is-active');
+    setProgress(1, 1, 'Written');
+    log('Flash complete. The Coggy is restarting.', 'ok');
+    toast('Firmware written');
+  } catch (err) {
+    $('#progressBar').classList.remove('is-active');
+    const msg = err.message || String(err);
+    log(msg, 'err');
+    if (/head of packet|serial noise|corrupt|timed out|Timeout/i.test(msg)) {
+      log('The data stream broke up. Drop the transfer speed one step and flash again; '
+        + 'if it keeps happening, try a shorter or different USB cable.', 'warn');
+      const sel = $('#baudSelect');
+      if (sel.selectedIndex < sel.options.length - 1) {
+        const slower = [...sel.options].map(o => +o.value).filter(v => v < +sel.value).sort((a, b) => b - a)[0];
+        if (slower) { sel.value = String(slower); log(`Speed lowered to ${slower}. Reconnect and try again.`, 'info'); }
+      }
+    }
+    toast(msg, 'error');
+  } finally {
+    state.busy = false;
+    updateFlashButton();
+  }
+}
+
+/* ---------- custom file ---------- */
+function wireDrop() {
+  const zone = $('#drop'), input = $('#dropInput');
+  const accept = async (file) => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['bin', 'hex'].includes(ext)) { toast('Only .bin and .hex files can be flashed', 'error'); return; }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    state.custom = { name: file.name, bytes, kind: ext };
+    state.selected = null;
+    $('#targetName').textContent = file.name;
+    $('#targetMeta').textContent = `Uploaded build · ${(bytes.length / 1024).toFixed(1)} KB`;
+    $('#customOffsetRow').hidden = ext !== 'bin';
+    renderCards();
+    renderTables();
+    updateFlashButton();
+    log(`Staged ${file.name} (${bytes.length} bytes).`, 'info');
+  };
+  zone.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => input.files[0] && accept(input.files[0]));
+  ['dragenter', 'dragover'].forEach((e) => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.add('is-over'); }));
+  ['dragleave', 'drop'].forEach((e) => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.remove('is-over'); }));
+  zone.addEventListener('drop', (ev) => ev.dataTransfer.files[0] && accept(ev.dataTransfer.files[0]));
+}
+
+/* ---------- routing ---------- */
+function route() {
+  const flashing = location.hash.startsWith('#/flash');
+  $('#viewHome').hidden = flashing;
+  $('#viewFlash').hidden = !flashing;
+  $('#statusPill').hidden = !flashing;
+  if (!flashing && location.hash && location.hash !== '#/') {
+    document.querySelector(location.hash)?.scrollIntoView();
+  } else {
+    window.scrollTo(0, 0);
+  }
+}
+window.addEventListener('hashchange', route);
+
+/* ---------- boot ---------- */
+(function boot() {
+  const supported = 'serial' in navigator;
+  $('#banner').hidden = supported;
+  $('#supportDot').dataset.state = supported ? 'ok' : 'error';
+  $('#supportText').textContent = supported
+    ? 'Web Serial is available — this browser can flash boards.'
+    : 'This browser cannot flash. Open the page in Chrome, Edge or Opera on a desktop.';
+  if (!supported) { setStatus('error', 'Browser not supported'); $('#connectBtn').disabled = true; }
+
+  $('#boardSelect').innerHTML = Object.entries(BOARDS)
+    .map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+
+  renderHomeGrades();
+  renderRail();
+  renderCategories();
+  renderCards();
+  renderTables();
+  log(`Catalogue loaded — ${allActivities().length} activities across ${state.catalog.grades.length} classes.`, 'info');
+  if (state.table) log(`This machine last flashed ${tableName(state.table)}. Change it in the write panel.`, 'info');
+
+  $('#connectBtn').addEventListener('click', () => (state.connected ? hardClose().then(() => log('Port closed.', 'info')) : connect()));
+  $('#flashBtn').addEventListener('click', flash);
+  $('#searchInput').addEventListener('input', (e) => { state.query = e.target.value; renderCards(); });
+  $('#categoryFilter').addEventListener('change', (e) => { state.category = e.target.value; renderCards(); });
+  $('#clearConsole').addEventListener('click', () => {
+    out.textContent = 'Console cleared. Connect a Coggy to begin.';
+    out.dataset.empty = 'true';
+    $('#lineCount').textContent = '0 lines';
+  });
+  $('#auditBtn').addEventListener('click', auditBuilds);
+  $('#saveLog').addEventListener('click', () => {
+    const blob = new Blob([out.innerText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cognospace-flash-log-${Date.now()}.txt`;
+    a.click();
+  });
+
+  wireDrop();
+  wireGuide();
+  updateFlashButton();
+  navigator.serial?.addEventListener('disconnect', () => {
+    if (state.connected) { log('The Coggy was unplugged.', 'warn'); hardClose(); }
+  });
+
+  const fd = $('#footDot'), ft = $('#footText'), fy = $('#footYear');
+  if (fd) { fd.dataset.state = supported ? 'ok' : 'error';
+            ft.textContent = supported ? 'this browser can flash' : 'this browser cannot flash'; }
+  if (fy) fy.textContent = new Date().getFullYear();
+
+  route();
+})();
+
+/* ---------- Coggy says ---------- */
+(function () {
+  const el = document.getElementById('coggyLine');
+  if (!el) return;
+  const LINES = [
+    "Hi, I'm Coggy.",
+    "Designed and developed by CognoSpace.",
+    "There's an ESP32 under my shield.",
+    "Six motor ports. Six sensor ports.",
+    "Plug me in, pick a code, press flash.",
+    "No IDE. No drivers. Just a browser.",
+    "I speak I2C, PWM and plain old GPIO.",
+    "Built for Educators and Mentors.",
+    "One board, for all grades.",
+    "Give me thirty seconds and I'm someone new.",
+    "Wi-Fi robot today, weather station tomorrow.",
+    "Wi-Fi and Bluetooth, both already on board.",
+    "Build me, fix me, learn something.",
+    "45+ activities are waiting on the shelf.",
+    "Ready when you are.",
+    "I can handle Robotics, IoT, Automation, AI",
+  ];
+
+  // a teacher who prefers less motion still gets to read them
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let i = 0;
+    el.textContent = LINES[0];
+    setInterval(() => { i = (i + 1) % LINES.length; el.textContent = LINES[i]; }, 5000);
+    return;
+  }
+
+  let i = 0, c = 0, erasing = false;
+  (function tick() {
+    const line = LINES[i];
+    el.textContent = line.slice(0, c);
+    let wait = erasing ? 24 : 52 + Math.random() * 46;
+
+    if (!erasing && c === line.length) { erasing = true; wait = 2100; }
+    else if (erasing && c === 0) { erasing = false; i = (i + 1) % LINES.length; wait = 380; }
+    else { c += erasing ? -1 : 1; }
+
+    setTimeout(tick, wait);
+  })();
+})();
+
+</script>
+</body>
+</html>
