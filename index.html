@@ -732,7 +732,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
       <div class="steps">
         <div class="step">
           <h3>Plug in the Coggy</h3>
-          <p>Connect over USB and press Connect. The browser asks which port to use once, then reads the chip, the adapter and the MAC address back to you.</p>
+          <p>Connect over USB and press Connect. Pick the board from the short list the browser shows — a fresh Coggy means a fresh pick every time — and the flasher reads the chip, the adapter and the MAC address back to you.</p>
         </div>
         <div class="step">
           <h3>Pick the activity code</h3>
@@ -875,7 +875,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
           <button class="btn btn--block btn--ghost" id="connectBtn" type="button" style="margin-top:1rem">Connect a Coggy</button>
           <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.6rem">
-            Every Coggy is an ESP32 dev module, so there is nothing to pick — just press Connect. If the port list is empty, the CH340 or CP2102 driver is missing. If a flash breaks up partway, lower the transfer speed.
+            Every Coggy is an ESP32 dev module, so the only choice is which board — the list is filtered to ESP32 adapters, so it is usually one entry. If the list is empty, the CH340 or CP2102 driver is missing; hold Shift and press Connect to see every port. If a flash breaks up partway, lower the transfer speed.
           </p>
         </div>
       </div>
@@ -3081,9 +3081,13 @@ async function forceClosePort(port) {
   try { await port.close(); } catch (_) {}
 }
 
-/* Chrome remembers ports this origin has been granted, so a bench that flashed
-   yesterday can connect with no chooser dialog at all. Filtering by adapter
-   also shortens the list when the dialog does appear. */
+/* A different Coggy comes to the bench on every flash, so the port must be
+   chosen every time — reusing a remembered grant would hand back a stale entry
+   for a board that has since been unplugged. The chooser always opens.
+
+   What we can do is make that chooser short: filtering to the four USB-serial
+   adapters an ESP32 ever ships with means the student sees one or two entries
+   instead of every COM port on a school PC. */
 const ADAPTER_VIDS = [
   0x1a86,  // CH340 / CH9102
   0x10c4,  // CP210x
@@ -3091,17 +3095,14 @@ const ADAPTER_VIDS = [
   0x303a,  // Espressif native USB
 ];
 
-async function pickPort({ forceDialog = false } = {}) {
-  if (!forceDialog) {
-    try {
-      const known = await navigator.serial.getPorts();
-      const usable = known.filter((p) => ADAPTER_VIDS.includes(p.getInfo?.().usbVendorId));
-      if (usable.length === 1) return usable[0];
-    } catch (_) { /* fall through to the dialog */ }
-  }
-  return navigator.serial.requestPort({
-    filters: ADAPTER_VIDS.map((usbVendorId) => ({ usbVendorId })),
-  });
+async function pickPort({ allPorts = false } = {}) {
+  /* Shift-click drops the filter, for the rare board with an adapter that is
+     not on the list above. */
+  return allPorts
+    ? navigator.serial.requestPort()
+    : navigator.serial.requestPort({
+        filters: ADAPTER_VIDS.map((usbVendorId) => ({ usbVendorId })),
+      });
 }
 
 function explainConnectError(msg) {
@@ -3117,27 +3118,24 @@ function explainConnectError(msg) {
     return 'The board never entered its bootloader. Hold the BOOT button, press Connect, and release BOOT once the log moves. '
          + 'If it still fails, the cable may be charge-only — use a data cable.';
   if (/No port selected|NotFoundError/i.test(msg))
-    return 'No port was picked. If the list was empty, install the CH340 or CP2102 driver and replug the board.';
+    return 'No port was picked. If the list was empty, install the CH340 or CP2102 driver and replug the board. '
+         + 'If the board uses an unusual adapter, hold Shift and press Connect to see every port.';
   return null;
 }
 
-async function connect({ forceDialog = false } = {}) {
+async function connect({ allPorts = false } = {}) {
   if (!('serial' in navigator)) return;
   if (state.busy) return;
   let port = null;
-  let usedRemembered = false;
   try {
     state.busy = true;
     $('#connectBtn').disabled = true;
     updateFlashButton();
 
     const t0 = performance.now();
-    const grantedBefore = forceDialog ? [] : await navigator.serial.getPorts().catch(() => []);
-    port = await pickPort({ forceDialog });
-    usedRemembered = !forceDialog && grantedBefore.includes(port);
+    port = await pickPort({ allPorts });
     state.port = port;
     setStatus('busy', 'Connecting\u2026');
-    if (usedRemembered) log('Using the adapter this machine already has permission for.', 'info');
 
     const t1 = performance.now();
     const { ESPLoader, Transport } = await loadEsptool();
@@ -3172,15 +3170,6 @@ async function connect({ forceDialog = false } = {}) {
     if (hint) log(hint, 'warn');
     await hardClose();                 // always leaves the port closed and unlocked
     setStatus('error', 'Not connected');
-
-    /* A remembered port can go stale — the board was swapped, or unplugged and
-       moved to another socket. One silent retry with the chooser open. */
-    if (usedRemembered && !/No port selected|NotFoundError/i.test(msg)) {
-      log('That remembered adapter did not answer. Opening the port list\u2026', 'warn');
-      state.busy = false;
-      $('#connectBtn').disabled = false;
-      return connect({ forceDialog: true });
-    }
     toast(msg, 'error');
   } finally {
     state.busy = false;
@@ -3366,10 +3355,10 @@ window.addEventListener('hashchange', route);
   log(`Catalogue loaded — ${allActivities().length} activities across ${state.catalog.grades.length} classes.`, 'info');
   if (state.table) log(`This machine last flashed ${tableName(state.table)}. Change it in the write panel.`, 'info');
 
-  /* Shift-click forces the port chooser open — for when a bench swaps adapters. */
+  /* Shift-click shows every serial port, not just known ESP32 adapters. */
   $('#connectBtn').addEventListener('click', (e) => {
     if (state.connected) { hardClose().then(() => log('Port closed.', 'info')); return; }
-    connect({ forceDialog: e.shiftKey });
+    connect({ allPorts: e.shiftKey });
   });
   $('#flashBtn').addEventListener('click', flash);
   $('#searchInput').addEventListener('input', (e) => { state.query = e.target.value; renderCards(); });
