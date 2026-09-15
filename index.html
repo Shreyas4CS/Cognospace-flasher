@@ -43,7 +43,7 @@
   --t-xs:.75rem; --t-sm:.875rem; --t-md:1rem; --t-lg:1.25rem;
   --t-xl:1.563rem; --t-2xl:1.953rem; --t-3xl:2.441rem; --t-4xl:3.052rem;
   --r-sm:6px; --r-md:10px; --r-lg:16px; --r-xl:24px;
-  --gutter:clamp(1.25rem,4vw,3.5rem); --shell:1240px;
+  --gutter:clamp(1.25rem,4vw,3.5rem); --shell:1240px; --mh:66px;
   --speed:260ms; --ease:cubic-bezier(.22,.61,.36,1);
 }
 :root,[data-theme="light"]{
@@ -54,6 +54,9 @@
   --shadow-1:0 1px 2px rgba(20,26,38,.06),0 4px 14px rgba(20,26,38,.05);
   --shadow-2:0 18px 48px rgba(20,26,38,.13);
   --logo-filter:none; --grid-line:rgba(65,64,66,.06);
+  /* the footer is its own band, not a fade of the page */
+  --foot-bg:#282B31; --foot-text:#EDF0F5; --foot-text-2:#B0B8C4; --foot-text-3:#8A929F;
+  --foot-border:rgba(255,255,255,.12); --foot-surface:rgba(255,255,255,.05);
 }
 [data-theme="dark"]{
   --bg:#101216; --bg-2:#0A0B0E; --surface:#181B21; --surface-2:#1E222A; --surface-3:#262B34;
@@ -64,6 +67,8 @@
   --shadow-1:0 1px 2px rgba(0,0,0,.5),0 6px 20px rgba(0,0,0,.35);
   --shadow-2:0 22px 60px rgba(0,0,0,.55);
   --logo-filter:brightness(1.06); --grid-line:rgba(255,255,255,.05);
+  --foot-bg:#06070A; --foot-text:#E8EBF0; --foot-text-2:#98A1AF; --foot-text-3:#6C7481;
+  --foot-border:rgba(255,255,255,.08); --foot-surface:rgba(255,255,255,.04);
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -122,12 +127,13 @@ p{max-width:68ch}
 .masthead{position:sticky;top:0;z-index:60;
   background:color-mix(in srgb,var(--bg) 82%,transparent);
   backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--border-soft)}
-.masthead__inner{display:flex;align-items:center;gap:1.25rem;height:66px}
-.brandmark{display:flex;align-items:center;gap:.7rem;flex:none}
+.masthead__inner{display:flex;align-items:center;gap:1.25rem;height:var(--mh);min-width:0}
+.brandmark{display:flex;align-items:center;gap:.7rem;flex:none;min-width:0}
 .brandmark img{height:50px;width:auto;filter:var(--logo-filter)}
 .brandmark__word{font-size:var(--t-xl);font-weight:600;color:var(--text-2);letter-spacing:-.01em}
 .brandmark__word--x{font-size:2rem;font-weight:600;color:var(--text-2);letter-spacing:-.01em}
-.masthead__nav{margin-left:auto;display:flex;align-items:center;gap:.35rem}
+.masthead__nav{margin-left:auto;display:flex;align-items:center;gap:.35rem;min-width:0}
+.masthead__link{white-space:nowrap}
 .masthead__link{padding:.4rem .7rem;border-radius:var(--r-sm);font-size:var(--t-sm);
   color:var(--text-2);cursor:pointer;background:none;border:0;transition:color 140ms,background 140ms}
 .masthead__link:hover{color:var(--text);background:var(--surface-2)}
@@ -288,7 +294,7 @@ p{max-width:68ch}
 .guide__note code{font-family:var(--font-mono);font-size:.95em;padding:.1rem .3rem;
   border-radius:4px;background:var(--surface-3)}
 
-.foot__made{font-weight:600;color:var(--text-2);text-align:center;flex:none}
+.foot__made{font-weight:600;color:var(--foot-text-2);text-align:center;flex:none}
 
 @media (max-width:860px){
   .hero__grid{grid-template-columns:1fr}
@@ -420,29 +426,35 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 }
 
 /* ---------- footer ---------- */
-.foot{border-top:1px solid var(--border-soft);margin-top:5rem;padding-block:3rem 1.5rem;
-  background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--brand) 4%,transparent))}
+.foot{position:relative;margin-top:5rem;padding-block:3.25rem 1.5rem;
+  background:var(--foot-bg);color:var(--foot-text);border-top:0}
+/* a brand rule along the top edge draws the line the old gradient never did */
+.foot::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--brand-deep))}
+/* the footer is dark in both themes, so it always wants the dark logo */
+.foot .logo--light{opacity:0}
+.foot .logo--dark{opacity:1}
 .foot__grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:2.5rem}
 .foot__brand .logo img{height:34px}
-.foot__blurb{margin-top:1rem;font-size:var(--t-sm);color:var(--text-2);max-width:34ch;line-height:1.65}
+.foot__blurb{margin-top:1rem;font-size:var(--t-sm);color:var(--foot-text-2);max-width:34ch;line-height:1.65}
 .foot__site{display:inline-flex;align-items:center;gap:.35rem;margin-top:1rem;font-size:var(--t-sm);
   font-weight:600;color:var(--brand);transition:gap 180ms var(--ease)}
 .foot__site svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round}
 .foot__site:hover{gap:.6rem}
 .foot__col{display:flex;flex-direction:column;gap:.55rem}
-.foot__col h3{font-size:var(--t-xs);font-weight:600;color:var(--text);margin-bottom:.35rem;
+.foot__col h3{font-size:var(--t-xs);font-weight:600;color:var(--foot-text);margin-bottom:.35rem;
   letter-spacing:.06em;text-transform:uppercase}
-.foot__col a,.foot__col span{font-size:var(--t-sm);color:var(--text-3)}
+.foot__col a,.foot__col span{font-size:var(--t-sm);color:var(--foot-text-3)}
 .foot__col a{position:relative;width:fit-content;transition:color 160ms}
 .foot__col a::after{content:'';position:absolute;left:0;bottom:-2px;height:1px;width:0;
   background:var(--brand);transition:width 240ms var(--ease)}
-.foot__col a:hover{color:var(--text)}
+.foot__col a:hover{color:var(--foot-text)}
 .foot__col a:hover::after{width:100%}
 .foot__ok{display:inline-flex;align-items:center;gap:.4rem}
 .foot__bar{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:center;
-  margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--border-soft);
-  font-size:var(--t-xs);color:var(--text-3)}
+  margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid var(--foot-border);
+  font-size:var(--t-xs);color:var(--foot-text-3)}
 .foot__made strong{color:var(--brand);font-weight:600}
 .foot__year{margin-left:auto}
 @media (max-width:900px){
@@ -454,16 +466,26 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 /* ==========================================================================
    FLASHER WORKSPACE
    ========================================================================== */
-.workspace{display:grid;grid-template-columns:216px minmax(0,1fr) 372px;gap:1.25rem;
-  align-items:start;max-width:1500px;margin-inline:auto;padding:1.5rem var(--gutter) 3rem}
+/* One page, one scrollbar. The three columns sit in normal document flow and
+   the whole workspace scrolls together. */
+.workspace{display:grid;
+  grid-template-columns:clamp(178px,15vw,224px) minmax(0,1fr) clamp(326px,25vw,386px);
+  gap:1.1rem;align-items:start;max-width:1600px;margin-inline:auto;
+  padding:1.25rem var(--gutter) 3rem}
+
+/* Without this a long unbreakable string inside a panel inflates its grid
+   track and pushes the whole workspace past the viewport. */
+.workspace > *{min-width:0}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
   box-shadow:var(--shadow-1)}
-.panel__head{display:flex;align-items:center;gap:.6rem;padding:.9rem 1.1rem;
+/* "Console" plus three buttons cannot fit a 360px phone on one line, and a row
+   that refuses to wrap sets a min-content width the whole column inherits. */
+.panel__head{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;padding:.9rem 1.1rem;
   border-bottom:1px solid var(--border-soft)}
 .panel__head h2{font-size:var(--t-sm);font-weight:600;letter-spacing:-.005em}
 .panel__body{padding:1.1rem}
 
-.rail{position:sticky;top:84px}
+.rail{position:sticky;top:calc(var(--mh) + 1rem)}
 .rail__title{font-size:var(--t-xs);color:var(--text-3);padding:0 .55rem .5rem;font-weight:500}
 .rail__btn{display:flex;align-items:center;gap:.6rem;width:100%;padding:.55rem .7rem;border:0;
   background:transparent;border-radius:var(--r-sm);cursor:pointer;text-align:left;
@@ -482,7 +504,8 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 .select{padding:.55rem .8rem;border-radius:var(--r-md);border:1px solid var(--border);
   background:var(--surface);font-size:var(--t-sm);cursor:pointer}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:.9rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(258px,100%),1fr));
+  gap:.9rem;align-content:start}
 .card{position:relative;display:flex;flex-direction:column;gap:.6rem;padding:1.05rem;text-align:left;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);cursor:pointer;
   transition:border-color 160ms var(--ease),box-shadow 160ms var(--ease)}
@@ -497,7 +520,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   border:1px dashed var(--border);border-radius:var(--r-lg)}
 .empty strong{display:block;color:var(--text-2);margin-bottom:.3rem}
 
-.dock{position:sticky;top:84px;display:grid;gap:1.25rem}
+.dock{position:sticky;top:calc(var(--mh) + 1rem);display:grid;gap:1.1rem;align-content:start}
 .readout{display:grid;gap:.5rem}
 .readout__row{display:flex;justify-content:space-between;gap:1rem;font-size:var(--t-xs);
   padding-bottom:.45rem;border-bottom:1px dashed var(--border-soft)}
@@ -529,7 +552,8 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 .console .panel__head{border-bottom-color:rgba(255,255,255,.08)}
 .console .panel__head h2{color:#E8EBF0}
 .console__out{font-family:var(--font-mono);font-size:11.5px;line-height:1.7;color:var(--console-fg);
-  padding:.9rem 1rem;height:232px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  padding:.9rem 1rem;height:clamp(150px,20vh,260px);overflow-y:auto;
+  white-space:pre-wrap;word-break:break-word;overscroll-behavior:contain}
 .console__out::-webkit-scrollbar{width:8px}
 .console__out::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
 .line{display:block}
@@ -538,6 +562,46 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 .line__t{color:#5C6879;margin-right:.55rem}
 @keyframes lineIn{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:none}}
 .js-loaded .line{animation:lineIn 180ms var(--ease)}
+
+/* ---------- serial monitor ---------- */
+.monitor__ctl{display:flex;flex-wrap:wrap;gap:.45rem;padding:.7rem .85rem;
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.monitor__ctl .select{flex:1 1 auto;min-width:0;background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.14);color:var(--console-fg)}
+.monitor__ctl .btn{flex:none;background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.14);color:var(--console-fg)}
+.monitor__ctl .btn:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.monitor__out{height:clamp(150px,22vh,280px)}
+/* the dock is narrow, so header controls run compact and only wrap on phones */
+.console .panel__head{gap:.4rem}
+.console .panel__head .btn--sm{padding:.34rem .55rem;font-size:.7rem}
+.console .panel__head .tag{font-size:.68rem;padding:.14rem .4rem}
+/* These two panels are dark in both themes, so their controls cannot inherit
+   the page's text colour — in light mode that painted dark on dark. */
+.console .panel__head .btn{color:var(--console-fg);background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.16)}
+.console .panel__head .btn:hover:not(:disabled){background:rgba(255,255,255,.15);color:#fff}
+.console .panel__head .tag{color:#B9C3D1;background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.14)}
+.monitor__out[data-empty="true"]{color:#6D7889}
+.monitor__send{display:flex;flex-wrap:wrap;gap:.45rem;padding:.7rem .85rem;
+  border-top:1px solid rgba(255,255,255,.08)}
+.monitor__send input{flex:1 1 140px;min-width:0;padding:.45rem .7rem;border-radius:var(--r-sm);
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);
+  color:var(--console-fg);font-family:var(--font-mono);font-size:var(--t-xs);outline:none}
+.monitor__send input:focus{border-color:var(--brand)}
+.monitor__send input::placeholder{color:#6D7889}
+.monitor__send input:disabled{opacity:.5}
+.monitor__send .select{flex:none;width:auto;background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.14);color:var(--console-fg);font-size:var(--t-xs);
+  padding:.45rem .5rem}
+.monitor__send .btn{flex:none}
+/* the monitor prints the board's own words, so it gets the plain console face */
+.mline{display:block;color:var(--console-fg)}
+.mline--sent{color:#7FB4FF}
+.mline--sys{color:#8FA3BC}
+.mline--err{color:#F1746F}
+.mline__t{color:#5C6879;margin-right:.55rem}
 
 .drop{margin-top:1rem;padding:1.15rem;border:1.5px dashed var(--border);border-radius:var(--r-md);
   text-align:center;cursor:pointer;color:var(--text-3);font-size:var(--t-xs);
@@ -559,17 +623,66 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 .toast.is-out{animation:toastOut 220ms var(--ease) forwards}
 @keyframes toastOut{to{opacity:0;transform:translateY(6px)}}
 
-@media (max-width:1180px){
-  .workspace{grid-template-columns:190px minmax(0,1fr)}
-  .dock{grid-column:1/-1;position:static;grid-template-columns:1fr 1fr}
+/* ---------- workspace: laptops, tablets, phones ---------- */
+@media (max-width:1240px){
+  .workspace{grid-template-columns:clamp(168px,20vw,200px) minmax(0,1fr)}
+  /* the shelf still follows you down the page, but never taller than the screen */
+  .rail{max-height:calc(100svh - var(--mh) - 2rem);overflow-y:auto}
+  .dock{position:static;grid-column:1/-1;
+    grid-template-columns:repeat(auto-fit,minmax(310px,1fr));align-items:start}
+  .console__out{height:clamp(180px,26vh,280px)}
 }
-@media (max-width:760px){
-  .workspace{grid-template-columns:1fr}
-  .rail{position:static;display:flex;flex-wrap:wrap;gap:.4rem}
+
+/* The CognoSpace mark is a wide lockup (~5:1), so it, the wordmark and four
+   nav items cannot share a narrow header. Shed them in that order. */
+@media (max-width:900px){
+  .brandmark__word{display:none}
+  .brandmark img{height:40px}
+  .masthead__inner{gap:.75rem}
+}
+
+/* tablets in portrait and large phones */
+@media (max-width:820px){
+  .workspace{grid-template-columns:1fr;gap:1rem;padding-top:1rem}
+  .rail{position:static;max-height:none;overflow:visible;
+    display:flex;flex-wrap:wrap;gap:.4rem}
   .rail__title{width:100%}
   .rail__btn{width:auto}
   .dock{grid-template-columns:1fr}
 }
+
+/* phones */
+@media (max-width:560px){
+  :root{--mh:58px}
+  .workspace{padding-inline:1rem;gap:.85rem}
+  .brandmark__word{display:none}
+  .masthead__inner{gap:.5rem}
+  .masthead__nav{gap:.15rem}
+  .masthead__link{padding:.35rem .45rem;font-size:var(--t-xs)}
+  .theme-toggle{width:32px;height:32px;flex:none}
+  /* the pill keeps its light but drops its label — the dock says the rest */
+  #statusPill{padding:.3rem .45rem}
+  #statusText{display:none}
+  .brandmark img{height:30px}
+  /* Home and Flasher are one tap away from the logo and the pill; the table
+     guide and the theme switch are not, so those two stay. */
+  .masthead__nav .masthead__link[href="#/"],
+  .masthead__nav .masthead__link[href="#/flash"]{display:none}
+  .toolbar{gap:.5rem}
+  .search{flex:1 1 100%}
+  .select{flex:1 1 auto;min-width:0}
+  .panel__body{padding:.9rem}
+  .tables__grid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+  .console__out{height:clamp(160px,32vh,240px);font-size:11px}
+  .toast-wrap{left:1rem;right:1rem;bottom:1rem}
+  .toast{max-width:none}
+}
+
+@media (max-width:400px){
+  .workspace{padding-inline:.85rem}
+  .brandmark img{height:26px}
+}
+
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
@@ -837,7 +950,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
       <div id="gradeRail"></div>
     </aside>
 
-    <section>
+    <section class="stream">
       <div class="toolbar">
         <label class="search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -860,10 +973,10 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
           <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
           <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
-            <option value="115200">115200 — slowest, most forgiving</option>
+            <option value="115200" selected>115200 — default, most reliable</option>
             <option value="230400">230400 — a little quicker</option>
             <option value="460800">460800 — quick</option>
-            <option value="921600" selected>921600 — default, needs a good cable</option>
+            <option value="921600">921600 — fastest, needs a good cable</option>
           </select>
 
           <div class="readout">
@@ -903,6 +1016,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           <div class="progress__meta"><span id="progressLabel">idle</span><span id="progressPct">0%</span></div>
 
           <label class="check"><input type="checkbox" id="eraseAll"> Erase the whole flash first</label>
+          <label class="check"><input type="checkbox" id="monAfter" checked> Open the serial monitor after flashing</label>
 
           <button class="btn btn--brand btn--block" id="flashBtn" type="button" disabled style="margin-top:1rem">Flash the Coggy</button>
           <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.55rem" id="flashHint">Connect a Coggy to begin.</p>
@@ -923,11 +1037,50 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
         <div class="panel__head">
           <h2>Console</h2>
           <span class="tag" id="lineCount" style="margin-left:auto">0 lines</span>
-          <button class="btn btn--sm btn--ghost" id="auditBtn" type="button">Check builds</button>
-          <button class="btn btn--sm btn--ghost" id="saveLog" type="button">Save log</button>
+          <button class="btn btn--sm btn--ghost" id="auditBtn" type="button"
+                  title="Check which table builds are on the server">Builds</button>
+          <button class="btn btn--sm btn--ghost" id="saveLog" type="button"
+                  title="Save this log to a file">Save</button>
           <button class="btn btn--sm btn--ghost" id="clearConsole" type="button">Clear</button>
         </div>
         <div class="console__out" id="console" data-empty="true">Connect a Coggy to begin. Everything the flasher does is logged here.</div>
+      </div>
+
+      <div class="panel console monitor">
+        <div class="panel__head">
+          <h2>Serial monitor</h2>
+          <span class="tag" id="monState" style="margin-left:auto">closed</span>
+          <button class="btn btn--sm btn--ghost" id="monSave" type="button">Save</button>
+          <button class="btn btn--sm btn--ghost" id="monClear" type="button">Clear</button>
+        </div>
+
+        <div class="monitor__ctl">
+          <select class="select" id="monBaud" aria-label="Monitor baud rate">
+            <option value="9600">9600</option>
+            <option value="19200">19200</option>
+            <option value="38400">38400</option>
+            <option value="57600">57600</option>
+            <option value="115200" selected>115200</option>
+            <option value="230400">230400</option>
+          </select>
+          <button class="btn btn--sm" id="monToggle" type="button">Open</button>
+          <button class="btn btn--sm btn--ghost" id="monReset" type="button" disabled
+                  title="Pulse EN to restart the board">Reset</button>
+        </div>
+
+        <div class="console__out monitor__out" id="monOut" data-empty="true">Press Open, then pick the Coggy. Whatever the sketch prints with Serial.print() shows up here, and the box below unlocks so you can send lines back.</div>
+
+        <div class="monitor__send">
+          <input id="monInput" placeholder="Press Open first…" disabled
+                 autocomplete="off" spellcheck="false" aria-label="Line to send">
+          <select class="select" id="monEol" aria-label="Line ending">
+            <option value="nl" selected>NL</option>
+            <option value="cr">CR</option>
+            <option value="crlf">NL+CR</option>
+            <option value="none">none</option>
+          </select>
+          <button class="btn btn--sm btn--brand" id="monSend" type="button" disabled>Send</button>
+        </div>
       </div>
 
     </aside>
@@ -2562,7 +2715,9 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
    tarball to vendor/esptool-js/bundle.js next to this file. */
 const ESPTOOL_VERSION = '0.5.4';
 const ESPTOOL_SOURCES = [
-  'vendor/esptool-js/bundle.js',
+  /* The leading './' matters: a dynamic import() treats 'vendor/...' as a bare
+     module specifier and rejects it outright. */
+  './vendor/esptool-js/bundle.js',
   `https://cdn.jsdelivr.net/npm/esptool-js@${ESPTOOL_VERSION}/bundle.js`,
   `https://unpkg.com/esptool-js@${ESPTOOL_VERSION}/bundle.js`,
   `https://esm.sh/esptool-js@${ESPTOOL_VERSION}`,
@@ -3014,7 +3169,7 @@ async function auditBuilds() {
         missing.length ? 'error' : 'ok');
 
   btn.disabled = false;
-  btn.textContent = 'Check builds';
+  btn.textContent = 'Builds';
 }
 
 function select(a) {
@@ -3133,9 +3288,13 @@ async function connect({ allPorts = false } = {}) {
     $('#connectBtn').disabled = true;
     updateFlashButton();
 
+    /* Only one of the two can hold the port. */
+    if (mon.open) { log('Closing the serial monitor to free the port.', 'info'); await monClosePort(); }
+
     const t0 = performance.now();
     port = await pickPort({ allPorts });
     state.port = port;
+    state.lastPort = port;          // the monitor reuses this, no second dialog
     setStatus('busy', 'Connecting\u2026');
 
     const t1 = performance.now();
@@ -3234,6 +3393,185 @@ async function fetchBinary(path) {
   return prefetchBinary(path);
 }
 
+/* ==========================================================================
+   SERIAL MONITOR
+   Runs on the plain Web Serial port, with no esptool in the way. Only one of
+   the two can hold the port at a time, so opening either closes the other.
+   ========================================================================== */
+const mon = {
+  port: null, reader: null, readTask: null,
+  open: false, closing: false, tail: '',
+};
+
+/* Keyword values in the markup, real characters here — nothing to escape. */
+const MON_EOL = { nl: '\n', cr: '\r', crlf: '\r\n', none: '' };
+
+const monOut = $('#monOut');
+let _monPending = [];
+let _monQueued = false;
+
+function monLog(text, kind = 'out') {
+  _monPending.push([text, kind, stamp()]);
+  if (_monQueued) return;
+  _monQueued = true;
+  requestAnimationFrame(monFlush);
+}
+
+function monFlush() {
+  _monQueued = false;
+  if (!_monPending.length) return;
+  if (monOut.dataset.empty === 'true') { monOut.textContent = ''; monOut.dataset.empty = 'false'; }
+  /* Stay pinned to the bottom only if the reader already was — otherwise a
+     teacher scrolling back through output gets yanked away mid-sentence. */
+  const pinned = monOut.scrollHeight - monOut.scrollTop - monOut.clientHeight < 40;
+  const frag = document.createDocumentFragment();
+  for (const [text, kind, ts] of _monPending) {
+    const el = document.createElement('span');
+    el.className = `mline mline--${kind}`;
+    const t = document.createElement('span');
+    t.className = 'mline__t';
+    t.textContent = ts;
+    el.append(t, document.createTextNode(text));
+    frag.append(el);
+  }
+  _monPending.length = 0;
+  monOut.append(frag);
+  while (monOut.childElementCount > 800) monOut.firstElementChild.remove();
+  if (pinned) monOut.scrollTop = monOut.scrollHeight;
+}
+
+/* Serial arrives in arbitrary chunks, so hold the unterminated tail back until
+   its newline turns up rather than printing half a line. */
+function monFeed(chunk) {
+  mon.tail += chunk;
+  const parts = mon.tail.split(/\r\n|\n|\r/);
+  mon.tail = parts.pop();
+  for (const line of parts) monLog(line, 'out');
+  if (mon.tail.length > 4096) { monLog(mon.tail, 'out'); mon.tail = ''; }
+}
+
+function monSetOpen(isOpen) {
+  mon.open = isOpen;
+  $('#monState').textContent = isOpen ? `open · ${$('#monBaud').value}` : 'closed';
+  $('#monToggle').textContent = isOpen ? 'Close' : 'Open';
+  /* Baud only bites at open time, so it locks while running. The line ending is
+     just a preference — it stays editable either way. */
+  $('#monBaud').disabled = isOpen;
+  $('#monReset').disabled = !isOpen;
+  $('#monInput').disabled = !isOpen;
+  $('#monSend').disabled = !isOpen;
+  $('#monInput').placeholder = isOpen ? 'Send a line to the Coggy…' : 'Press Open first…';
+}
+
+async function monOpenPort({ silent = false } = {}) {
+  if (mon.open || mon.closing) return;
+  if (!('serial' in navigator)) {
+    monLog('This browser has no Web Serial. Use Chrome, Edge or Opera on a desktop.', 'err');
+    return;
+  }
+
+  /* esptool and the monitor cannot share a port. */
+  if (state.connected) {
+    monLog('Closing the flasher connection first…', 'sys');
+    await hardClose();
+  }
+
+  const baudRate = parseInt($('#monBaud').value, 10) || 115200;
+  try {
+    /* Reuse the port already granted for this session so no second dialog
+       appears between flashing and watching the output. */
+    const port = state.lastPort || await pickPort();
+    await port.open({ baudRate, bufferSize: 4096 });
+    /* Leave both lines idle: asserting DTR/RTS on open holds some boards in
+       reset or drops them into the bootloader. */
+    try { await port.setSignals({ dataTerminalReady: false, requestToSend: false }); } catch (_) {}
+
+    mon.port = port;
+    state.lastPort = port;
+    mon.tail = '';
+    monSetOpen(true);
+    monLog(`Monitor open at ${baudRate} baud.`, 'sys');
+
+    mon.readTask = monRead(port);
+  } catch (err) {
+    const msg = err?.message || String(err);
+    monSetOpen(false);
+    if (silent) return;
+    if (/No port selected|NotFoundError/i.test(msg)) {
+      monLog('No port picked. Press Open again and choose the Coggy from the list.', 'sys');
+      return;
+    }
+    monLog(msg, 'err');
+    toast(msg, 'error');
+  }
+}
+
+async function monRead(port) {
+  const dec = new TextDecoder();
+  try {
+    mon.reader = port.readable.getReader();
+    for (;;) {
+      const { value, done } = await mon.reader.read();
+      if (done) break;
+      if (value) monFeed(dec.decode(value, { stream: true }));
+    }
+  } catch (err) {
+    if (!mon.closing) monLog(err?.message || String(err), 'err');
+  } finally {
+    try { mon.reader?.releaseLock(); } catch (_) {}
+    mon.reader = null;
+  }
+}
+
+async function monClosePort({ silent = false } = {}) {
+  if (!mon.open || mon.closing) return;
+  mon.closing = true;
+  try {
+    if (mon.tail) { monLog(mon.tail, 'out'); mon.tail = ''; }
+    try { await mon.reader?.cancel(); } catch (_) {}
+    try { await mon.readTask; } catch (_) {}
+    await forceClosePort(mon.port);
+    if (!silent) monLog('Monitor closed.', 'sys');
+  } finally {
+    mon.port = null; mon.readTask = null;
+    mon.closing = false;
+    monSetOpen(false);
+  }
+}
+
+async function monSendLine() {
+  if (!mon.open || !mon.port?.writable) return;
+  const input = $('#monInput');
+  const text = input.value;
+  if (!text) return;
+  const eol = MON_EOL[$('#monEol').value] ?? '\n';
+  let writer;
+  try {
+    writer = mon.port.writable.getWriter();
+    await writer.write(new TextEncoder().encode(text + eol));
+    monLog(`> ${text}`, 'sent');
+    input.value = '';
+  } catch (err) {
+    monLog(err?.message || String(err), 'err');
+  } finally {
+    try { writer?.releaseLock(); } catch (_) {}
+  }
+}
+
+/* RTS drives EN on a Coggy, so pulsing it restarts the sketch without anyone
+   reaching behind the board for the button. */
+async function monResetBoard() {
+  if (!mon.open || !mon.port) return;
+  try {
+    await mon.port.setSignals({ dataTerminalReady: false, requestToSend: true });
+    await new Promise((r) => setTimeout(r, 120));
+    await mon.port.setSignals({ dataTerminalReady: false, requestToSend: false });
+    monLog('Board reset.', 'sys');
+  } catch (err) {
+    monLog(err?.message || String(err), 'err');
+  }
+}
+
 function toBinaryString(u8) {
   let s = '';
   for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
@@ -3277,6 +3615,11 @@ async function flash() {
     setProgress(1, 1, 'Written');
     log('Flash complete. The Coggy is restarting.', 'ok');
     toast('Firmware written');
+    if ($('#monAfter').checked) {
+      log('Handing the port to the serial monitor\u2026', 'info');
+      await hardClose();                  // esptool must let go first
+      await monOpenPort();
+    }
   } catch (err) {
     $('#progressBar').classList.remove('is-active');
     const msg = err.message || String(err);
@@ -3327,6 +3670,7 @@ function route() {
   $('#viewHome').hidden = flashing;
   $('#viewFlash').hidden = !flashing;
   $('#statusPill').hidden = !flashing;
+  document.body.dataset.view = flashing ? 'flash' : 'home';
   if (!flashing && location.hash && location.hash !== '#/') {
     document.querySelector(location.hash)?.scrollIntoView();
   } else {
@@ -3373,6 +3717,38 @@ window.addEventListener('hashchange', route);
   /* Checking builds is the natural "look at the server again" action, so let it
      throw away anything held in memory from an earlier build. */
   $('#auditBtn').addEventListener('click', () => { _binCache.clear(); auditBuilds(); });
+
+  /* ---------- serial monitor ---------- */
+  $('#monToggle').addEventListener('click', () =>
+    (mon.open ? monClosePort() : monOpenPort()));
+  $('#monReset').addEventListener('click', monResetBoard);
+  $('#monSend').addEventListener('click', monSendLine);
+  $('#monInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); monSendLine(); }
+  });
+  $('#monClear').addEventListener('click', () => {
+    _monPending.length = 0;
+    monOut.textContent = 'Open the monitor to read what the Coggy prints over Serial.';
+    monOut.dataset.empty = 'true';
+  });
+  $('#monSave').addEventListener('click', () => {
+    const blob = new Blob([monOut.innerText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `coggy-serial-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  /* A port yanked mid-session should not leave the UI claiming it is open. */
+  if ('serial' in navigator) {
+    navigator.serial.addEventListener('disconnect', (e) => {
+      if (mon.open && e.target === mon.port) {
+        monLog('The Coggy was unplugged.', 'err');
+        monClosePort({ silent: true });
+      }
+    });
+  }
+  window.addEventListener('beforeunload', () => { if (mon.open) monClosePort({ silent: true }); });
   $('#saveLog').addEventListener('click', () => {
     const blob = new Blob([out.innerText], { type: 'text/plain' });
     const a = document.createElement('a');
