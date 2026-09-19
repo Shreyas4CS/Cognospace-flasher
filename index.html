@@ -466,8 +466,9 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 /* ==========================================================================
    FLASHER WORKSPACE
    ========================================================================== */
-/* One page, one scrollbar. The three columns sit in normal document flow and
-   the whole workspace scrolls together. */
+/* The left rail and centre shelf scroll with the page; the right dock keeps its
+   own scrollbar (see .dock below) so a tall stack of panels stays reachable
+   without dragging the whole page down. */
 .workspace{display:grid;
   grid-template-columns:clamp(178px,15vw,224px) minmax(0,1fr) clamp(326px,25vw,386px);
   gap:1.1rem;align-items:start;max-width:1600px;margin-inline:auto;
@@ -520,7 +521,17 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   border:1px dashed var(--border);border-radius:var(--r-lg)}
 .empty strong{display:block;color:var(--text-2);margin-bottom:.3rem}
 
-.dock{position:sticky;top:calc(var(--mh) + 1rem);display:grid;gap:1.1rem;align-content:start}
+/* The right column now scrolls on its own: it sticks under the header and,
+   once its panels outgrow the screen, gets its own scrollbar instead of
+   pushing the whole page down. */
+.dock{position:sticky;top:calc(var(--mh) + 1rem);display:grid;gap:1.1rem;align-content:start;
+  max-height:calc(100svh - var(--mh) - 2rem);overflow-y:auto;overscroll-behavior:contain;
+  padding-right:.45rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.dock::-webkit-scrollbar{width:10px}
+.dock::-webkit-scrollbar-track{background:transparent}
+.dock::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;
+  border:2px solid transparent;background-clip:padding-box}
+.dock:hover::-webkit-scrollbar-thumb{background:var(--text-3);background-clip:padding-box}
 .readout{display:grid;gap:.5rem}
 .readout__row{display:flex;justify-content:space-between;gap:1rem;font-size:var(--t-xs);
   padding-bottom:.45rem;border-bottom:1px dashed var(--border-soft)}
@@ -629,7 +640,8 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   /* the shelf still follows you down the page, but never taller than the screen */
   .rail{max-height:calc(100svh - var(--mh) - 2rem);overflow-y:auto}
   .dock{position:static;grid-column:1/-1;
-    grid-template-columns:repeat(auto-fit,minmax(310px,1fr));align-items:start}
+    grid-template-columns:repeat(auto-fit,minmax(310px,1fr));align-items:start;
+    max-height:none;overflow:visible;padding-right:0}
   .console__out{height:clamp(180px,26vh,280px)}
 }
 
@@ -1016,7 +1028,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           <div class="progress__meta"><span id="progressLabel">idle</span><span id="progressPct">0%</span></div>
 
           <label class="check"><input type="checkbox" id="eraseAll"> Erase the whole flash first</label>
-          <label class="check"><input type="checkbox" id="monAfter" checked> Open the serial monitor after flashing</label>
+          <label class="check"><input type="checkbox" id="monAfter"> Open the serial monitor after flashing</label>
 
           <button class="btn btn--brand btn--block" id="flashBtn" type="button" disabled style="margin-top:1rem">Flash the Coggy</button>
           <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.55rem" id="flashHint">Connect a Coggy to begin.</p>
@@ -3054,16 +3066,19 @@ function paintHint() {
   const hint = $('#tablePath');
   if (!state.table) { hint.innerHTML = '<b>Pick the table this Coggy belongs to.</b>'; return; }
 
-  const path = tablePathFor(state.selected, state.table);
+  const t  = TABLES.find((x) => x.id === state.table);
+  const nm = t ? t.name : state.table;                 // friendly bench name, e.g. "Tesla"
   const chip = $('#tableGrid')?.querySelector(`[data-table="${state.table}"]`);
 
   if (chip?.dataset.build === 'missing') {
     hint.innerHTML = '';
     const warn = document.createElement('b');
-    warn.textContent = `No build uploaded at ${path} yet — flashing will fail.`;
+    warn.textContent = `No code uploaded in ${nm} yet — flashing will fail.`;
     hint.append(warn);
+  } else if (chip?.dataset.build === 'checking') {
+    hint.textContent = `Checking ${nm}…`;
   } else {
-    hint.textContent = path;
+    hint.textContent = `Code uploaded in ${nm}`;
   }
 }
 
