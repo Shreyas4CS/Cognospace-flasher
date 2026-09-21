@@ -541,11 +541,8 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   padding:.55rem .6rem;border:0;background:transparent;border-radius:var(--r-md);
   cursor:pointer;text-align:left;transition:background 120ms var(--ease)}
 .srch__row:hover,.srch__row.is-active{background:color-mix(in srgb,var(--gc) 13%,transparent)}
-.srch__code{font-family:var(--font-mono);font-size:var(--t-xs);font-weight:600;
-  padding:.22rem .5rem;border-radius:var(--r-sm);white-space:nowrap;flex:none;
-  color:color-mix(in srgb,var(--gc) 78%,var(--text));
-  background:color-mix(in srgb,var(--gc) 15%,transparent);
-  border:1px solid color-mix(in srgb,var(--gc) 32%,transparent)}
+.srch__dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--gc);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--gc) 18%,transparent)}
 .srch__body{display:flex;flex-direction:column;gap:.1rem;min-width:0;flex:1}
 .srch__name{font-size:var(--t-sm);font-weight:500;color:var(--text);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3780,10 +3777,10 @@ function activityMatches(raw) {
 
 /* Open the flasher with an activity pre-selected — works from any page. */
 function openActivity(a) {
-  if (!location.hash.startsWith('#/flash')) location.hash = '#/flash';
-  route();
+  const goToFlash = !location.hash.startsWith('#/flash');
 
   if (a.soon) {
+    if (goToFlash) location.hash = '#/flash'; else route();
     log(`${a.code} is a placeholder — no firmware written for it yet.`, 'warn');
     toast(`${a.code} has no firmware yet.`, 'error');
     return;
@@ -3794,9 +3791,16 @@ function openActivity(a) {
   if ($('#searchInput'))     $('#searchInput').value = '';
   if ($('#categoryFilter'))  $('#categoryFilter').value = 'all';
   renderRail();
-  select(a);
-  requestAnimationFrame(() =>
-    $('#targetName')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  select(a);                       // loads it into the Write-firmware panel, ready to flash
+
+  if (goToFlash) location.hash = '#/flash'; else route();
+
+  // Land on the chosen activity once the router's own scroll has settled,
+  // so it's clearly in front of the teacher and selected for flashing.
+  setTimeout(() => {
+    ($('.card[aria-selected="true"]') || $('#targetName'))
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 80);
 }
 
 /* Wire one search box and its results panel. Reused by the masthead and hero. */
@@ -3827,11 +3831,10 @@ function wireSearch(input, panel) {
         row.setAttribute('role', 'option');
         if (a.color) row.style.setProperty('--gc', a.color);
         row.innerHTML =
-          '<span class="srch__code"></span>' +
+          '<span class="srch__dot" aria-hidden="true"></span>' +
           '<span class="srch__body"><span class="srch__name"></span>' +
           '<span class="srch__meta"></span></span>' +
           '<span class="srch__go"></span>';
-        row.querySelector('.srch__code').textContent = a.code;
         row.querySelector('.srch__name').textContent = a.name;
         row.querySelector('.srch__meta').textContent =
           `${a.label || 'Class ' + a.grade}${a.category ? ' · ' + a.category : ''}`;
