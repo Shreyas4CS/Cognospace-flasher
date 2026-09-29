@@ -762,6 +762,269 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
     transition-duration:.001ms!important;scroll-behavior:auto!important}
 }
+
+/* ==========================================================================
+   v2 — warmer colour, motion, pop-ups and wiring sheets
+   ========================================================================== */
+:root{--sky:#2E8BC0;--grape:#8A5CD4;--mint:#22A183;--sun:#E0A800;--rose:#D9487A}
+
+/* light theme: a warm cream page instead of flat grey-white, so the white
+   panels and the coloured class accents have something to sit on */
+html[data-theme="light"]{
+  --bg:#FFF6EC; --bg-2:#FCEBD8;
+  --surface:#FFFFFF; --surface-2:#FFF9F3; --surface-3:#FCEEE0;
+  --border:#F0DCC6; --border-soft:#F6E9DA;
+  --text:#2A2521; --text-2:#5F564E; --text-3:#9A8D81;
+  --grid-line:rgba(201,98,12,.07);
+  --shadow-1:0 1px 2px rgba(120,60,10,.05),0 6px 18px rgba(120,60,10,.06);
+  --shadow-2:0 22px 54px rgba(120,60,10,.16);
+}
+
+/* slow-drifting colour washes behind everything */
+body::before{content:'';position:fixed;inset:-12%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(34% 30% at 6% 10%,rgba(255,164,80,.30),transparent 70%),
+    radial-gradient(32% 28% at 94% 6%,rgba(80,176,240,.22),transparent 70%),
+    radial-gradient(36% 32% at 88% 80%,rgba(168,118,240,.18),transparent 70%),
+    radial-gradient(32% 30% at 10% 90%,rgba(50,196,146,.18),transparent 70%);
+  animation:wash 30s ease-in-out infinite alternate}
+@keyframes wash{to{transform:translate3d(3%,-2%,0) scale(1.06)}}
+[data-theme="dark"] body::before{opacity:.32}
+
+/* scroll reveal — animation only, so hover transitions stay untouched */
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}}
+.sr:not(.in),.stagger:not(.in) > *{opacity:0}
+.sr.in{animation:riseIn .7s var(--ease) backwards}
+.stagger.in > *{animation:riseIn .6s var(--ease) backwards;animation-delay:calc(var(--k,0) * 70ms)}
+
+.eyebrow{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .7rem;border-radius:999px;
+  background:var(--brand-soft);border:1px solid var(--brand-line);color:var(--brand-deep);
+  font-size:var(--t-xs);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+[data-theme="dark"] .eyebrow{color:var(--brand)}
+.section--tight{padding-block:clamp(2rem,5vw,3.25rem)}
+
+/* ---------- ticker ---------- */
+.ticker{padding-block:1rem;border-block:1px solid var(--border-soft);overflow:hidden;
+  background:color-mix(in srgb,var(--surface) 65%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.ticker__track{display:flex;gap:.65rem;width:max-content;animation:marquee 90s linear infinite}
+.ticker:hover .ticker__track{animation-play-state:paused}
+@keyframes marquee{to{transform:translateX(-50%)}}
+.tick{--gc:var(--brand);display:inline-flex;align-items:center;gap:.55rem;padding:.42rem .85rem;
+  border-radius:999px;background:var(--surface);cursor:pointer;white-space:nowrap;font-size:var(--t-sm);
+  border:1px solid color-mix(in srgb,var(--gc) 30%,var(--border));
+  transition:background 160ms var(--ease),transform 160ms var(--ease),color 160ms}
+.tick:hover{background:var(--gc);color:#fff;transform:translateY(-2px)}
+.tick__dot{width:8px;height:8px;border-radius:50%;background:var(--gc)}
+.tick:hover .tick__dot{background:#fff}
+.tick__cd{font-family:var(--font-mono);font-size:.68rem;opacity:.6}
+
+/* ---------- tracks ---------- */
+.tracks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.track{--gc:var(--brand);position:relative;display:block;padding:1.4rem 1.3rem 1.25rem;text-align:left;
+  border-radius:var(--r-lg);cursor:pointer;overflow:hidden;
+  background:linear-gradient(155deg,color-mix(in srgb,var(--gc) 15%,var(--surface)),var(--surface) 72%);
+  border:1px solid color-mix(in srgb,var(--gc) 26%,var(--border));box-shadow:var(--shadow-1);
+  transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.track:hover{transform:translateY(-4px);box-shadow:var(--shadow-2)}
+.track__icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--gc);
+  box-shadow:0 10px 22px color-mix(in srgb,var(--gc) 38%,transparent)}
+.track__icon svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.track:hover .track__icon{animation:wiggle .6s var(--ease)}
+@keyframes wiggle{25%{transform:rotate(-10deg) scale(1.08)}60%{transform:rotate(8deg) scale(1.08)}}
+.track h3{margin-top:1rem;font-size:var(--t-lg)}
+.track p{margin-top:.35rem;font-size:var(--t-sm);color:var(--text-2)}
+.track__n{position:absolute;right:1.1rem;top:.9rem;font-family:var(--font-mono);font-size:2.6rem;font-weight:700;
+  line-height:1;color:color-mix(in srgb,var(--gc) 32%,transparent)}
+.track__go{display:inline-block;margin-top:.9rem;font-size:var(--t-xs);font-weight:600;
+  color:color-mix(in srgb,var(--gc) 80%,var(--text));transition:transform 200ms var(--ease)}
+.track:hover .track__go{transform:translateX(4px)}
+
+/* ---------- grade cards v2 ---------- */
+.grade-card{background:linear-gradient(160deg,color-mix(in srgb,var(--gc) 11%,var(--surface)),var(--surface) 62%)}
+.grade-card__meter{margin-top:.75rem;height:5px;border-radius:99px;background:color-mix(in srgb,var(--gc) 14%,var(--surface-3));overflow:hidden}
+.grade-card__meter i{display:block;height:100%;border-radius:inherit;background:var(--gc)}
+
+/* ---------- step icons ---------- */
+.step{border-radius:0 var(--r-md) var(--r-md) 0;transition:border-color 200ms var(--ease),background 200ms var(--ease)}
+.step:hover{background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.step__icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;margin-bottom:.8rem;
+  background:var(--brand-soft);color:var(--brand)}
+.step__icon svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.step:nth-child(2) .step__icon{background:color-mix(in srgb,var(--sky) 14%,transparent);color:var(--sky)}
+.step:nth-child(3) .step__icon{background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint)}
+
+/* ---------- wiring promo ---------- */
+.promo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(1.5rem,4vw,3.5rem);align-items:center}
+.promo__text h2{margin-top:.8rem}
+.promo__text p{margin-top:.7rem;color:var(--text-2)}
+.promo__text .btn{margin-top:1.4rem}
+.promo__card{padding:1.2rem;border-radius:var(--r-xl);background:var(--surface);border:1px solid var(--border);
+  box-shadow:var(--shadow-2);transform:rotate(-1.2deg);transition:transform 400ms var(--ease)}
+.promo__card:hover{transform:rotate(0) translateY(-4px)}
+.promo__head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;font-size:var(--t-sm)}
+@media (max-width:860px){.promo{grid-template-columns:1fr}.promo__card{transform:none}}
+
+.facts .fact{transition:background 200ms var(--ease)}
+.facts .fact:nth-child(1) .fact__k{color:var(--brand)}
+.facts .fact:nth-child(2) .fact__k{color:var(--sky)}
+.facts .fact:nth-child(3) .fact__k{color:var(--mint)}
+.facts .fact:nth-child(4) .fact__k{color:var(--grape)}
+
+.callout{background:
+  radial-gradient(90% 140% at 100% 0%,color-mix(in srgb,var(--grape) 14%,transparent),transparent 60%),
+  radial-gradient(90% 140% at 0% 100%,var(--brand-soft),transparent 60%),var(--surface)}
+
+/* ---------- flasher: journey strip ---------- */
+.journey{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.1rem;margin-bottom:1rem;overflow-x:auto;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--brand) 8%,var(--surface)),var(--surface) 55%,color-mix(in srgb,var(--sky) 7%,var(--surface)));
+  border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-1);scrollbar-width:none}
+.journey__step{display:flex;align-items:center;gap:.6rem;flex:none;opacity:.55;transition:opacity 260ms var(--ease)}
+.journey__n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;
+  font-family:var(--font-mono);font-weight:700;font-size:.8rem;background:var(--surface-3);color:var(--text-2);
+  border:1px solid var(--border);transition:background 260ms var(--ease),color 260ms,border-color 260ms}
+.journey__step b{display:block;font-size:var(--t-sm);line-height:1.2}
+.journey__step small{display:block;font-size:.72rem;color:var(--text-3);white-space:nowrap;max-width:20ch;
+  overflow:hidden;text-overflow:ellipsis}
+.journey__step[data-state="current"],.journey__step[data-state="done"]{opacity:1}
+.journey__step[data-state="current"] .journey__n{background:var(--brand);border-color:var(--brand);color:#fff;
+  animation:ring 1.8s var(--ease) infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(245,130,30,.45)}80%,100%{box-shadow:0 0 0 9px rgba(245,130,30,0)}}
+.journey__step[data-state="done"] .journey__n{background:var(--ok);border-color:var(--ok);color:#fff}
+.journey__line{flex:1 1 20px;min-width:16px;height:3px;border-radius:3px;background:var(--border);overflow:hidden}
+.journey__line::after{content:'';display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--brand));
+  transform:scaleX(0);transform-origin:left;transition:transform 500ms var(--ease)}
+.journey__line[data-done="true"]::after{transform:scaleX(1)}
+
+/* ---------- activity cards v2 ---------- */
+.card{background:linear-gradient(165deg,color-mix(in srgb,var(--gc) 8%,var(--surface)),var(--surface) 58%);
+  animation:cardIn .5s var(--ease) backwards;animation-delay:calc(min(var(--i,0),18) * 28ms);outline-offset:2px}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.card__icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;
+  background:color-mix(in srgb,var(--gc) 16%,transparent);color:var(--gc);transition:transform 260ms var(--ease)}
+.card:hover .card__icon{transform:rotate(-8deg) scale(1.08)}
+.card__icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card__wire{margin-left:auto;display:inline-flex;align-items:center;gap:.3rem;padding:.26rem .6rem;border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--gc) 38%,var(--border));background:var(--surface);cursor:pointer;
+  color:color-mix(in srgb,var(--gc) 78%,var(--text));font-size:.7rem;font-weight:600;flex:none;
+  transition:background 150ms var(--ease),color 150ms,border-color 150ms,transform 150ms var(--ease)}
+.card__wire svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.card__wire:hover{background:var(--gc);border-color:var(--gc);color:#fff;transform:translateY(-1px)}
+[data-theme="dark"] .card__wire{background:var(--surface-2);color:color-mix(in srgb,var(--gc) 60%,#fff)}
+.card__parts{font-size:.72rem;color:var(--text-3);line-height:1.5}
+.card__parts b{color:var(--text-2);font-weight:600}
+.card[aria-selected="true"] .card__icon{background:var(--gc);color:#fff}
+
+.rail__btn::before{content:'';width:8px;height:8px;border-radius:50%;flex:none;background:var(--gc);opacity:.75}
+
+/* ---------- pop-up shared ---------- */
+.modal__box{animation:pop 320ms cubic-bezier(.34,1.4,.64,1)}
+
+/* ---------- flash done ---------- */
+.done{width:min(500px,100%);text-align:center;padding:3rem 1.75rem 1.6rem;overflow:hidden;
+  background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--ok) 18%,var(--surface)),var(--surface) 62%)}
+.done .modal__x{position:absolute;top:.9rem;right:.9rem;z-index:2}
+.done__burst{position:absolute;inset:0;pointer-events:none;z-index:1}
+.done__badge{position:relative;width:96px;height:96px;margin:0 auto;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(145deg,#3DC877,var(--ok));
+  box-shadow:0 18px 40px color-mix(in srgb,var(--ok) 45%,transparent);animation:badgeIn .7s cubic-bezier(.34,1.56,.64,1) both}
+.done__badge::before,.done__badge::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--ok);
+  animation:ripple 2s var(--ease) .4s infinite}
+.done__badge::after{animation-delay:1.1s}
+@keyframes ripple{from{transform:scale(1);opacity:.6}to{transform:scale(1.8);opacity:0}}
+@keyframes badgeIn{from{transform:scale(0) rotate(-40deg)}}
+.done__badge svg{width:52px;height:52px;fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
+.done__tick{stroke-dasharray:40;stroke-dashoffset:40;animation:drawTick .45s .45s var(--ease) forwards}
+@keyframes drawTick{to{stroke-dashoffset:0}}
+.done h2{margin-top:1.4rem;font-size:var(--t-2xl)}
+.done__lede{margin:.45rem auto 0;color:var(--text-2);font-size:var(--t-sm)}
+.done__facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem;margin-top:1.4rem;text-align:left}
+.done__facts > div{padding:.65rem .85rem;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border-soft);
+  animation:riseIn .5s var(--ease) backwards;animation-delay:calc(.5s + var(--k,0) * 70ms)}
+.done__facts span{display:block;font-size:.66rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em}
+.done__facts b{display:block;font-size:var(--t-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.done__tip{margin:1.1rem auto 0;font-size:var(--t-xs);color:var(--text-3)}
+.done__actions{display:grid;gap:.55rem;margin-top:1.3rem}
+.done__actions .btn{justify-content:center}
+.done__row{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.done__row .btn{padding-block:.8rem}
+.done__row .btn:only-child{grid-column:1/-1}
+.done__actions svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.confetti{position:absolute;left:50%;top:96px;width:var(--w,8px);height:calc(var(--w,8px) * 1.6);border-radius:2px;
+  background:var(--c);opacity:0;animation:confetti 1.6s cubic-bezier(.2,.7,.3,1) forwards;animation-delay:var(--delay,0ms)}
+@keyframes confetti{
+  0%{opacity:1;transform:translate(-50%,-50%) rotate(0)}
+  55%{opacity:1;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(calc(var(--r) * .6))}
+  100%{opacity:0;transform:translate(calc(-50% + var(--x) * 1.15),calc(-50% + var(--y2))) rotate(var(--r))}}
+
+/* ---------- wiring sheet ---------- */
+.wire{--gc:var(--brand);width:min(720px,100%)}
+.wire .modal__head{background:linear-gradient(135deg,color-mix(in srgb,var(--gc) 16%,var(--surface)),var(--surface) 70%)}
+.wire__top{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;margin-bottom:.5rem}
+.wire .code{background:color-mix(in srgb,var(--gc) 14%,transparent);border-color:color-mix(in srgb,var(--gc) 36%,transparent);
+  color:color-mix(in srgb,var(--gc) 80%,var(--text))}
+.wire__draft{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .5rem;border-radius:999px;
+  background:color-mix(in srgb,var(--warn) 18%,transparent);color:#9A6F00;border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+[data-theme="dark"] .wire__draft{color:var(--warn)}
+.wire__legend{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:1rem}
+.wire__legend small{font-size:.7rem;color:var(--text-3);margin-left:auto}
+.wkind{--k:#888;display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;
+  background:color-mix(in srgb,var(--k) 13%,transparent);color:color-mix(in srgb,var(--k) 78%,var(--text))}
+.wkind::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--k)}
+.wire__list{display:grid;gap:.55rem}
+.wrow{--k:#888;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(36px,.55fr) minmax(0,1fr);align-items:center;gap:.6rem;
+  animation:wrowIn .45s var(--ease) backwards;animation-delay:calc(var(--i,0) * 60ms)}
+@keyframes wrowIn{from{opacity:0;transform:translateX(-12px)}}
+.wrow__part{display:flex;align-items:center;gap:.6rem;min-width:0;padding:.55rem .75rem;border-radius:var(--r-md);
+  background:var(--surface-2);border:1px solid var(--border-soft);border-left:3px solid var(--k)}
+.wrow__ico{width:28px;height:28px;border-radius:8px;flex:none;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--k) 15%,transparent);color:var(--k)}
+.wrow__ico svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wrow__txt{min-width:0;display:flex;flex-direction:column}
+.wrow__name{font-size:var(--t-sm);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow__lead{font-family:var(--font-mono);font-size:.68rem;color:var(--text-3)}
+.wrow__wire{position:relative;height:4px;border-radius:4px;background:color-mix(in srgb,var(--k) 22%,transparent);overflow:hidden}
+.wrow__wire::after{content:'';position:absolute;top:0;left:0;width:28%;height:100%;border-radius:4px;background:var(--k);
+  animation:current 1.7s linear infinite;animation-delay:calc(var(--i,0) * -230ms)}
+@keyframes current{from{transform:translateX(-100%)}to{transform:translateX(360%)}}
+.wrow[data-flow="out"] .wrow__wire::after{animation-direction:reverse}
+.wrow[data-flow="none"] .wrow__wire::after{animation:none;width:100%;opacity:.55}
+.wrow__pin{font-family:var(--font-mono);font-weight:700;font-size:.8rem;padding:.5rem .8rem;border-radius:var(--r-md);
+  background:var(--k);color:#fff;text-align:center;
+  box-shadow:0 4px 12px color-mix(in srgb,var(--k) 32%,transparent)}
+.wire__note{margin-top:1rem;padding:.75rem .9rem;border-radius:var(--r-md);max-width:none;
+  background:var(--brand-soft);border:1px solid var(--brand-line);font-size:var(--t-xs);color:var(--text-2)}
+.wire__empty{padding:2.2rem 1rem;text-align:center;color:var(--text-3);font-size:var(--t-sm);
+  border:1.5px dashed var(--border);border-radius:var(--r-lg)}
+.wire__empty strong{display:block;color:var(--text);font-size:var(--t-md);margin-bottom:.3rem}
+.wire__empty code{font-family:var(--font-mono);padding:.1rem .35rem;border-radius:4px;background:var(--surface-3)}
+.wire__foot{display:flex;align-items:center;gap:.6rem;width:100%}
+.wire__count{font-size:var(--t-xs);color:var(--text-3);margin-right:auto}
+@media (max-width:560px){
+  .journey{gap:.3rem;padding:.7rem}
+  .journey__line,.journey__step small{display:none}
+  .journey__step{flex:1 1 0;flex-direction:column;gap:.25rem;text-align:center}
+  .journey__step b{font-size:.7rem}
+}
+@media (max-width:540px){
+  .wrow{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+  .wrow__wire{display:none}
+  .wrow__pin{min-width:0}
+  .done__row{grid-template-columns:1fr}
+}
+
+/* print just the wiring sheet, for the bench */
+@media print{
+  body::before{display:none}
+  body > *:not(#wireModal){display:none!important}
+  #wireModal{position:static;display:block;padding:0}
+  #wireModal .modal__scrim,#wireModal .modal__x,#wireModal .modal__foot{display:none!important}
+  #wireModal .modal__box{box-shadow:none;border:0;max-height:none;width:100%;animation:none}
+  .wrow,.wrow__wire::after{animation:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
 </style>
 </head>
 <body>
@@ -924,32 +1187,48 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
     </div>
   </section>
 
-  <section class="section" id="grades">
+  <div class="ticker" aria-label="Activities on the shelf"><div class="ticker__track" id="tickerTrack"></div></div>
+
+  <section class="section section--tight">
     <div class="shell">
-      <div class="section__head">
-        <h2>The shelf, by class</h2>
-        <p>Each activity carries a code students can read out loud, so a teacher can say “flash CS-G07-A05” and every Coggy in the room ends up running the same firmware.</p>
+      <div class="section__head sr">
+        <span class="eyebrow">Four tracks · one board</span>
+        <h2 style="margin-top:.7rem">What a Coggy can become</h2>
+        <p>Every track runs on the same board. Pick one to open its activities on the shelf.</p>
       </div>
-      <div class="grade-rail" id="homeGrades"></div>
+      <div class="tracks stagger" id="tracks"></div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="grades">
     <div class="shell">
-      <div class="section__head">
-        <h2>How upload the code into the coggy</h2>
+      <div class="section__head sr">
+        <h2>The shelf, by class</h2>
+        <p>Each activity carries a code students can read out loud, so a teacher can say “flash CS-G07-A05” and every Coggy in the room ends up running the same firmware.</p>
+      </div>
+      <div class="grade-rail stagger" id="homeGrades"></div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="shell">
+      <div class="section__head sr">
+        <h2>How to flash a Coggy</h2>
         <p>Three moves, the same every time, on any machine in the lab.</p>
       </div>
-      <div class="steps">
+      <div class="steps stagger">
         <div class="step">
+          <div class="step__icon"><svg viewBox="0 0 24 24"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/></svg></div>
           <h3>Plug in the Coggy</h3>
           <p>Connect over USB and press Connect. Pick the board from the short list the browser shows — a fresh Coggy means a fresh pick every time — and the flasher reads the chip, the adapter and the MAC address back to you.</p>
         </div>
         <div class="step">
+          <div class="step__icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
           <h3>Pick the activity code</h3>
           <p>Filter by grade or search the code. The card shows the board it targets, the version and the components the activity needs.</p>
         </div>
         <div class="step">
+          <div class="step__icon"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
           <h3>Write and watch</h3>
           <p>Press Flash. The console prints every step, and the serial output appears as soon as the board restarts — useful evidence for a lab record.</p>
         </div>
@@ -958,19 +1237,34 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
   </section>
 
   <section class="section">
-    <div class="shell">
-      <div class="facts">
-        <div class="fact"><div class="fact__k" id="factActivities">—</div><div class="fact__v">activities on the shelf</div></div>
-        <div class="fact"><div class="fact__k" id="factGrades">—</div><div class="fact__v">classes covered</div></div>
-        <div class="fact"><div class="fact__k">0</div><div class="fact__v">drivers a student installs</div></div>
-        <div class="fact"><div class="fact__k">100%</div><div class="fact__v">of firmware stays on the machine</div></div>
+    <div class="shell promo">
+      <div class="promo__text sr">
+        <span class="eyebrow">For educators</span>
+        <h2>A wiring sheet on every card</h2>
+        <p>Tap <b>Wiring</b> on any activity to show the class which part goes on which Coggy pin. Each wire is colour-coded by type, the dots run the way the signal flows, and the sheet prints cleanly for the bench.</p>
+        <a class="btn btn--brand" href="#/flash">Open the shelf</a>
+      </div>
+      <div class="promo__card sr" aria-hidden="true">
+        <div class="promo__head"><span class="code" id="promoCode"></span><b id="promoName"></b></div>
+        <div class="wire__list" id="promoList"></div>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="shell">
-      <div class="callout">
+      <div class="facts sr">
+        <div class="fact"><div class="fact__k" id="factActivities">—</div><div class="fact__v">activities ready to flash</div></div>
+        <div class="fact"><div class="fact__k" id="factGrades">—</div><div class="fact__v">classes covered</div></div>
+        <div class="fact"><div class="fact__k" data-count="0">0</div><div class="fact__v">drivers a student installs</div></div>
+        <div class="fact"><div class="fact__k" data-count="100" data-suffix="%">100%</div><div class="fact__v">of firmware stays on the machine</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="callout sr">
         <div>
           <h2>Adding your own activity</h2>
           <p>Export the compiled binary from the Arduino IDE, drop it into the class folder, add one entry to the catalogue block in this file, and push. Vercel rebuilds in seconds.</p>
@@ -991,7 +1285,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
           <img class="logo--light" src="assets/cognospace-logo.png" alt="CognoSpace">
           <img class="logo--dark" src="assets/cognospace-logo-dark.png" alt="" aria-hidden="true">
         </a>
-        <p class="foot__blurb">Cognospace is an Experiential learning soulutions for schools</p>
+        <p class="foot__blurb">CognoSpace builds experiential learning for schools — STEM, robotics, IoT and AI, hands on.</p>
         <a class="foot__site" href="https://www.cognospace.in" target="_blank" rel="noopener">
           www.cognospace.in
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
@@ -1048,6 +1342,15 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
     </aside>
 
     <section class="stream">
+      <div class="journey" id="journey" aria-label="Flashing steps">
+        <div class="journey__step" data-step="connect"><span class="journey__n">1</span><div><b>Connect</b><small></small></div></div>
+        <div class="journey__line"></div>
+        <div class="journey__step" data-step="pick"><span class="journey__n">2</span><div><b>Activity</b><small></small></div></div>
+        <div class="journey__line"></div>
+        <div class="journey__step" data-step="table"><span class="journey__n">3</span><div><b>Table</b><small></small></div></div>
+        <div class="journey__line"></div>
+        <div class="journey__step" data-step="flash"><span class="journey__n">4</span><div><b>Flash</b><small></small></div></div>
+      </div>
       <div class="toolbar">
         <label class="search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -1205,6 +1508,59 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
     </div>
     <div class="modal__foot">
       <button class="btn btn--brand" type="button" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FLASH DONE ==================== -->
+<div class="modal" id="doneModal" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__box done" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
+    <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    <div class="done__burst" id="doneBurst" aria-hidden="true"></div>
+    <div class="done__badge"><svg viewBox="0 0 52 52" aria-hidden="true"><path class="done__tick" d="M14 27l8 8 16-17"/></svg></div>
+    <h2 id="doneTitle">Upload complete!</h2>
+    <p class="done__lede" id="doneLede"></p>
+    <div class="done__facts">
+      <div><span>Activity</span><b id="doneAct"></b></div>
+      <div><span>Table</span><b id="doneTable"></b></div>
+      <div><span>Written</span><b id="doneBytes"></b></div>
+      <div><span>Time taken</span><b id="doneTime"></b></div>
+    </div>
+    <p class="done__tip">Disconnect before unplugging, then hand the Coggy back to its table.</p>
+    <div class="done__actions">
+      <button class="btn btn--brand btn--lg" id="doneDisconnect" type="button" data-autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5M3 3l18 18"/></svg> Disconnect Coggy</button>
+      <div class="done__row">
+        <button class="btn" id="doneMonitor" type="button">Open serial monitor</button>
+        <button class="btn btn--ghost" type="button" data-close>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== WIRING SHEET ==================== -->
+<div class="modal" id="wireModal" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__box wire" role="dialog" aria-modal="true" aria-labelledby="wireTitle">
+    <div class="modal__head">
+      <div>
+        <div class="wire__top"><span class="code" id="wireCode"></span><span class="wire__draft" id="wireDraft">Draft pins</span></div>
+        <h2 id="wireTitle"></h2>
+        <p id="wireDesc"></p>
+      </div>
+      <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal__body">
+      <div class="wire__legend" id="wireLegend"></div>
+      <div class="wire__list" id="wireList"></div>
+      <p class="wire__note" id="wireNote" hidden></p>
+    </div>
+    <div class="modal__foot">
+      <div class="wire__foot">
+        <span class="wire__count" id="wireCount"></span>
+        <button class="btn btn--ghost" type="button" id="wirePrint">Print sheet</button>
+        <button class="btn btn--brand" type="button" data-close>Got it</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2771,6 +3127,385 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 </script>
 
 
+<!-- ==========================================================================
+     WIRING SHEETS — what the "Wiring" button on each activity card shows.
+
+     One entry per activity code. Each row in `pins` is one wire:
+       part  : the component, as students know it          'Red LED'
+       lead  : (optional) the pin name printed on the part  'TRIG', 'SDA', 'OUT'
+       pin   : the Coggy pin it goes to                     'GPIO 25', '3V3', 'GND'
+       kind  : colour + icon for the row, one of
+               input · analog · output · pwm · i2c · motor · power · ground
+     `note` is optional and shows as a tip under the list.
+
+     To add a sensor, copy a row. To remove one, delete the line.
+     To add an activity, copy a whole block and change the code.
+     An activity with no entry here shows a friendly "not added yet" message.
+
+     COGGY_WIRING_DRAFT = true shows a "draft pins" badge on every sheet.
+     Set it to false once the pins below are checked against the real kits.
+     ========================================================================== -->
+<script>
+window.COGGY_WIRING_DRAFT = true;
+
+window.COGGY_WIRING = {
+
+  /* ---------------- Class 3 ---------------- */
+  'CS-G03-A01': {
+    note: 'Each LED goes through a 220 Ω resistor to its pin. All the short legs share GND.',
+    pins: [
+      { part: 'Red LED',    lead: '+', pin: 'GPIO 25', kind: 'output' },
+      { part: 'Amber LED',  lead: '+', pin: 'GPIO 26', kind: 'output' },
+      { part: 'Green LED',  lead: '+', pin: 'GPIO 27', kind: 'output' },
+      { part: 'LED cathodes', lead: '−', pin: 'GND', kind: 'ground' },
+    ],
+  },
+  'CS-G03-A02': {
+    pins: [
+      { part: 'LED 1',  lead: '+', pin: 'GPIO 25', kind: 'output' },
+      { part: 'LED 2',  lead: '+', pin: 'GPIO 26', kind: 'output' },
+      { part: 'LED 3',  lead: '+', pin: 'GPIO 27', kind: 'output' },
+      { part: 'LED 4',  lead: '+', pin: 'GPIO 14', kind: 'output' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 33', kind: 'pwm' },
+    ],
+  },
+  'CS-G03-A03': {
+    pins: [
+      { part: 'Push button', lead: 'S',   pin: 'GPIO 32', kind: 'input' },
+      { part: 'OLED',        lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',        lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'OLED',        lead: 'VCC', pin: '3V3',     kind: 'power' },
+    ],
+  },
+  'CS-G03-A04': {
+    note: 'Both switches toggle the same lamp — pressing either one flips it.',
+    pins: [
+      { part: 'Switch A', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Switch B', lead: 'S', pin: 'GPIO 15', kind: 'input' },
+      { part: 'Lamp LED', lead: '+', pin: 'GPIO 25', kind: 'output' },
+    ],
+  },
+  'CS-G03-A05': {
+    pins: [
+      { part: 'Push button',   lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Buzzer',        lead: '+', pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'Indicator LED', lead: '+', pin: 'GPIO 25', kind: 'output' },
+    ],
+  },
+
+  /* ---------------- Class 4 ---------------- */
+  'CS-G04-A01': {
+    pins: [
+      { part: 'Start / stop button', lead: 'S',   pin: 'GPIO 32', kind: 'input' },
+      { part: 'Reset button',        lead: 'S',   pin: 'GPIO 15', kind: 'input' },
+      { part: 'OLED',                lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',                lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+  'CS-G04-A02': {
+    note: 'The HC-SR04 needs 5 V to range properly. Keep the OLED on 3V3.',
+    pins: [
+      { part: 'HC-SR04', lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
+      { part: 'HC-SR04', lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
+      { part: 'HC-SR04', lead: 'VCC',  pin: '5V',      kind: 'power' },
+      { part: 'OLED',    lead: 'SDA',  pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',    lead: 'SCL',  pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+  'CS-G04-A03': {
+    pins: [
+      { part: 'Rain sensor', lead: 'DO', pin: 'GPIO 35', kind: 'input' },
+      { part: 'Buzzer',      lead: '+',  pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'Alert LED',   lead: '+',  pin: 'GPIO 25', kind: 'output' },
+    ],
+  },
+  'CS-G04-A04': {
+    pins: [
+      { part: 'Jump button', lead: 'S',   pin: 'GPIO 32', kind: 'input' },
+      { part: 'OLED',        lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',        lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Buzzer',      lead: '+',   pin: 'GPIO 33', kind: 'pwm' },
+    ],
+  },
+  'CS-G04-A05': {
+    pins: [
+      { part: 'DHT11', lead: 'DATA', pin: 'GPIO 4',  kind: 'input' },
+      { part: 'OLED',  lead: 'SDA',  pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',  lead: 'SCL',  pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+
+  /* ---------------- Class 5 ---------------- */
+  'CS-G05-A01': {
+    note: 'Power the servo from 5V, not 3V3 — it pulls too much current for the regulator.',
+    pins: [
+      { part: 'IR sensor',  lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
+      { part: 'SG90 servo', lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'SG90 servo', lead: 'VCC', pin: '5V',      kind: 'power' },
+    ],
+  },
+  'CS-G05-A02': {
+    pins: [
+      { part: 'Soil sensor', lead: 'AO',  pin: 'GPIO 36', kind: 'analog' },
+      { part: 'OLED',        lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',        lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+  'CS-G05-A03': {
+    note: 'Motor power comes from the battery into the L298N. Join its GND to the Coggy GND.',
+    pins: [
+      { part: 'Potentiometer', lead: 'wiper', pin: 'GPIO 34', kind: 'analog' },
+      { part: 'L298N',         lead: 'ENA',   pin: 'GPIO 14', kind: 'pwm' },
+      { part: 'L298N',         lead: 'IN1',   pin: 'GPIO 27', kind: 'motor' },
+      { part: 'L298N',         lead: 'IN2',   pin: 'GPIO 26', kind: 'motor' },
+      { part: 'L298N',         lead: 'GND',   pin: 'GND',     kind: 'ground' },
+    ],
+  },
+  'CS-G05-A04': {
+    pins: [
+      { part: 'Keypad rows', lead: 'R1–R4', pin: 'GPIO 13 · 14 · 27 · 26', kind: 'output' },
+      { part: 'Keypad cols', lead: 'C1–C4', pin: 'GPIO 25 · 33 · 32 · 15', kind: 'input' },
+      { part: 'OLED',        lead: 'SDA',   pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',        lead: 'SCL',   pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+  'CS-G05-A05': {
+    pins: [
+      { part: 'DHT11', lead: 'DATA', pin: 'GPIO 4',  kind: 'input' },
+      { part: 'L298N', lead: 'ENA',  pin: 'GPIO 14', kind: 'pwm' },
+      { part: 'L298N', lead: 'IN1',  pin: 'GPIO 27', kind: 'motor' },
+      { part: 'L298N', lead: 'IN2',  pin: 'GPIO 26', kind: 'motor' },
+    ],
+  },
+
+  /* ---------------- Class 6 ---------------- */
+  'CS-G06-A01': {
+    pins: [
+      { part: 'Rain sensor', lead: 'DO',  pin: 'GPIO 35', kind: 'input' },
+      { part: 'L298N',       lead: 'IN1', pin: 'GPIO 27', kind: 'motor' },
+      { part: 'L298N',       lead: 'IN2', pin: 'GPIO 26', kind: 'motor' },
+      { part: 'L298N',       lead: 'ENA', pin: 'GPIO 14', kind: 'pwm' },
+    ],
+  },
+  'CS-G06-A02': {
+    pins: [
+      { part: 'PIR',         lead: 'OUT',   pin: 'GPIO 19', kind: 'input' },
+      { part: 'Keypad rows', lead: 'R1–R4', pin: 'GPIO 13 · 14 · 27 · 26', kind: 'output' },
+      { part: 'Keypad cols', lead: 'C1–C4', pin: 'GPIO 25 · 33 · 32 · 15', kind: 'input' },
+      { part: 'Buzzer',      lead: '+',     pin: 'GPIO 23', kind: 'pwm' },
+    ],
+  },
+  'CS-G06-A03': {
+    pins: [
+      { part: 'PIR',   lead: 'OUT', pin: 'GPIO 19', kind: 'input' },
+      { part: 'LDR',   lead: 'AO',  pin: 'GPIO 39', kind: 'analog' },
+      { part: 'Relay', lead: 'IN',  pin: 'GPIO 23', kind: 'output' },
+    ],
+  },
+  'CS-G06-A04': {
+    note: 'No wires for Bluetooth — it is built into the Coggy. Pair from the phone app.',
+    pins: [
+      { part: 'OLED', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+  'CS-G06-A05': {
+    pins: [
+      { part: 'IR sensor (entry)', lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
+      { part: 'IR sensor (exit)',  lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
+      { part: 'OLED',              lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',              lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+
+  /* ---------------- Class 7 ---------------- */
+  'CS-G07-A01': {
+    pins: [
+      { part: 'Soil sensor', lead: 'AO', pin: 'GPIO 36', kind: 'analog' },
+      { part: 'Relay',       lead: 'IN', pin: 'GPIO 23', kind: 'output' },
+      { part: 'Pump',        lead: '+',  pin: 'Relay NO', kind: 'power' },
+    ],
+  },
+  'CS-G07-A02': {
+    pins: [
+      { part: 'IR sensor (before)', lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
+      { part: 'IR sensor (after)',  lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
+      { part: 'SG90 servo',         lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'Buzzer',             lead: '+',   pin: 'GPIO 33', kind: 'pwm' },
+    ],
+  },
+  'CS-G07-A03': {
+    note: 'Open the serial monitor at 115200, type a word and press Send.',
+    pins: [
+      { part: 'LED',    lead: '+', pin: 'GPIO 25', kind: 'output' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 33', kind: 'pwm' },
+    ],
+  },
+  'CS-G07-A04': {
+    pins: [
+      { part: 'IR bay 1', lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
+      { part: 'IR bay 2', lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
+      { part: 'IR bay 3', lead: 'OUT', pin: 'GPIO 36', kind: 'input' },
+      { part: 'IR bay 4', lead: 'OUT', pin: 'GPIO 39', kind: 'input' },
+      { part: 'OLED',     lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED',     lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+    ],
+  },
+  'CS-G07-A05': {
+    pins: [
+      { part: 'HC-SR04', lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
+      { part: 'HC-SR04', lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
+      { part: 'L298N',   lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N',   lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+      { part: 'Buzzer',  lead: '+',    pin: 'GPIO 23', kind: 'pwm' },
+    ],
+  },
+
+  /* ---------------- Class 8 ---------------- */
+  'CS-G08-A01': {
+    note: 'Battery pack goes to the L298N 12V terminal. Join the L298N GND to the Coggy GND.',
+    pins: [
+      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+      { part: 'L298N', lead: 'GND',       pin: 'GND', kind: 'ground' },
+    ],
+  },
+  'CS-G08-A02': {
+    pins: [
+      { part: 'Gripper servo', lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'Gripper servo', lead: 'VCC', pin: '5V',      kind: 'power' },
+    ],
+  },
+  'CS-G08-A03': {
+    pins: [
+      { part: 'HC-SR04',  lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
+      { part: 'HC-SR04',  lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
+      { part: 'IR left',  lead: 'OUT',  pin: 'GPIO 34', kind: 'input' },
+      { part: 'IR right', lead: 'OUT',  pin: 'GPIO 35', kind: 'input' },
+      { part: 'L298N',    lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+    ],
+  },
+  'CS-G08-A04': {
+    pins: [
+      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+    ],
+  },
+  'CS-G08-A05': {
+    pins: [
+      { part: 'L298N #1', lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N #2', lead: 'IN1–IN4', pin: 'GPIO 19 · 18 · 17 · 16', kind: 'motor' },
+      { part: 'Arm servo', lead: 'SIG',    pin: 'GPIO 13', kind: 'pwm' },
+    ],
+  },
+  'CS-G08-A06': {
+    pins: [
+      { part: 'LED', lead: '+', pin: 'GPIO 25', kind: 'output' },
+    ],
+  },
+  'CS-G08-A07': {
+    pins: [
+      { part: 'Relay CH1', lead: 'IN1', pin: 'GPIO 23', kind: 'output' },
+      { part: 'Relay CH2', lead: 'IN2', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Relay CH3', lead: 'IN3', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Relay CH4', lead: 'IN4', pin: 'GPIO 5',  kind: 'output' },
+      { part: 'Relay board', lead: 'VCC', pin: '5V', kind: 'power' },
+    ],
+  },
+  'CS-G08-A08': {
+    pins: [
+      { part: 'LDR',   lead: 'AO', pin: 'GPIO 39', kind: 'analog' },
+      { part: 'Relay', lead: 'IN', pin: 'GPIO 23', kind: 'output' },
+      { part: 'LED',   lead: '+',  pin: 'GPIO 25', kind: 'output' },
+    ],
+  },
+  'CS-G08-A09': {
+    pins: [
+      { part: 'DHT11', lead: 'DATA', pin: 'GPIO 4', kind: 'input' },
+    ],
+  },
+  'CS-G08-A10': {
+    pins: [
+      { part: 'DHT22', lead: 'DATA', pin: 'GPIO 4', kind: 'input' },
+    ],
+  },
+
+  /* ---------------- Class 9 ---------------- */
+  'CS-G09-A01': {
+    pins: [
+      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+    ],
+  },
+  'CS-G09-A02': {
+    pins: [
+      { part: 'HC-SR04',    lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
+      { part: 'HC-SR04',    lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
+      { part: 'Scan servo', lead: 'SIG',  pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'L298N',      lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+    ],
+  },
+  'CS-G09-A03': {
+    pins: [
+      { part: 'IR edge left',  lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
+      { part: 'IR edge right', lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
+      { part: 'L298N',         lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+    ],
+  },
+  'CS-G09-A04': {
+    pins: [
+      { part: 'Base servo',     lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'Shoulder servo', lead: 'SIG', pin: 'GPIO 12', kind: 'pwm' },
+      { part: 'Elbow servo',    lead: 'SIG', pin: 'GPIO 14', kind: 'pwm' },
+      { part: 'Gripper servo',  lead: 'SIG', pin: 'GPIO 27', kind: 'pwm' },
+      { part: 'All servos',     lead: 'VCC', pin: '5V',      kind: 'power' },
+    ],
+  },
+  'CS-G09-A05': {
+    pins: [
+      { part: 'L298N #1', lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N #2', lead: 'IN1–IN4', pin: 'GPIO 19 · 18 · 17 · 16', kind: 'motor' },
+      { part: 'Arm servo', lead: 'SIG',    pin: 'GPIO 13', kind: 'pwm' },
+    ],
+  },
+  'CS-G09-A06': {
+    pins: [
+      { part: 'LED', lead: '+', pin: 'GPIO 25', kind: 'output' },
+    ],
+  },
+  'CS-G09-A07': {
+    pins: [
+      { part: 'PIR',         lead: 'OUT',  pin: 'GPIO 19', kind: 'input' },
+      { part: 'DHT11',       lead: 'DATA', pin: 'GPIO 4',  kind: 'input' },
+      { part: 'Reed switch', lead: 'S',    pin: 'GPIO 16', kind: 'input' },
+    ],
+  },
+  'CS-G09-A08': {
+    pins: [
+      { part: 'DHT22', lead: 'DATA', pin: 'GPIO 4', kind: 'input' },
+    ],
+  },
+  'CS-G09-A09': {
+    pins: [
+      { part: 'Soil sensor', lead: 'AO',   pin: 'GPIO 36', kind: 'analog' },
+      { part: 'DHT11',       lead: 'DATA', pin: 'GPIO 4',  kind: 'input' },
+      { part: 'Relay',       lead: 'IN',   pin: 'GPIO 23', kind: 'output' },
+      { part: 'Pump',        lead: '+',    pin: 'Relay NO', kind: 'power' },
+    ],
+  },
+  'CS-G09-A10': {
+    pins: [
+      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+    ],
+  },
+
+  /* Activities not listed here (the AI ones, Educator Resources) show a
+     "no wiring sheet yet" message until you add a block for them. */
+};
+</script>
+
+
 <script type="module">
 /* ==========================================================================
    1. Theme
@@ -2893,6 +3628,7 @@ const state = {
   selected: null, custom: null, table: null,
   port: null, connected: false, busy: false,
   esp: null, transport: null,
+  flashing: false, lastFlashOk: false,
 };
 
 /* A lab machine lives at one bench, so remember the last table used here. */
@@ -2991,6 +3727,7 @@ function renderHomeGrades() {
   const wrap = $('#homeGrades');
   wrap.innerHTML = '';
   for (const g of state.catalog.grades) {
+    const ready = g.activities.filter((x) => !x.soon).length;
     const a = document.createElement('a');
     a.className = 'grade-card';
     a.href = '#/flash';
@@ -2998,13 +3735,14 @@ function renderHomeGrades() {
     if (g.color) a.style.setProperty('--gc', g.color);
     a.innerHTML = `<div class="grade-card__n">${g.short || g.grade}</div>
       <div class="grade-card__t"></div>
-      <div class="grade-card__c">${g.activities.length} ${g.activities.length === 1 ? 'activity' : 'activities'}</div>`;
+      <div class="grade-card__c">${ready} ready${g.activities.length > ready ? ` · ${g.activities.length - ready} coming` : ''}</div>
+      <div class="grade-card__meter"><i style="width:${Math.round(ready / Math.max(1, g.activities.length) * 100)}%"></i></div>`;
     a.querySelector('.grade-card__t').textContent = g.title;
     a.addEventListener('click', () => { state.grade = String(g.grade); renderRail(); renderCards(); });
     wrap.append(a);
   }
-  $('#factActivities').textContent = allActivities().length;
-  $('#factGrades').textContent = state.catalog.grades.length;
+  $('#factActivities').dataset.count = allActivities().filter((x) => !x.soon).length;
+  $('#factGrades').dataset.count = state.catalog.grades.length;
 }
 
 function renderRail() {
@@ -3057,33 +3795,52 @@ function renderCards() {
   }
 
   wrap.innerHTML = '';
-  for (const a of list) {
-    const card = document.createElement('button');
-    card.type = 'button';
+  list.forEach((a, i) => {
+    /* a div, not a button, so the Wiring button can live inside it */
+    const card = document.createElement('div');
     card.className = 'card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.dataset.code = a.code;
+    card.style.setProperty('--i', i);
     card.setAttribute('aria-selected', String(state.selected?.code === a.code));
     if (a.color) card.style.setProperty('--gc', a.color);
+    const parts = (a.components || []).join(' · ');
     card.innerHTML = `<div class="card__top">
-        <span class="code">${a.code}</span><span class="tag">${a.label || `Class ${a.grade}`}</span>
+        <span class="card__icon">${catIcon(a.category)}</span>
+        <span class="code">${a.code}</span>
+        ${a.soon ? '' : `<button type="button" class="card__wire" title="Which pin each part connects to">${ICON_PLUG}Wiring</button>`}
       </div>
       <div class="card__name"></div>
       <div class="card__desc"></div>
+      ${parts ? '<div class="card__parts"><b>Needs</b> <span></span></div>' : ''}
       <div class="card__foot">
-        <span class="tag">${BOARD_LABEL}</span>
+        <span class="tag">${a.label || `Class ${a.grade}`}</span>
         <span class="tag">v${a.version}</span>
         ${a.category ? `<span class="tag">${a.category}</span>` : ''}
       </div>`;
     card.querySelector('.card__name').textContent = a.name;
     card.querySelector('.card__desc').textContent = a.description || '';
-    if (a.soon) {
-      card.dataset.soon = 'true';
-      card.addEventListener('click', () =>
-        log(`${a.code} is a placeholder — no firmware written for it yet.`, 'warn'));
-    } else {
-      card.addEventListener('click', () => select(a));
-    }
+    if (parts) card.querySelector('.card__parts span').textContent = parts;
+    if (a.soon) card.dataset.soon = 'true';
+    const pick = () => a.soon
+      ? log(`${a.code} is a placeholder — no firmware written for it yet.`, 'warn')
+      : select(a);
+    card.addEventListener('click', (e) => { if (!e.target.closest('.card__wire')) pick(); });
+    card.addEventListener('keydown', (e) => {
+      if (e.target !== card) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
+    });
+    card.querySelector('.card__wire')?.addEventListener('click', (e) => { e.stopPropagation(); openWiring(a); });
     wrap.append(card);
-  }
+  });
+}
+
+/* Selecting only repaints the highlight, so the cards do not replay their
+   entrance animation on every click. */
+function markSelected() {
+  $('#cards').querySelectorAll('.card').forEach((c) =>
+    c.setAttribute('aria-selected', String(!!state.selected && !state.custom && c.dataset.code === state.selected.code)));
 }
 
 /* ---------- build availability ----------
@@ -3277,7 +4034,8 @@ function select(a) {
   $('#customOffsetRow').hidden = true;
   $('#targetName').textContent = a.name;
   $('#targetMeta').textContent = `${a.code} · ${BOARD_LABEL} · v${a.version}`;
-  renderCards();
+  state.lastFlashOk = false;
+  markSelected();
   renderTables();
   updateFlashButton();
   log(`Selected ${a.code} — ${a.name}`, 'info');
@@ -3443,6 +4201,7 @@ async function hardClose() {
   await forceClosePort(port);
   state.esp = null; state.transport = null; state.port = null;
   state.connected = false;
+  state.lastFlashOk = false;
   $('#connectBtn').textContent = 'Connect a Coggy';
   setStatus('idle', 'Not connected');
   setReadout({ chip: 'Not connected', adapter: '—', usb: '—', mac: '—', flash: '—' });
@@ -3451,6 +4210,7 @@ async function hardClose() {
 
 /* ---------- flashing ---------- */
 function updateFlashButton() {
+  updateJourney();
   const tableMissing = !!state.selected && !state.custom && needsTable(state.selected) && !state.table;
   const ready = state.connected && (state.selected || state.custom) && !tableMissing && !state.busy;
   $('#flashBtn').disabled = !ready;
@@ -3701,24 +4461,38 @@ async function flashEsp() {
     reportProgress: (i, written, total) => setProgress(written, total, `part ${i + 1} · ${written} / ${total}`),
   });
   try { await state.esp.after(); } catch (_) {}
+  return parts.reduce((n, p) => n + p.data.length, 0);
 }
 
 async function flash() {
   if (state.busy) return;
   state.busy = true;
+  state.flashing = true;
+  state.lastFlashOk = false;
   updateFlashButton();
   $('#progressBar').classList.add('is-active');
   try {
-    await flashEsp();
+    const t0 = performance.now();
+    const written = await flashEsp();
+    const info = {
+      name: state.custom ? state.custom.name : state.selected.name,
+      code: state.custom ? 'Custom build' : state.selected.code,
+      table: state.custom ? 'Not needed'
+        : !needsTable(state.selected) ? 'Shared build' : tableName(state.table),
+      bytes: written,
+      secs: (performance.now() - t0) / 1000,
+    };
     $('#progressBar').classList.remove('is-active');
     setProgress(1, 1, 'Written');
     log('Flash complete. The Coggy is restarting.', 'ok');
-    toast('Firmware written');
+    state.flashing = false;
     if ($('#monAfter').checked) {
       log('Handing the port to the serial monitor\u2026', 'info');
       await hardClose();                  // esptool must let go first
       await monOpenPort();
     }
+    state.lastFlashOk = true;
+    showFlashDone(info);
   } catch (err) {
     $('#progressBar').classList.remove('is-active');
     const msg = err.message || String(err);
@@ -3735,6 +4509,7 @@ async function flash() {
     toast(msg, 'error');
   } finally {
     state.busy = false;
+    state.flashing = false;
     updateFlashButton();
   }
 }
@@ -3751,7 +4526,8 @@ function wireDrop() {
     $('#targetName').textContent = file.name;
     $('#targetMeta').textContent = `Uploaded build · ${(bytes.length / 1024).toFixed(1)} KB`;
     $('#customOffsetRow').hidden = false;
-    renderCards();
+    state.lastFlashOk = false;
+    markSelected();
     renderTables();
     updateFlashButton();
     log(`Staged ${file.name} (${bytes.length} bytes).`, 'info');
@@ -3790,6 +4566,7 @@ function openActivity(a) {
   if ($('#searchInput'))     $('#searchInput').value = '';
   if ($('#categoryFilter'))  $('#categoryFilter').value = 'all';
   renderRail();
+  renderCards();
   select(a);                       // loads it into the Write-firmware panel, ready to flash
 
   if (goToFlash) location.hash = '#/flash'; else route();
@@ -3887,6 +4664,324 @@ function route() {
 }
 window.addEventListener('hashchange', route);
 
+/* ==========================================================================
+   v2 — icons, wiring sheets, flash-done pop-up, journey strip, landing extras
+   ========================================================================== */
+const svg = (inner) => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
+const CAT_ICON = {
+  'Mechatronics':       '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  'IoT/Automation':     '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/>',
+  'AI':                 '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/>',
+  'Educator Resources': '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7M8 11h5"/>',
+};
+const catIcon = (c) => svg(CAT_ICON[c] || CAT_ICON.Mechatronics);
+const ICON_PLUG = svg('<path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/>');
+
+const TRACK_INFO = {
+  'Mechatronics':       { color: '#F5821E', blurb: 'Sensors, buzzers, displays and motors — the builds every class starts with.' },
+  'IoT/Automation':     { color: '#2E8BC0', blurb: 'Wi-Fi, web servers and cloud dashboards, straight from the Coggy.' },
+  'AI':                 { color: '#8A5CD4', blurb: 'Datasets and machine learning, grounded in real sensor readings.' },
+  'Educator Resources': { color: '#C2517F', blurb: 'Kit testers and tools for the person running the lab.' },
+};
+
+/* ---------- wiring sheets ---------- */
+const WIRING = window.COGGY_WIRING || {};
+/* flow: which way the dot runs along the wire — 'in' part → Coggy, 'out' Coggy → part */
+const WIRE_KINDS = {
+  input:  { label: 'Digital input', color: '#2E8BC0', flow: 'in',   icon: '<path d="M3 12h12M10 7l5 5-5 5M20 4v16"/>' },
+  analog: { label: 'Analog input',  color: '#22A183', flow: 'in',   icon: '<path d="M2 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/>' },
+  output: { label: 'Output',        color: '#F5821E', flow: 'out',  icon: '<path d="M4 4v16M8 12h12M15 7l5 5-5 5"/>' },
+  pwm:    { label: 'PWM · servo',   color: '#D9487A', flow: 'out',  icon: '<path d="M2 16h4V8h4v8h4V8h4v8h4"/>' },
+  i2c:    { label: 'I²C bus',       color: '#8A5CD4', flow: 'both', icon: '<path d="M4 8h16M4 16h16M8 5v6M16 13v6"/>' },
+  motor:  { label: 'Motor driver',  color: '#5DA33E', flow: 'out',  icon: '<circle cx="12" cy="12" r="7"/><path d="M12 5v3M12 16v3M5 12h3M16 12h3"/>' },
+  power:  { label: 'Power',         color: '#E0484B', flow: 'none', icon: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>' },
+  ground: { label: 'Ground',        color: '#6B7280', flow: 'none', icon: '<path d="M12 3v8M5 11h14M8 15h8M11 19h2"/>' },
+};
+
+function wireRow(p, i) {
+  const kindKey = WIRE_KINDS[p.kind] ? p.kind : 'input';
+  const k = WIRE_KINDS[kindKey];
+  const row = document.createElement('div');
+  row.className = 'wrow';
+  row.style.setProperty('--k', k.color);
+  row.style.setProperty('--i', i);
+  row.dataset.flow = k.flow;
+  row.innerHTML = `<div class="wrow__part"><span class="wrow__ico">${svg(k.icon)}</span>
+      <span class="wrow__txt"><span class="wrow__name"></span><span class="wrow__lead"></span></span></div>
+    <div class="wrow__wire" aria-hidden="true"></div>
+    <div class="wrow__pin"></div>`;
+  row.querySelector('.wrow__name').textContent = p.part || '—';
+  row.querySelector('.wrow__lead').textContent = p.lead ? `${p.lead} pin` : k.label;
+  row.querySelector('.wrow__pin').textContent = p.pin || '—';
+  row.title = `${p.part}${p.lead ? ' ' + p.lead : ''} → ${p.pin}  (${k.label})`;
+  return { row, kindKey };
+}
+
+function openWiring(a) {
+  const box = $('#wireModal .wire');
+  box.style.setProperty('--gc', a.color || 'var(--brand)');
+  $('#wireCode').textContent = a.code;
+  $('#wireTitle').textContent = a.name;
+  $('#wireDesc').textContent = a.description || '';
+  $('#wireDraft').hidden = !window.COGGY_WIRING_DRAFT;
+
+  const list = $('#wireList'), legend = $('#wireLegend'), note = $('#wireNote');
+  list.innerHTML = ''; legend.innerHTML = '';
+  const sheet = WIRING[a.code];
+
+  if (!sheet || !sheet.pins?.length) {
+    list.innerHTML = '<div class="wire__empty"><strong>No wiring sheet yet</strong>'
+      + 'Add a block for <code></code> in the COGGY_WIRING list in index.html and it will show up here.</div>';
+    list.querySelector('code').textContent = a.code;
+    legend.hidden = true; note.hidden = true;
+    $('#wireCount').textContent = '';
+    $('#wirePrint').hidden = true;
+  } else {
+    const used = [];
+    sheet.pins.forEach((p, i) => {
+      const { row, kindKey } = wireRow(p, i);
+      if (!used.includes(kindKey)) used.push(kindKey);
+      list.append(row);
+    });
+    for (const key of used) {
+      const chip = document.createElement('span');
+      chip.className = 'wkind';
+      chip.style.setProperty('--k', WIRE_KINDS[key].color);
+      chip.textContent = WIRE_KINDS[key].label;
+      legend.append(chip);
+    }
+    const hint = document.createElement('small');
+    hint.textContent = 'dots run the way the signal flows';
+    legend.append(hint);
+    legend.hidden = false;
+    note.hidden = !sheet.note;
+    note.textContent = sheet.note || '';
+    $('#wireCount').textContent = `${sheet.pins.length} ${sheet.pins.length === 1 ? 'connection' : 'connections'} · all GND pins shared`;
+    $('#wirePrint').hidden = false;
+  }
+  openModal('#wireModal');
+}
+
+/* ---------- pop-up plumbing ---------- */
+let _modalReturn = null;
+function openModal(sel) {
+  const m = $(sel);
+  _modalReturn = document.activeElement;
+  m.hidden = false;
+  document.body.style.overflow = 'hidden';
+  const f = m.querySelector('[data-autofocus]') || m.querySelector('.modal__x');
+  f?.focus({ preventScroll: true });
+}
+function closeModal(m) {
+  if (!m || m.hidden) return;
+  m.hidden = true;
+  if (!document.querySelector('.modal:not([hidden])')) document.body.style.overflow = '';
+  if (_modalReturn && document.contains(_modalReturn)) _modalReturn.focus?.({ preventScroll: true });
+}
+function wireModals() {
+  for (const id of ['#wireModal', '#doneModal']) {
+    const m = $(id);
+    m.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeModal(m); });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    for (const id of ['#doneModal', '#wireModal']) if (!$(id).hidden) { closeModal($(id)); break; }
+  });
+  $('#wirePrint').addEventListener('click', () => window.print());
+
+  $('#doneDisconnect').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.lastChild.textContent = ' Disconnecting…';
+    try {
+      if (mon.open) await monClosePort({ silent: true });
+      if (state.connected) await hardClose();
+      log('Coggy disconnected — safe to unplug.', 'ok');
+      toast('Coggy disconnected. Safe to unplug.');
+    } finally {
+      btn.disabled = false;
+      btn.lastChild.textContent = ' Disconnect Coggy';
+      closeModal($('#doneModal'));
+    }
+  });
+  $('#doneMonitor').addEventListener('click', async () => {
+    closeModal($('#doneModal'));
+    if (state.connected) await hardClose();
+    await monOpenPort();
+    $('#monOut').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
+/* ---------- flash done ---------- */
+function burst() {
+  const b = $('#doneBurst');
+  b.innerHTML = '';
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#F5821E', '#2E8BC0', '#8A5CD4', '#22A183', '#E0A800', '#D9487A', '#2FAE63'];
+  for (let i = 0; i < 54; i++) {
+    const s = document.createElement('i');
+    s.className = 'confetti';
+    const ang = Math.random() * Math.PI * 2;
+    const d = 80 + Math.random() * 190;
+    const y = Math.sin(ang) * d * 0.75 - 30;
+    s.style.setProperty('--x', `${(Math.cos(ang) * d).toFixed(1)}px`);
+    s.style.setProperty('--y', `${y.toFixed(1)}px`);
+    s.style.setProperty('--y2', `${(y + 110 + Math.random() * 80).toFixed(1)}px`);
+    s.style.setProperty('--r', `${Math.round(Math.random() * 900 - 450)}deg`);
+    s.style.setProperty('--c', colors[i % colors.length]);
+    s.style.setProperty('--w', `${6 + Math.random() * 5}px`);
+    s.style.setProperty('--delay', `${Math.round(Math.random() * 180)}ms`);
+    b.append(s);
+  }
+}
+
+/* a soft three-note chime, so a teacher across the room hears the board is done */
+function chime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      const t = ctx.currentTime + i * 0.11;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.08, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      o.connect(g).connect(ctx.destination);
+      o.start(t); o.stop(t + 0.55);
+    });
+    setTimeout(() => ctx.close(), 1200);
+  } catch (_) {}
+}
+
+function showFlashDone(info) {
+  $('#doneLede').textContent = `${info.name} is on the Coggy, and the board is restarting now.`;
+  $('#doneAct').textContent = info.code;
+  $('#doneAct').title = info.name;
+  $('#doneTable').textContent = info.table;
+  $('#doneBytes').textContent = `${(info.bytes / 1024).toFixed(1)} KB`;
+  $('#doneTime').textContent = `${info.secs.toFixed(1)} s`;
+  $('#doneMonitor').hidden = mon.open;
+  $('#doneModal').querySelectorAll('.done__facts > div').forEach((d, i) => d.style.setProperty('--k', i));
+  burst();
+  chime();
+  openModal('#doneModal');
+}
+
+/* ---------- journey strip ---------- */
+function updateJourney() {
+  const j = $('#journey');
+  if (!j) return;
+  const picked = !!(state.selected || state.custom);
+  const shared = state.selected && !needsTable(state.selected);
+  const tableOk = picked && (!!state.custom || shared || !!state.table);
+  const steps = [
+    ['connect', state.connected, state.connected ? `${$('#roChip').textContent} connected` : 'Plug in, press Connect'],
+    ['pick', picked, state.custom ? state.custom.name : state.selected ? `${state.selected.code} · ${state.selected.name}` : 'Choose from the shelf'],
+    ['table', tableOk, state.custom ? 'Not needed' : shared ? 'Shared build' : state.table ? tableName(state.table) : 'Pick your bench'],
+    ['flash', !!state.lastFlashOk, state.flashing ? 'Writing…' : state.lastFlashOk ? 'Done — Coggy is ready' : 'Press Flash'],
+  ];
+  let current = false;
+  steps.forEach(([key, done, sub], i) => {
+    const el = j.querySelector(`[data-step="${key}"]`);
+    const st = done ? 'done' : (!current ? (current = true, 'current') : 'todo');
+    el.dataset.state = st;
+    el.querySelector('.journey__n').textContent = done ? '✓' : String(i + 1);
+    el.querySelector('small').textContent = sub;
+    const line = el.nextElementSibling;
+    if (line?.classList.contains('journey__line')) line.dataset.done = String(done);
+  });
+}
+
+/* ---------- landing extras ---------- */
+function renderTicker() {
+  const track = $('#tickerTrack');
+  if (!track) return;
+  const ready = allActivities().filter((a) => !a.soon);
+  const make = (hidden) => ready.map((a) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tick';
+    b.style.setProperty('--gc', a.color || '#F5821E');
+    b.innerHTML = '<span class="tick__dot"></span><span class="tick__nm"></span><span class="tick__cd"></span>';
+    b.querySelector('.tick__nm').textContent = a.name;
+    b.querySelector('.tick__cd').textContent = a.code;
+    b.addEventListener('click', () => openActivity(a));
+    if (hidden) { b.setAttribute('aria-hidden', 'true'); b.tabIndex = -1; }
+    return b;
+  });
+  track.innerHTML = '';
+  track.append(...make(false), ...make(true));
+  track.style.animationDuration = `${Math.max(40, ready.length * 2.4)}s`;
+}
+
+function renderTracks() {
+  const wrap = $('#tracks');
+  if (!wrap) return;
+  const acts = allActivities().filter((a) => !a.soon);
+  wrap.innerHTML = '';
+  for (const [cat, info] of Object.entries(TRACK_INFO)) {
+    const n = acts.filter((a) => a.category === cat).length;
+    if (!n) continue;
+    const b = document.createElement('a');
+    b.className = 'track';
+    b.href = '#/flash';
+    b.style.setProperty('--gc', info.color);
+    b.innerHTML = `<span class="track__n">${n}</span><span class="track__icon">${catIcon(cat)}</span>
+      <h3></h3><p></p><span class="track__go">See activities →</span>`;
+    b.querySelector('h3').textContent = cat;
+    b.querySelector('p').textContent = info.blurb;
+    b.addEventListener('click', () => {
+      state.grade = 'all'; state.category = cat; state.query = '';
+      $('#categoryFilter').value = cat; $('#searchInput').value = '';
+      renderRail(); renderCards();
+    });
+    wrap.append(b);
+  }
+}
+
+function renderPromo() {
+  const list = $('#promoList');
+  if (!list) return;
+  const code = 'CS-G04-A02';
+  const a = allActivities().find((x) => x.code === code);
+  const sheet = WIRING[code];
+  if (!a || !sheet) { list.closest('.section')?.setAttribute('hidden', ''); return; }
+  $('#promoName').textContent = a.name;
+  $('#promoCode').textContent = code;
+  sheet.pins.slice(0, 4).forEach((p, i) => list.append(wireRow(p, i).row));
+}
+
+function countUp(el) {
+  const raw = el.dataset.count;
+  if (raw == null) return;
+  const target = parseFloat(raw), suffix = el.dataset.suffix || '';
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !target) { el.textContent = raw + suffix; return; }
+  const t0 = performance.now(), dur = 1100;
+  (function step(now) {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * e) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+function setupReveal() {
+  document.querySelectorAll('.stagger').forEach((s) =>
+    [...s.children].forEach((c, i) => c.style.setProperty('--k', i)));
+  const targets = document.querySelectorAll('.sr, .stagger');
+  const show = (el) => {
+    el.classList.add('in');
+    el.querySelectorAll('[data-count]').forEach(countUp);
+  };
+  if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    targets.forEach(show);
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach((t) => io.observe(t));
+}
+
 /* ---------- boot ---------- */
 (function boot() {
   const supported = 'serial' in navigator;
@@ -3969,6 +5064,10 @@ window.addEventListener('hashchange', route);
 
   wireDrop();
   wireGuide();
+  wireModals();
+  renderTicker();
+  renderTracks();
+  renderPromo();
   updateFlashButton();
   navigator.serial?.addEventListener('disconnect', () => {
     if (state.connected) { log('The Coggy was unplugged.', 'warn'); hardClose(); }
@@ -3980,6 +5079,7 @@ window.addEventListener('hashchange', route);
   if (fy) fy.textContent = new Date().getFullYear();
 
   route();
+  setupReveal();
 })();
 
 /* ---------- Coggy says ---------- */
