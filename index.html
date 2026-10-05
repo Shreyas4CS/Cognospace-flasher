@@ -112,6 +112,12 @@ p{max-width:68ch}
   padding:.2rem .5rem;border-radius:var(--r-sm);background:var(--brand-soft);
   color:var(--brand-deep);border:1px solid var(--brand-line);white-space:nowrap}
 [data-theme="dark"] .code{color:var(--brand)}
+.tag--ctype{font-weight:600;display:inline-flex;align-items:center;gap:.3rem}
+.tag--ctype::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.tag--ctype[data-ctype="universal"]{background:#e6f7ee;color:#137a43;border-color:#a8e0c0}
+.tag--ctype[data-ctype="table"]{background:#e9efff;color:#2a4fb8;border-color:#b9c9f5}
+[data-theme="dark"] .tag--ctype[data-ctype="universal"]{background:rgba(40,190,110,.16);color:#7fe0a9;border-color:rgba(127,224,169,.35)}
+[data-theme="dark"] .tag--ctype[data-ctype="table"]{background:rgba(90,130,255,.16);color:#a9bdff;border-color:rgba(169,189,255,.35)}
 .tag{font-size:var(--t-xs);padding:.18rem .5rem;border-radius:999px;background:var(--surface-3);
   color:var(--text-2);border:1px solid var(--border-soft);white-space:nowrap}
 
@@ -1082,6 +1088,15 @@ body::before{content:'';position:fixed;inset:-12%;z-index:-1;pointer-events:none
 .miss__chip:hover::before{background:#fff}
 .miss__none{font-size:var(--t-xs);color:var(--text-2);margin:0}
 .miss__alt-t + .miss__chips + .miss__none{margin-top:.35rem}
+.tag--ctype[data-ctype="checking"]{background:var(--surface-3);color:var(--text-3);animation:ctPulse 1.2s ease-in-out infinite}
+@keyframes ctPulse{50%{opacity:.5}}
+.miss__tech{margin-top:.9rem;text-align:left;font-size:var(--t-xs);color:var(--text-3)}
+.miss__tech summary{cursor:pointer;text-align:center;list-style:none;font-weight:600}
+.miss__tech summary::-webkit-details-marker{display:none}
+.miss__tech summary::after{content:' ▾'}
+.miss__tech[open] summary::after{content:' ▴'}
+.miss__tech summary:hover{color:var(--text-2)}
+.miss__tech .miss__path{padding:.7rem .85rem;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border-soft)}
 .miss__path{margin-top:.8rem;font-family:var(--font-mono);font-size:.68rem;color:var(--text-3);word-break:break-all}
 .miss__path b{font-family:var(--font-sans,system-ui);font-weight:600}
 .miss__actions{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:1.3rem}
@@ -1740,21 +1755,24 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
       <text class="miss__q" x="28" y="40">?</text>
       <text class="miss__q" x="166" y="56">?</text>
     </svg>
-    <h2 id="missTitle"><span class="miss__oh">Oh no,</span> sorry!</h2>
+    <h2 id="missTitle"><span class="miss__oh">Oops!</span> This program isn't ready yet</h2>
     <p class="miss__lede" id="missLede"></p>
     <div class="miss__facts">
       <div><span>Activity</span><b id="missAct"></b></div>
       <div><span>Table</span><b id="missTable"></b></div>
     </div>
-    <p class="miss__safe"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Nothing was written — the Coggy still runs its old program.</p>
+    <p class="miss__safe"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Don't worry — nothing was changed. The Coggy still has its old program.</p>
     <div class="miss__alt" id="missAlt" hidden>
-      <div class="miss__alt-t">Uploaded for these tables<small>Switch only if this Coggy really belongs to one of them.</small></div>
+      <div class="miss__alt-t">This activity is ready on these tables<small>Only pick one if this Coggy really sits on that table.</small></div>
       <div class="miss__chips" id="missChips"></div>
       <p class="miss__none" id="missNone"></p>
     </div>
-    <p class="miss__path" id="missPath"></p>
+    <details class="miss__tech">
+      <summary>For the person who uploads programs</summary>
+      <p class="miss__path" id="missPath"></p>
+    </details>
     <div class="miss__actions">
-      <button class="btn btn--brand" id="missPick" type="button" data-autofocus>Choose another activity</button>
+      <button class="btn btn--brand" id="missPick" type="button" data-autofocus>Pick another activity</button>
       <button class="btn btn--ghost" type="button" data-close>Close</button>
     </div>
   </div>
@@ -1792,6 +1810,18 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
 
 <!-- ==========================================================================
      THE CATALOGUE — this is the only block you edit to add activities
+     "codeType" on each activity — you normally never touch this:
+       "auto"      = (default) the flasher looks on the server and decides by itself:
+                     • firmware.bin straight in the activity folder
+                         /firmware/grade-XX/CODE/firmware.bin
+                       → Universal code: one program for every table, no table picker.
+                     • otherwise one firmware.bin per table folder
+                         /firmware/grade-XX/CODE/T1/firmware.bin, T2, ...
+                       → Table wise code: the teacher picks a table first.
+                     So switching any activity between the two is just a matter of
+                     where you put the .bin — no edit to this file needed.
+       "table"     = always Table wise, even if a shared firmware.bin is present.
+       "universal" = always Universal.
      ========================================================================== -->
 <script type="application/json" id="catalog">
 {
@@ -1807,6 +1837,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "universal",
           "description": "Red, amber and green LEDs cycle on a timed loop the way a real junction does.",
           "components": [
             "LED x3",
@@ -1825,6 +1856,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "LEDs flash in time with a melody played on the buzzer.",
           "components": [
             "LED x4",
@@ -1843,6 +1875,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A button press rolls a random number from one to six and shows it on the display.",
           "components": [
             "Push button",
@@ -1861,6 +1894,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Two switches control one lamp from either end, like a staircase light.",
           "components": [
             "Push button x2",
@@ -1879,6 +1913,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A push button plays a chime on the buzzer and lights an indicator.",
           "components": [
             "Push button",
@@ -1898,6 +1933,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1914,6 +1950,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1930,6 +1967,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1946,6 +1984,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1962,6 +2001,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1985,6 +2025,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Start, stop and reset a stopwatch from two buttons, with the count on the OLED.",
           "components": [
             "Push button x2",
@@ -2003,6 +2044,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "An ultrasonic sensor reads distance and shows it in centimetres.",
           "components": [
             "HC-SR04",
@@ -2021,6 +2063,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A rain sensor sounds an alert the moment water lands on the board.",
           "components": [
             "Rain sensor",
@@ -2040,6 +2083,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A reaction game on the OLED \u2014 press the button to jump the obstacle.",
           "components": [
             "Push button",
@@ -2059,6 +2103,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Temperature and humidity from a DHT sensor, updated on screen every two seconds.",
           "components": [
             "DHT11",
@@ -2077,6 +2122,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2093,6 +2139,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2109,6 +2156,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2125,6 +2173,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2141,6 +2190,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2164,6 +2214,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "An IR sensor spots a vehicle and a servo swings the gate open, then closes it again.",
           "components": [
             "IR sensor",
@@ -2182,6 +2233,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Reads a soil probe and shows dry, damp or wet with a percentage.",
           "components": [
             "Soil moisture sensor",
@@ -2200,6 +2252,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A potentiometer sets motor speed through PWM, with the duty cycle on screen.",
           "components": [
             "DC motor",
@@ -2219,6 +2272,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A keypad calculator that does the four basic operations on the OLED.",
           "components": [
             "4x4 keypad",
@@ -2237,6 +2291,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Fan speed follows room temperature, stepping up as the room warms.",
           "components": [
             "DHT11",
@@ -2256,6 +2311,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2272,6 +2328,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2288,6 +2345,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2304,6 +2362,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2320,6 +2379,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2343,6 +2403,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A rain sensor pulls the clothesline under cover and rolls it back out when dry.",
           "components": [
             "Rain sensor",
@@ -2362,6 +2423,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A keypad code arms a PIR alarm that sounds when someone walks in.",
           "components": [
             "PIR",
@@ -2381,6 +2443,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "The lamp comes on only when there is motion and the room is already dark.",
           "components": [
             "PIR",
@@ -2400,6 +2463,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Send a message from a phone and it appears on the display.",
           "components": [
             "SSD1306 OLED",
@@ -2418,6 +2482,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A pair of IR beams counts people in and out and keeps a running total.",
           "components": [
             "IR sensor x2",
@@ -2435,7 +2500,8 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "name": "Introduction to AI",
           "category": "AI",
           "board": "esp32",
-          "version": "1.0.0",        
+          "version": "1.0.0",
+          "codeType": "auto",
           "description": "Match the right dataset to the application",
           "components": [],
           "parts": [
@@ -2451,6 +2517,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2467,6 +2534,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2483,6 +2551,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2499,6 +2568,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2522,6 +2592,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Soil moisture drives a pump, watering only when the reading drops below a set point.",
           "components": [
             "Soil moisture sensor",
@@ -2541,6 +2612,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "IR sensors detect an approaching train and close the crossing gate in time.",
           "components": [
             "IR sensor x2",
@@ -2560,6 +2632,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Type a word over serial and it blinks out in Morse on an LED and buzzer.",
           "components": [
             "LED",
@@ -2578,6 +2651,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "IR sensors in each bay report free and occupied slots on the display.",
           "components": [
             "IR sensor x4",
@@ -2596,6 +2670,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Ultrasonic sensing warns of obstacles and brakes the car automatically.",
           "components": [
             "HC-SR04",
@@ -2616,6 +2691,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Understanding structured and unstructured data, by collecting sensor data and feeding it to a chatbot.",
           "components": [],
           "parts": [
@@ -2631,7 +2707,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
-          
+          "codeType": "auto",
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
           "parts": [
@@ -2647,6 +2723,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Understanding supervised and unsupervised learning by agriAI lab with coggy and sensors",
           "components": [],
           "parts": [
@@ -2662,6 +2739,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2678,6 +2756,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2701,6 +2780,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Drive forward, reverse and turn through a motor driver \u2014 the foundation every later robot builds on.",
           "components": [
             "Gear motors x2",
@@ -2720,6 +2800,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A servo gripper opens and closes on command, with a grip-strength limit.",
           "components": [
             "SG90 servo",
@@ -2738,6 +2819,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Ultrasonic and IR sensors keep the robot a fixed distance behind a person.",
           "components": [
             "HC-SR04",
@@ -2757,6 +2839,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Drive the robot from a phone app over the ESP32's Bluetooth.",
           "components": [
             "Gear motors x2",
@@ -2775,6 +2858,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A six-wheel rover with a servo arm, driven from a phone over Bluetooth.",
           "components": [
             "Gear motors x6",
@@ -2794,6 +2878,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Joins the classroom Wi-Fi, prints its IP and blinks an LED from a browser.",
           "components": [
             "ESP32 DevKit",
@@ -2812,6 +2897,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Switch appliances on a relay board from a web page on the local network.",
           "components": [
             "4-channel relay",
@@ -2830,6 +2916,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "An LDR switches the lamp at dusk and the state is reported online.",
           "components": [
             "LDR",
@@ -2849,6 +2936,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Pushes sensor readings to a ThingSpeak channel every fifteen seconds.",
           "components": [
             "DHT11",
@@ -2867,6 +2955,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "The ESP32 hosts a live page showing temperature, humidity and a short history.",
           "components": [
             "DHT22",
@@ -2885,6 +2974,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2901,6 +2991,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2917,6 +3008,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2933,6 +3025,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2949,6 +3042,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2972,6 +3066,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Motor driver control, speed ramps and turning geometry, ready for the projects that follow.",
           "components": [
             "Gear motors x2",
@@ -2991,6 +3086,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A scanning ultrasonic head finds a clear path and steers around obstacles.",
           "components": [
             "HC-SR04",
@@ -3010,6 +3106,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "IR sensors watch for a table edge and reverse before the robot falls.",
           "components": [
             "IR sensor x2",
@@ -3028,6 +3125,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A four-servo arm moves through saved positions and can be taught new ones.",
           "components": [
             "SG90 servo x4",
@@ -3046,6 +3144,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "The rover drives over Wi-Fi from a browser, with live telemetry on the page.",
           "components": [
             "Gear motors x6",
@@ -3065,6 +3164,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Wi-Fi setup, a first web request and an LED controlled from the browser.",
           "components": [
             "ESP32 DevKit",
@@ -3083,6 +3183,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Hosts a dashboard showing motion, temperature and door state in one page.",
           "components": [
             "PIR",
@@ -3102,6 +3203,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Logs readings to ThingSpeak and charts them over days rather than seconds.",
           "components": [
             "DHT22",
@@ -3120,6 +3222,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Soil, light and humidity are logged online and a pump runs on a threshold.",
           "components": [
             "Soil moisture sensor",
@@ -3140,6 +3243,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "A rover controlled from any browser on the same network, no app needed.",
           "components": [
             "Gear motors x4",
@@ -3158,6 +3262,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3174,6 +3279,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3190,6 +3296,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3206,6 +3313,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3222,6 +3330,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
+          "codeType": "auto",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3248,6 +3357,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "3",
+          "codeType": "auto",
           "description": "Connect Coggy over Bluetooth or a USB cable, pick your pins, and watch every sensor report back in real time.",
           "components": [],
           "parts": [
@@ -3263,6 +3373,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Coming soon",
           "components": [
             "Any sensor",
@@ -3281,6 +3392,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Coming soon",
           "components": [
             "Gear motor",
@@ -3299,6 +3411,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Coming soon",
           "components": [
             "SG90 servo"
@@ -3316,6 +3429,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Coming soon",
           "components": [
             "Any I2C device"
@@ -3333,6 +3447,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
+          "codeType": "auto",
           "description": "Coming soon",
           "components": [],
           "parts": [
@@ -3868,14 +3983,82 @@ const tableName = (id) => {
   return t ? `${t.id} · ${t.name}` : id;
 };
 
-/* Any path carrying {table} is per-table; anything else is shared firmware. */
-const needsTable = (a) =>
-  (a?.parts || [{ file: a?.file }]).some((p) => (p.file || '').includes('{table}'));
+/* ---------- table wise vs universal code ----------
+   Every activity works this out for itself. With codeType "auto" (the default)
+   the flasher checks the server once: a firmware.bin sitting straight in the
+   activity folder makes it Universal; otherwise it is Table wise. */
+const rawFiles = (a) => (a?.parts || [{ file: a?.file }]).map((p) => p.file || '').filter(Boolean);
+const hasTableSlot = (a) => rawFiles(a).some((f) => f.includes('{table}'));
+const universalPath = (file) => file.replace(/\/\{table\}(?=\/)/g, '').replaceAll('{table}', '');
 
-function resolvePath(file) {
+const MODE = new Map();        // code -> 'table' | 'universal'
+const MODE_JOBS = new Map();   // code -> in-flight check
+function declaredType(a) {
+  const t = String(a?.codeType || 'auto').toLowerCase();
+  return t === 'table' || t === 'universal' ? t : 'auto';
+}
+/* 'table' | 'universal' | 'pending' (still checking the server) */
+function codeMode(a) {
+  if (!a) return 'table';
+  if (!hasTableSlot(a)) return 'universal';
+  const t = declaredType(a);
+  if (t !== 'auto') return t;
+  return MODE.get(a.code) || 'pending';
+}
+function detectMode(a) {
+  const now = codeMode(a);
+  if (now !== 'pending') return Promise.resolve(now);
+  if (MODE_JOBS.has(a.code)) return MODE_JOBS.get(a.code);
+  const job = (async () => {
+    const found = await Promise.all(rawFiles(a).map((f) => buildExists(universalPath(f))));
+    const m = found.length && found.every(Boolean) ? 'universal' : 'table';
+    MODE.set(a.code, m);
+    return m;
+  })();
+  MODE_JOBS.set(a.code, job);
+  return job;
+}
+function resetModes() { MODE.clear(); MODE_JOBS.clear(); }
+
+/* Until the check finishes, treat an activity as table wise — the safer guess. */
+const needsTable = (a) => codeMode(a) !== 'universal';
+
+function resolvePath(file, a = state.selected) {
   if (!file.includes('{table}')) return file;
+  if (codeMode(a) === 'universal') return universalPath(file);
   if (!state.table) throw new Error('No table selected — pick a table before flashing.');
   return file.replaceAll('{table}', state.table);
+}
+
+function ctypeTag(a) {
+  if (a.soon) return '';
+  const m = codeMode(a);
+  if (m === 'pending') return '<span class="tag tag--ctype" data-ctype="checking" title="Looking on the server…">Checking…</span>';
+  return m === 'table'
+    ? '<span class="tag tag--ctype" data-ctype="table" title="Each table has its own program — pick the table before flashing">Table wise code</span>'
+    : '<span class="tag tag--ctype" data-ctype="universal" title="One program for every table — no table to pick">Universal code</span>';
+}
+
+/* Repaint just the code-type tags, so the cards do not replay their animation. */
+function refreshCodeTags() {
+  const byCode = new Map(allActivities().map((a) => [a.code, a]));
+  document.querySelectorAll('#cards .card').forEach((c) => {
+    const a = byCode.get(c.dataset.code);
+    const old = c.querySelector('.tag--ctype');
+    if (!a || !old) return;
+    old.outerHTML = ctypeTag(a);
+  });
+}
+
+async function detectAllModes({ quiet = false } = {}) {
+  const todo = allActivities().filter((a) => !a.soon);
+  await pooled(todo, 6, (a) => detectMode(a));
+  refreshCodeTags();
+  if (state.selected && !state.custom) { renderTables(); updateFlashButton(); warmFirmware(state.selected); }
+  if (!quiet) {
+    const u = todo.filter((a) => codeMode(a) === 'universal').length;
+    log(`Code types checked — ${u} universal, ${todo.length - u} table wise.`, 'info');
+  }
 }
 
 /* ---------- console ---------- */
@@ -4044,6 +4227,7 @@ function renderCards() {
         <span class="tag">${a.label || `Class ${a.grade}`}</span>
         <span class="tag">v${a.version}</span>
         ${a.category ? `<span class="tag">${a.category}</span>` : ''}
+        ${ctypeTag(a)}
       </div>`;
     card.querySelector('.card__name').textContent = a.name;
     card.querySelector('.card__desc').textContent = a.description || '';
@@ -4102,7 +4286,7 @@ const tablePathFor = (a, id) =>
 /* ---------- table picker ---------- */
 function renderTables() {
   const row = $('#tableRow');
-  const show = !!state.selected && needsTable(state.selected);
+  const show = !!state.selected && !state.custom && codeMode(state.selected) === 'table';
   row.hidden = !show;
   if (!show) return;
 
@@ -4141,12 +4325,12 @@ function paintHint() {
   if (chip?.dataset.build === 'missing') {
     hint.innerHTML = '';
     const warn = document.createElement('b');
-    warn.textContent = `No code uploaded in ${nm} yet — flashing will fail.`;
+    warn.textContent = `${nm} doesn't have this program yet. Pick another table, or ask your trainer to add it.`;
     hint.append(warn);
   } else if (chip?.dataset.build === 'checking') {
     hint.textContent = `Checking ${nm}…`;
   } else {
-    hint.textContent = `Code uploaded in ${nm}`;
+    hint.textContent = `Program found for ${nm} — ready to flash.`;
   }
 }
 
@@ -4162,7 +4346,7 @@ async function probeTables(act) {
     if (!b) return;
     b.dataset.build = results[i] ? 'ready' : 'missing';
     if (results[i]) ready++;
-    else b.title = `No build uploaded for ${t.id} yet — selectable, but flashing will fail`;
+    else b.title = `${t.name} doesn't have this program yet`;
   });
 
   paintHint();
@@ -4227,13 +4411,18 @@ async function auditBuilds() {
   btn.disabled = true;
   btn.textContent = 'Checking…';
 
+  await detectAllModes({ quiet: true });
   const jobs = [];
   for (const a of allActivities()) {
-    if (a.soon || !needsTable(a)) continue;
+    if (a.soon) continue;
+    if (codeMode(a) === 'universal') {
+      for (const f of rawFiles(a)) jobs.push({ code: a.code, table: { name: 'Universal' }, path: universalPath(f) });
+      continue;
+    }
     for (const t of TABLES) jobs.push({ code: a.code, table: t, path: tablePathFor(a, t.id) });
   }
 
-  log(`Checking ${jobs.length} builds across ${TABLES.length} tables…`, 'info');
+  log(`Checking ${jobs.length} builds…`, 'info');
   const found = await pooled(jobs, 8, (j) => buildExists(j.path));
 
   const missing = jobs.filter((_, i) => !found[i]);
@@ -4270,16 +4459,22 @@ function select(a) {
   updateFlashButton();
   log(`Selected ${a.code} — ${a.name}`, 'info');
   warmFirmware(a);
+  if (codeMode(a) === 'pending') {
+    detectMode(a).then(() => {
+      if (state.selected?.code !== a.code || state.custom) return;
+      refreshCodeTags(); renderTables(); updateFlashButton(); warmFirmware(a);
+    });
+  }
 }
 
 /* Pull the build down while the student is still plugging in the cable, so the
    write starts the moment Flash is pressed. */
 function warmFirmware(a) {
-  if (!a || (needsTable(a) && !state.table)) return;
+  if (!a || codeMode(a) === 'pending' || (needsTable(a) && !state.table)) return;
   const defs = a.parts || [{ file: a.file }];
   for (const p of defs) {
     if (!p.file) continue;
-    try { prefetchBinary(resolvePath(p.file)).catch(() => {}); } catch (_) {}
+    try { prefetchBinary(resolvePath(p.file, a)).catch(() => {}); } catch (_) {}
   }
 }
 
@@ -4441,15 +4636,18 @@ async function hardClose() {
 /* ---------- flashing ---------- */
 function updateFlashButton() {
   updateJourney();
-  const tableMissing = !!state.selected && !state.custom && needsTable(state.selected) && !state.table;
-  const ready = state.connected && (state.selected || state.custom) && !tableMissing && !state.busy;
+  const pending = !!state.selected && !state.custom && codeMode(state.selected) === 'pending';
+  const tableMissing = !!state.selected && !state.custom && !pending && needsTable(state.selected) && !state.table;
+  const ready = state.connected && (state.selected || state.custom) && !pending && !tableMissing && !state.busy;
   $('#flashBtn').disabled = !ready;
   $('#flashHint').textContent = !state.connected
     ? 'Connect a Coggy to begin.'
     : !(state.selected || state.custom)
       ? 'Pick an activity, or drop your own build below.'
+      : pending
+        ? 'Checking which program this activity uses…'
       : tableMissing
-        ? 'Pick a table above — each table has its own build.'
+        ? 'Pick your table above — each table has its own program.'
         : `Ready to write${state.table && !state.custom ? ` to ${tableName(state.table)}` : ''}.`;
 }
 
@@ -4708,6 +4906,7 @@ async function flash() {
   try {
     if (!state.custom) {
       $('#flashLabel').textContent = 'Checking the build…';
+      await detectMode(state.selected);
       const missing = await missingBuildPaths(state.selected);
       if (missing.length) {
         showMissing(state.selected, state.table, missing);
@@ -4724,7 +4923,7 @@ async function flash() {
       name: state.custom ? state.custom.name : state.selected.name,
       code: state.custom ? 'Custom build' : state.selected.code,
       table: state.custom ? 'Not needed'
-        : !needsTable(state.selected) ? 'Shared build' : tableName(state.table),
+        : !needsTable(state.selected) ? 'All tables (universal)' : tableName(state.table),
       bytes: written,
       secs: (performance.now() - t0) / 1000,
     };
@@ -5011,11 +5210,12 @@ function parseWiringFromBin(u8) {
 /* Builds are identical across tables for wiring purposes, so read whichever
    table's build is on the server — this bench's first. */
 async function wiringFromServer(a) {
+  await detectMode(a);
   const defs = a.parts || [{ file: a.file }];
   const candidates = [];
   for (const p of defs) {
     if (!p.file) continue;
-    if (!p.file.includes('{table}')) { candidates.push({ path: p.file, table: null }); continue; }
+    if (!p.file.includes('{table}') || codeMode(a) === 'universal') { candidates.push({ path: universalPath(p.file), table: null }); continue; }
     const order = [state.table, ...TABLES.map((t) => t.id)].filter((v, i, arr) => v && arr.indexOf(v) === i);
     for (const id of order) candidates.push({ path: p.file.replaceAll('{table}', id), table: id });
   }
@@ -5099,7 +5299,7 @@ async function openWiring(a) {
   if (token !== _wireToken) return;          // teacher opened another card meanwhile
 
   if (found) {
-    renderSheet({ ...base, sheet: found.sheet, source: 'firmware', where: found.table ? tableName(found.table) : 'shared build' });
+    renderSheet({ ...base, sheet: found.sheet, source: 'firmware', where: found.table ? tableName(found.table) : 'universal code' });
   } else {
     const manual = WIRING[a.code];
     renderSheet({ ...base, sheet: manual, source: manual ? 'manual' : 'none' });
@@ -5245,7 +5445,7 @@ function updateJourney() {
   const steps = [
     ['connect', state.connected, state.connected ? `${$('#roChip').textContent} connected` : 'Plug in, press Connect'],
     ['pick', picked, state.custom ? state.custom.name : state.selected ? `${state.selected.code} · ${state.selected.name}` : 'Choose from the shelf'],
-    ['table', tableOk, state.custom ? 'Not needed' : shared ? 'Shared build' : state.table ? tableName(state.table) : 'Pick your bench'],
+    ['table', tableOk, state.custom ? 'Not needed' : state.selected && codeMode(state.selected) === 'pending' ? 'Checking…' : shared ? 'Same code for all tables' : state.table ? tableName(state.table) : 'Pick your bench'],
     ['flash', !!state.lastFlashOk, state.flashing ? 'Writing…' : state.lastFlashOk ? 'Done — Coggy is ready' : 'Press Flash'],
   ];
   let current = false;
@@ -5376,7 +5576,7 @@ async function missingBuildPaths(act) {
   const out = [];
   for (const p of defs) {
     if (!p.file) continue;
-    const path = resolvePath(p.file);
+    const path = resolvePath(p.file, act);
     if ((await checkBuild(path)) === 'missing') out.push(path);
   }
   return out;
@@ -5405,23 +5605,32 @@ let _missToken = 0;
 async function showMissing(act, tableId, paths) {
   const token = ++_missToken;
   const perTable = needsTable(act) && !!tableId;
-  const tName = perTable ? tableName(tableId) : 'Shared build';
+  const tName = perTable ? tableName(tableId) : 'All tables';
+  const bench = perTable ? (TABLES.find((t) => t.id === tableId)?.name || tableId) : '';
 
   const lede = $('#missLede');
   lede.textContent = '';
-  lede.append('There is no code uploaded for ');
+  lede.append('The program for ');
   const a = document.createElement('b'); a.textContent = act.name; lede.append(a);
   if (perTable) {
-    lede.append(' on ');
-    const t = document.createElement('b'); t.textContent = tName; lede.append(t);
+    lede.append(' hasn\'t been added for the ');
+    const t = document.createElement('b'); t.textContent = bench; lede.append(t);
+    lede.append(' table yet.');
+  } else {
+    lede.append(' hasn\'t been added yet.');
   }
-  lede.append(' yet.');
 
   $('#missAct').textContent = act.name;
   $('#missAct').title = act.name;
   $('#missTable').textContent = tName;
-  $('#missPath').innerHTML = '<b>Expected file:</b> <span></span>';
-  $('#missPath span').textContent = paths[0] || '';
+  /* The technical detail is tucked away for whoever maintains the server. */
+  const shared = universalPath(rawFiles(act)[0] || '');
+  const mp = $('#missPath');
+  mp.innerHTML = '<b>Missing file:</b> <span data-p="miss"></span>'
+    + (perTable ? '<br><br><b>Same program for every table?</b> Put one firmware.bin here instead and the table picker disappears: <span data-p="shared"></span>' : '');
+  mp.querySelector('[data-p="miss"]').textContent = paths[0] || '';
+  mp.querySelector('[data-p="shared"]')?.replaceChildren(shared);
+  $('#missModal .miss__tech').open = false;
   $('#missModal').querySelectorAll('.miss__facts > div').forEach((d, i) => d.style.setProperty('--k', i));
 
   /* where else this activity IS uploaded — only meaningful for per-table builds */
@@ -5432,7 +5641,7 @@ async function showMissing(act, tableId, paths) {
   $('#missAlt .miss__alt-t').hidden = false;
   if (perTable) {
     none.hidden = false;
-    none.textContent = 'Checking the other tables…';
+    none.textContent = 'Looking at the other tables…';
   }
 
   /* repaint the table picker so the dashed "missing" look matches */
@@ -5440,8 +5649,8 @@ async function showMissing(act, tableId, paths) {
   if (chip) { chip.dataset.build = 'missing'; paintHint(); }
 
   log(perTable
-    ? `No code uploaded for ${act.code} on ${tName}. Nothing was written to the board.`
-    : `No code uploaded for ${act.code}. Nothing was written to the board.`, 'warn');
+    ? `${act.code} has no program for ${tName} yet. Nothing was written to the board.`
+    : `${act.code} has no program uploaded yet. Nothing was written to the board.`, 'warn');
   uhOh();
   openModal('#missModal');
 
@@ -5451,7 +5660,7 @@ async function showMissing(act, tableId, paths) {
   const ready = TABLES.filter((t, i) => results[i] && t.id !== tableId);
   if (!ready.length) {
     $('#missAlt .miss__alt-t').hidden = true;
-    none.textContent = 'This activity has not been uploaded for any table yet — ask the person who builds the firmware to add it.';
+    none.textContent = 'This activity isn\'t ready on any table yet. Please let your CognoSpace trainer know.';
     return;
   }
   none.hidden = true;
@@ -5464,7 +5673,7 @@ async function showMissing(act, tableId, paths) {
     b.addEventListener('click', () => {
       closeModal($('#missModal'));
       pickTable(t.id);
-      toast(`Switched to ${tableName(t.id)} — press Flash when ready.`);
+      toast(`Switched to ${tableName(t.id)} — press Flash when you're ready.`);
     });
     chips.append(b);
   });
@@ -5583,6 +5792,7 @@ function setupMotion() {
   renderCategories();
   renderCards();
   renderTables();
+  detectAllModes();
   log(`Catalogue loaded — ${allActivities().length} activities across ${state.catalog.grades.length} classes.`, 'info');
   if (state.table) log(`This machine last flashed ${tableName(state.table)}. Change it in the write panel.`, 'info');
 
@@ -5604,7 +5814,7 @@ function setupMotion() {
   });
   /* Checking builds is the natural "look at the server again" action, so let it
      throw away anything held in memory from an earlier build. */
-  $('#auditBtn').addEventListener('click', () => { _binCache.clear(); auditBuilds(); });
+  $('#auditBtn').addEventListener('click', () => { _binCache.clear(); buildCache.clear(); resetModes(); auditBuilds(); });
 
   /* ---------- serial monitor ---------- */
   $('#monToggle').addEventListener('click', () =>
