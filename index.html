@@ -1810,18 +1810,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
 
 <!-- ==========================================================================
      THE CATALOGUE — this is the only block you edit to add activities
-     "codeType" on each activity — you normally never touch this:
-       "auto"      = (default) the flasher looks on the server and decides by itself:
-                     • firmware.bin straight in the activity folder
-                         /firmware/grade-XX/CODE/firmware.bin
-                       → Universal code: one program for every table, no table picker.
-                     • otherwise one firmware.bin per table folder
-                         /firmware/grade-XX/CODE/T1/firmware.bin, T2, ...
-                       → Table wise code: the teacher picks a table first.
-                     So switching any activity between the two is just a matter of
-                     where you put the .bin — no edit to this file needed.
-       "table"     = always Table wise, even if a shared firmware.bin is present.
-       "universal" = always Universal.
+     "codeType" on each activity:
+       "table"     = Table wise code (default). Teachers pick a table; the build is read
+                     from /firmware/grade-XX/CODE/T1/firmware.bin, T2, ... one per table.
+       "universal" = Universal code. No table picker. Every table gets the Pi table's
+                     build: /firmware/grade-XX/CODE/T1/firmware.bin
+                     Leave the "file" path as it is ({table} included) — the flasher
+                     fills in T1 by itself.
      ========================================================================== -->
 <script type="application/json" id="catalog">
 {
@@ -1837,7 +1832,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "universal",
+          "codeType": "table",
           "description": "Red, amber and green LEDs cycle on a timed loop the way a real junction does.",
           "components": [
             "LED x3",
@@ -1856,7 +1851,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "LEDs flash in time with a melody played on the buzzer.",
           "components": [
             "LED x4",
@@ -1875,7 +1870,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A button press rolls a random number from one to six and shows it on the display.",
           "components": [
             "Push button",
@@ -1894,7 +1889,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Two switches control one lamp from either end, like a staircase light.",
           "components": [
             "Push button x2",
@@ -1913,7 +1908,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A push button plays a chime on the buzzer and lights an indicator.",
           "components": [
             "Push button",
@@ -1933,7 +1928,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1950,7 +1945,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1967,7 +1962,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -1984,7 +1979,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2001,7 +1996,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2025,7 +2020,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Start, stop and reset a stopwatch from two buttons, with the count on the OLED.",
           "components": [
             "Push button x2",
@@ -2044,7 +2039,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "An ultrasonic sensor reads distance and shows it in centimetres.",
           "components": [
             "HC-SR04",
@@ -2063,7 +2058,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A rain sensor sounds an alert the moment water lands on the board.",
           "components": [
             "Rain sensor",
@@ -2083,7 +2078,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A reaction game on the OLED \u2014 press the button to jump the obstacle.",
           "components": [
             "Push button",
@@ -2103,7 +2098,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Temperature and humidity from a DHT sensor, updated on screen every two seconds.",
           "components": [
             "DHT11",
@@ -2122,7 +2117,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2139,7 +2134,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2156,7 +2151,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2173,7 +2168,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2190,7 +2185,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2214,7 +2209,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "An IR sensor spots a vehicle and a servo swings the gate open, then closes it again.",
           "components": [
             "IR sensor",
@@ -2233,7 +2228,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Reads a soil probe and shows dry, damp or wet with a percentage.",
           "components": [
             "Soil moisture sensor",
@@ -2252,7 +2247,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A potentiometer sets motor speed through PWM, with the duty cycle on screen.",
           "components": [
             "DC motor",
@@ -2272,7 +2267,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A keypad calculator that does the four basic operations on the OLED.",
           "components": [
             "4x4 keypad",
@@ -2291,7 +2286,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Fan speed follows room temperature, stepping up as the room warms.",
           "components": [
             "DHT11",
@@ -2311,7 +2306,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2328,7 +2323,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2345,7 +2340,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2362,7 +2357,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2379,7 +2374,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2403,7 +2398,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A rain sensor pulls the clothesline under cover and rolls it back out when dry.",
           "components": [
             "Rain sensor",
@@ -2423,7 +2418,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A keypad code arms a PIR alarm that sounds when someone walks in.",
           "components": [
             "PIR",
@@ -2443,7 +2438,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "The lamp comes on only when there is motion and the room is already dark.",
           "components": [
             "PIR",
@@ -2463,7 +2458,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Send a message from a phone and it appears on the display.",
           "components": [
             "SSD1306 OLED",
@@ -2482,7 +2477,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A pair of IR beams counts people in and out and keeps a running total.",
           "components": [
             "IR sensor x2",
@@ -2501,7 +2496,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Match the right dataset to the application",
           "components": [],
           "parts": [
@@ -2517,7 +2512,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2534,7 +2529,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2551,7 +2546,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2568,7 +2563,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2592,7 +2587,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Soil moisture drives a pump, watering only when the reading drops below a set point.",
           "components": [
             "Soil moisture sensor",
@@ -2612,7 +2607,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "IR sensors detect an approaching train and close the crossing gate in time.",
           "components": [
             "IR sensor x2",
@@ -2632,7 +2627,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Type a word over serial and it blinks out in Morse on an LED and buzzer.",
           "components": [
             "LED",
@@ -2651,7 +2646,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "IR sensors in each bay report free and occupied slots on the display.",
           "components": [
             "IR sensor x4",
@@ -2670,7 +2665,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Ultrasonic sensing warns of obstacles and brakes the car automatically.",
           "components": [
             "HC-SR04",
@@ -2691,7 +2686,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Understanding structured and unstructured data, by collecting sensor data and feeding it to a chatbot.",
           "components": [],
           "parts": [
@@ -2707,7 +2702,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
           "parts": [
@@ -2723,7 +2718,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Understanding supervised and unsupervised learning by agriAI lab with coggy and sensors",
           "components": [],
           "parts": [
@@ -2739,7 +2734,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2756,7 +2751,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2780,7 +2775,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Drive forward, reverse and turn through a motor driver \u2014 the foundation every later robot builds on.",
           "components": [
             "Gear motors x2",
@@ -2800,7 +2795,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A servo gripper opens and closes on command, with a grip-strength limit.",
           "components": [
             "SG90 servo",
@@ -2819,7 +2814,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Ultrasonic and IR sensors keep the robot a fixed distance behind a person.",
           "components": [
             "HC-SR04",
@@ -2839,7 +2834,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Drive the robot from a phone app over the ESP32's Bluetooth.",
           "components": [
             "Gear motors x2",
@@ -2858,7 +2853,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A six-wheel rover with a servo arm, driven from a phone over Bluetooth.",
           "components": [
             "Gear motors x6",
@@ -2878,7 +2873,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Joins the classroom Wi-Fi, prints its IP and blinks an LED from a browser.",
           "components": [
             "ESP32 DevKit",
@@ -2897,7 +2892,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Switch appliances on a relay board from a web page on the local network.",
           "components": [
             "4-channel relay",
@@ -2916,7 +2911,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "An LDR switches the lamp at dusk and the state is reported online.",
           "components": [
             "LDR",
@@ -2936,7 +2931,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Pushes sensor readings to a ThingSpeak channel every fifteen seconds.",
           "components": [
             "DHT11",
@@ -2955,7 +2950,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "The ESP32 hosts a live page showing temperature, humidity and a short history.",
           "components": [
             "DHT22",
@@ -2974,7 +2969,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -2991,7 +2986,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3008,7 +3003,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3025,7 +3020,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3042,7 +3037,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3066,7 +3061,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Motor driver control, speed ramps and turning geometry, ready for the projects that follow.",
           "components": [
             "Gear motors x2",
@@ -3086,7 +3081,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A scanning ultrasonic head finds a clear path and steers around obstacles.",
           "components": [
             "HC-SR04",
@@ -3106,7 +3101,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "IR sensors watch for a table edge and reverse before the robot falls.",
           "components": [
             "IR sensor x2",
@@ -3125,7 +3120,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A four-servo arm moves through saved positions and can be taught new ones.",
           "components": [
             "SG90 servo x4",
@@ -3144,7 +3139,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Mechatronics",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "The rover drives over Wi-Fi from a browser, with live telemetry on the page.",
           "components": [
             "Gear motors x6",
@@ -3164,7 +3159,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Wi-Fi setup, a first web request and an LED controlled from the browser.",
           "components": [
             "ESP32 DevKit",
@@ -3183,7 +3178,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Hosts a dashboard showing motion, temperature and door state in one page.",
           "components": [
             "PIR",
@@ -3203,7 +3198,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Logs readings to ThingSpeak and charts them over days rather than seconds.",
           "components": [
             "DHT22",
@@ -3222,7 +3217,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Soil, light and humidity are logged online and a pump runs on a threshold.",
           "components": [
             "Soil moisture sensor",
@@ -3243,7 +3238,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "IoT/Automation",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "A rover controlled from any browser on the same network, no app needed.",
           "components": [
             "Gear motors x4",
@@ -3262,7 +3257,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3279,7 +3274,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3296,7 +3291,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3313,7 +3308,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3330,7 +3325,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "AI",
           "board": "esp32",
           "version": "0.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "soon": true,
           "description": "Placeholder \u2014 this AI activity has not been written yet.",
           "components": [],
@@ -3357,7 +3352,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "3",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Connect Coggy over Bluetooth or a USB cable, pick your pins, and watch every sensor report back in real time.",
           "components": [],
           "parts": [
@@ -3373,7 +3368,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Coming soon",
           "components": [
             "Any sensor",
@@ -3392,7 +3387,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Coming soon",
           "components": [
             "Gear motor",
@@ -3411,7 +3406,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Coming soon",
           "components": [
             "SG90 servo"
@@ -3429,7 +3424,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Coming soon",
           "components": [
             "Any I2C device"
@@ -3447,7 +3442,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "category": "Educator Resources",
           "board": "esp32",
           "version": "1.0.0",
-          "codeType": "auto",
+          "codeType": "table",
           "description": "Coming soon",
           "components": [],
           "parts": [
@@ -3984,26 +3979,26 @@ const tableName = (id) => {
 };
 
 /* ---------- table wise vs universal code ----------
-   Every activity works this out for itself. With codeType "auto" (the default)
-   the flasher checks the server once: a firmware.bin sitting straight in the
-   activity folder makes it Universal; otherwise it is Table wise. */
+   Set per activity with "codeType" in the catalogue. Universal activities
+   flash the T1 (Pi) build to every table; table wise ones use their own. */
 const rawFiles = (a) => (a?.parts || [{ file: a?.file }]).map((p) => p.file || '').filter(Boolean);
 const hasTableSlot = (a) => rawFiles(a).some((f) => f.includes('{table}'));
-const universalPath = (file) => file.replace(/\/\{table\}(?=\/)/g, '').replaceAll('{table}', '');
+/* Universal activities all share the Pi table's build. Change this id if the
+   shared build should come from a different table folder. */
+const UNIVERSAL_TABLE = 'T1';
+const universalPath = (file) => file.replaceAll('{table}', UNIVERSAL_TABLE);
 
 const MODE = new Map();        // code -> 'table' | 'universal'
 const MODE_JOBS = new Map();   // code -> in-flight check
 function declaredType(a) {
-  const t = String(a?.codeType || 'auto').toLowerCase();
-  return t === 'table' || t === 'universal' ? t : 'auto';
+  const t = String(a?.codeType || 'table').toLowerCase();
+  return t === 'universal' ? 'universal' : 'table';
 }
 /* 'table' | 'universal' | 'pending' (still checking the server) */
 function codeMode(a) {
   if (!a) return 'table';
   if (!hasTableSlot(a)) return 'universal';
-  const t = declaredType(a);
-  if (t !== 'auto') return t;
-  return MODE.get(a.code) || 'pending';
+  return declaredType(a);
 }
 function detectMode(a) {
   const now = codeMode(a);
@@ -4416,7 +4411,7 @@ async function auditBuilds() {
   for (const a of allActivities()) {
     if (a.soon) continue;
     if (codeMode(a) === 'universal') {
-      for (const f of rawFiles(a)) jobs.push({ code: a.code, table: { name: 'Universal' }, path: universalPath(f) });
+      for (const f of rawFiles(a)) jobs.push({ code: a.code, table: { name: `Universal (${tableName(UNIVERSAL_TABLE)})` }, path: universalPath(f) });
       continue;
     }
     for (const t of TABLES) jobs.push({ code: a.code, table: t, path: tablePathFor(a, t.id) });
@@ -5617,19 +5612,20 @@ async function showMissing(act, tableId, paths) {
     const t = document.createElement('b'); t.textContent = bench; lede.append(t);
     lede.append(' table yet.');
   } else {
-    lede.append(' hasn\'t been added yet.');
+    lede.append(` hasn't been added yet. All tables use the ${TABLES.find((t) => t.id === UNIVERSAL_TABLE)?.name || UNIVERSAL_TABLE} table's program.`);
   }
 
   $('#missAct').textContent = act.name;
   $('#missAct').title = act.name;
   $('#missTable').textContent = tName;
   /* The technical detail is tucked away for whoever maintains the server. */
-  const shared = universalPath(rawFiles(act)[0] || '');
   const mp = $('#missPath');
-  mp.innerHTML = '<b>Missing file:</b> <span data-p="miss"></span>'
-    + (perTable ? '<br><br><b>Same program for every table?</b> Put one firmware.bin here instead and the table picker disappears: <span data-p="shared"></span>' : '');
+  mp.innerHTML = '<b>Missing file:</b> <span data-p="miss"></span><br><br>'
+    + (perTable
+      ? '<b>Same program for every table?</b> Set <code>"codeType": "universal"</code> for this activity in the catalogue, and every table will use the <span data-p="u"></span> build.'
+      : 'This is a universal activity, so every table uses the <span data-p="u"></span> build. Upload it to the folder above.');
   mp.querySelector('[data-p="miss"]').textContent = paths[0] || '';
-  mp.querySelector('[data-p="shared"]')?.replaceChildren(shared);
+  mp.querySelector('[data-p="u"]').textContent = tableName(UNIVERSAL_TABLE);
   $('#missModal .miss__tech').open = false;
   $('#missModal').querySelectorAll('.miss__facts > div').forEach((d, i) => d.style.setProperty('--k', i));
 
