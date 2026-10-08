@@ -1020,6 +1020,20 @@ body::before{content:'';position:fixed;inset:-12%;z-index:-1;pointer-events:none
   .done__row{grid-template-columns:1fr}
 }
 
+/* ---------- Wi-Fi credentials ---------- */
+.card__wire.card__wifi{margin-left:0;align-self:flex-start}
+.wifi{--gc:var(--brand);width:min(480px,100%)}
+.wifi .modal__head{background:linear-gradient(135deg,color-mix(in srgb,var(--gc) 16%,var(--surface)),var(--surface) 70%)}
+.wifi .code{background:color-mix(in srgb,var(--gc) 14%,transparent);border-color:color-mix(in srgb,var(--gc) 36%,transparent);
+  color:color-mix(in srgb,var(--gc) 80%,var(--text))}
+.wifi__row{padding:.8rem .9rem;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border-soft);
+  border-left:3px solid var(--gc)}
+.wifi__row + .wifi__row{margin-top:.6rem}
+.wifi__k{display:block;font-size:.66rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+.wifi__v{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.wifi__v code{flex:1 1 auto;min-width:0;font-family:var(--font-mono);font-size:var(--t-md);font-weight:600;overflow-wrap:anywhere}
+.wifi__v code.is-empty{font-family:var(--font-ui);font-size:var(--t-sm);font-weight:500;color:var(--text-3)}
+
 .wire__src{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .5rem;border-radius:999px;
   background:color-mix(in srgb,var(--ok) 16%,transparent);color:#1E7A45;border:1px solid color-mix(in srgb,var(--ok) 40%,transparent)}
 [data-theme="dark"] .wire__src{color:#58D68D}
@@ -1778,6 +1792,38 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
   </div>
 </div>
 
+<!-- ==================== WI-FI CREDENTIALS ==================== -->
+<div class="modal" id="wifiModal" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__box wifi" role="dialog" aria-modal="true" aria-labelledby="wifiTitle">
+    <div class="modal__head">
+      <div>
+        <div class="wire__top"><span class="code" id="wifiCode"></span></div>
+        <h2 id="wifiTitle"></h2>
+        <p>The Wi-Fi network this activity uses.</p>
+      </div>
+      <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal__body">
+      <div class="wifi__row">
+        <span class="wifi__k">Network name (SSID)</span>
+        <div class="wifi__v"><code id="wifiSsid"></code>
+          <button class="btn btn--sm btn--ghost" type="button" id="wifiCopySsid">Copy</button></div>
+      </div>
+      <div class="wifi__row">
+        <span class="wifi__k">Password</span>
+        <div class="wifi__v"><code id="wifiPass"></code>
+          <button class="btn btn--sm btn--ghost" type="button" id="wifiReveal">Show</button>
+          <button class="btn btn--sm btn--ghost" type="button" id="wifiCopyPass">Copy</button></div>
+      </div>
+      <p class="wire__note" id="wifiNote" hidden></p>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--brand" type="button" data-close data-autofocus>Got it</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== WIRING SHEET ==================== -->
 <div class="modal" id="wireModal" hidden>
   <div class="modal__scrim" data-close></div>
@@ -1810,6 +1856,11 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
 
 <!-- ==========================================================================
      THE CATALOGUE — this is the only block you edit to add activities
+     "wifiDetails" on each activity:
+       true  = the card shows a "Wi-Fi credentials" button that opens "ssid" and
+               "password" for educators. Optional "wifiNote" adds a tip under them.
+       false = no button, even if ssid / password are filled in.
+       Note: anything typed here is readable by anyone who opens the page source.
      "codeType" on each activity:
        "table"     = Table wise code (default). Teachers pick a table; the build is read
                      from /firmware/grade-XX/CODE/T1/firmware.bin, T2, ... one per table.
@@ -1833,10 +1884,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Red, amber and green LEDs cycle on a timed loop the way a real junction does.",
           "components": [
-            "LED x3",
-            "220 ohm resistors"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -1852,10 +1905,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "LEDs flash in time with a melody played on the buzzer.",
           "components": [
-            "LED x4",
-            "Buzzer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -1871,10 +1926,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A button press rolls a random number from one to six and shows it on the display.",
           "components": [
-            "Push button",
-            "7-segment / OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -1890,10 +1947,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Two switches control one lamp from either end, like a staircase light.",
           "components": [
-            "Push button x2",
-            "LED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -1909,11 +1968,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A push button plays a chime on the buzzer and lights an indicator.",
           "components": [
-            "Push button",
-            "Buzzer",
-            "LED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -1930,7 +1990,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -1947,7 +2007,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -1964,7 +2024,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -1981,7 +2041,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -1998,7 +2058,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2021,10 +2081,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Start, stop and reset a stopwatch from two buttons, with the count on the OLED.",
           "components": [
-            "Push button x2",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2040,10 +2102,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "An ultrasonic sensor reads distance and shows it in centimetres.",
           "components": [
-            "HC-SR04",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2059,11 +2123,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A rain sensor sounds an alert the moment water lands on the board.",
           "components": [
-            "Rain sensor",
-            "Buzzer",
-            "LED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2079,11 +2144,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
-          "description": "A reaction game on the OLED \u2014 press the button to jump the obstacle.",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
+          "description": "A reaction game on the OLED — press the button to jump the obstacle.",
           "components": [
-            "Push button",
-            "SSD1306 OLED",
-            "Buzzer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2099,10 +2165,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Temperature and humidity from a DHT sensor, updated on screen every two seconds.",
           "components": [
-            "DHT11",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2119,7 +2187,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2136,7 +2204,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2153,7 +2221,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2170,7 +2238,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2187,7 +2255,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2210,10 +2278,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "An IR sensor spots a vehicle and a servo swings the gate open, then closes it again.",
           "components": [
-            "IR sensor",
-            "SG90 servo"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2229,10 +2299,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Reads a soil probe and shows dry, damp or wet with a percentage.",
           "components": [
-            "Soil moisture sensor",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2248,11 +2320,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A potentiometer sets motor speed through PWM, with the duty cycle on screen.",
           "components": [
-            "DC motor",
-            "L298N",
-            "10k potentiometer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2268,10 +2341,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A keypad calculator that does the four basic operations on the OLED.",
           "components": [
-            "4x4 keypad",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2287,11 +2362,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Fan speed follows room temperature, stepping up as the room warms.",
           "components": [
-            "DHT11",
-            "DC fan",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2308,7 +2384,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2325,7 +2401,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2342,7 +2418,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2359,7 +2435,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2376,7 +2452,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2399,11 +2475,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A rain sensor pulls the clothesline under cover and rolls it back out when dry.",
           "components": [
-            "Rain sensor",
-            "DC motor",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2419,11 +2496,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A keypad code arms a PIR alarm that sounds when someone walks in.",
           "components": [
-            "PIR",
-            "4x4 keypad",
-            "Buzzer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2439,11 +2517,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "The lamp comes on only when there is motion and the room is already dark.",
           "components": [
-            "PIR",
-            "LDR",
-            "Relay"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2459,10 +2538,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Send a message from a phone and it appears on the display.",
           "components": [
-            "SSD1306 OLED",
-            "ESP32 Bluetooth"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2478,10 +2559,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A pair of IR beams counts people in and out and keeps a running total.",
           "components": [
-            "IR sensor x2",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2497,8 +2580,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Match the right dataset to the application",
-          "components": [],
+          "components": [
+            "CognoSpace Mechatronics Kit"
+          ],
           "parts": [
             {
               "file": "/firmware/grade-06/CS-G06-AI01/{table}/firmware.bin",
@@ -2514,7 +2602,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2531,7 +2619,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2548,7 +2636,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2565,7 +2653,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2588,11 +2676,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Soil moisture drives a pump, watering only when the reading drops below a set point.",
           "components": [
-            "Soil moisture sensor",
-            "Relay",
-            "Pump"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2608,11 +2697,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "IR sensors detect an approaching train and close the crossing gate in time.",
           "components": [
-            "IR sensor x2",
-            "SG90 servo",
-            "Buzzer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2628,10 +2718,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Type a word over serial and it blinks out in Morse on an LED and buzzer.",
           "components": [
-            "LED",
-            "Buzzer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2647,10 +2739,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "IR sensors in each bay report free and occupied slots on the display.",
           "components": [
-            "IR sensor x4",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2666,12 +2760,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Ultrasonic sensing warns of obstacles and brakes the car automatically.",
           "components": [
-            "HC-SR04",
-            "Gear motors",
-            "L298N",
-            "Buzzer"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2687,8 +2781,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Understanding structured and unstructured data, by collecting sensor data and feeding it to a chatbot.",
-          "components": [],
+          "components": [
+            "CognoSpace Mechatronics Kit"
+          ],
           "parts": [
             {
               "file": "/firmware/grade-07/CS-G07-AI01/{table}/firmware.bin",
@@ -2703,8 +2802,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
-          "components": [],
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
+          "description": "Placeholder — this AI activity has not been written yet.",
+          "components": [
+            "CognoSpace Mechatronics Kit"
+          ],
           "parts": [
             {
               "file": "/firmware/grade-07/CS-G07-AI02/{table}/firmware.bin",
@@ -2719,8 +2823,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Understanding supervised and unsupervised learning by agriAI lab with coggy and sensors",
-          "components": [],
+          "components": [
+            "CognoSpace Mechatronics Kit"
+          ],
           "parts": [
             {
               "file": "/firmware/grade-07/CS-G07-AI03/{table}/firmware.bin",
@@ -2736,7 +2845,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2753,7 +2862,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2776,11 +2885,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
-          "description": "Drive forward, reverse and turn through a motor driver \u2014 the foundation every later robot builds on.",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
+          "description": "Drive forward, reverse and turn through a motor driver — the foundation every later robot builds on.",
           "components": [
-            "Gear motors x2",
-            "L298N",
-            "Battery pack"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2796,10 +2906,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A servo gripper opens and closes on command, with a grip-strength limit.",
           "components": [
-            "SG90 servo",
-            "Gripper kit"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2815,11 +2927,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Ultrasonic and IR sensors keep the robot a fixed distance behind a person.",
           "components": [
-            "HC-SR04",
-            "IR sensor x2",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2835,10 +2948,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Drive the robot from a phone app over the ESP32's Bluetooth.",
           "components": [
-            "Gear motors x2",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2854,11 +2969,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A six-wheel rover with a servo arm, driven from a phone over Bluetooth.",
           "components": [
-            "Gear motors x6",
-            "L298N x2",
-            "SG90 servo"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2874,10 +2990,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Joins the classroom Wi-Fi, prints its IP and blinks an LED from a browser.",
           "components": [
-            "ESP32 DevKit",
-            "LED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2893,10 +3011,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Switch appliances on a relay board from a web page on the local network.",
           "components": [
-            "4-channel relay",
-            "ESP32 DevKit"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2912,11 +3032,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "An LDR switches the lamp at dusk and the state is reported online.",
           "components": [
-            "LDR",
-            "Relay",
-            "LED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2932,10 +3053,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Pushes sensor readings to a ThingSpeak channel every fifteen seconds.",
           "components": [
-            "DHT11",
-            "ESP32 DevKit"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2951,10 +3074,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "The ESP32 hosts a live page showing temperature, humidity and a short history.",
           "components": [
-            "DHT22",
-            "ESP32 DevKit"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -2971,7 +3096,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -2988,7 +3113,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3005,7 +3130,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3022,7 +3147,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3039,7 +3164,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3062,11 +3187,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Motor driver control, speed ramps and turning geometry, ready for the projects that follow.",
           "components": [
-            "Gear motors x2",
-            "L298N",
-            "Battery pack"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3082,11 +3208,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A scanning ultrasonic head finds a clear path and steers around obstacles.",
           "components": [
-            "HC-SR04",
-            "SG90 servo",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3102,10 +3229,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "universal",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "IR sensors watch for a table edge and reverse before the robot falls.",
           "components": [
-            "IR sensor x2",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3121,10 +3250,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A four-servo arm moves through saved positions and can be taught new ones.",
           "components": [
-            "SG90 servo x4",
-            "Arm kit"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3140,11 +3271,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "The rover drives over Wi-Fi from a browser, with live telemetry on the page.",
           "components": [
-            "Gear motors x6",
-            "L298N x2",
-            "SG90 servo"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3160,10 +3292,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Wi-Fi setup, a first web request and an LED controlled from the browser.",
           "components": [
-            "ESP32 DevKit",
-            "LED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3179,11 +3313,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Hosts a dashboard showing motion, temperature and door state in one page.",
           "components": [
-            "PIR",
-            "DHT11",
-            "Reed switch"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3199,10 +3334,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Logs readings to ThingSpeak and charts them over days rather than seconds.",
           "components": [
-            "DHT22",
-            "ESP32 DevKit"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3218,12 +3355,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Soil, light and humidity are logged online and a pump runs on a threshold.",
           "components": [
-            "Soil moisture sensor",
-            "DHT11",
-            "Relay",
-            "Pump"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3239,10 +3376,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "A rover controlled from any browser on the same network, no app needed.",
           "components": [
-            "Gear motors x4",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3259,7 +3398,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3276,7 +3415,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3293,7 +3432,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3310,7 +3449,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3327,7 +3466,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "version": "0.0.0",
           "codeType": "table",
           "soon": true,
-          "description": "Placeholder \u2014 this AI activity has not been written yet.",
+          "description": "Placeholder — this AI activity has not been written yet.",
           "components": [],
           "parts": [
             {
@@ -3342,7 +3481,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
     {
       "grade": "resources",
       "label": "Educator Resources",
-      "short": "\ud83d\ude80",
+      "short": "🚀",
       "title": "Educator Resources",
       "color": "#C2517F",
       "activities": [
@@ -3353,8 +3492,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "3",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Connect Coggy over Bluetooth or a USB cable, pick your pins, and watch every sensor report back in real time.",
-          "components": [],
+          "components": [
+            "CognoSpace Mechatronics Kit"
+          ],
           "parts": [
             {
               "file": "/firmware/resources/CS-ER-A01/{table}/firmware.bin",
@@ -3369,10 +3513,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Coming soon",
           "components": [
-            "Any sensor",
-            "SSD1306 OLED"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3388,10 +3534,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Coming soon",
           "components": [
-            "Gear motor",
-            "L298N"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3407,9 +3555,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Coming soon",
           "components": [
-            "SG90 servo"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3425,9 +3576,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Coming soon",
           "components": [
-            "Any I2C device"
+            "CognoSpace Mechatronics Kit"
           ],
           "parts": [
             {
@@ -3443,8 +3597,13 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
           "board": "esp32",
           "version": "1.0.0",
           "codeType": "table",
+          "wifiDetails": true,
+          "ssid": "",
+          "password": "",
           "description": "Coming soon",
-          "components": [],
+          "components": [
+            "CognoSpace Mechatronics Kit"
+          ],
           "parts": [
             {
               "file": "/firmware/resources/CS-ER-A06/{table}/firmware.bin",
@@ -3467,7 +3626,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
        lead  : (optional) the pin name printed on the part  'TRIG', 'SDA', 'OUT'
        pin   : the Coggy pin it goes to                     'GPIO 25', '3V3', 'GND'
        kind  : colour + icon for the row, one of
-               input · analog · output · pwm · i2c · motor · power · ground
+               input · analog · output · pwm · i2c · motor · power · ground · wireless
      `note` is optional and shows as a tip under the list.
 
      To add a sensor, copy a row. To remove one, delete the line.
@@ -3488,86 +3647,94 @@ window.COGGY_WIRING = {
 
   /* ---------------- Class 3 ---------------- */
   'CS-G03-A01': {
-    note: 'Each LED goes through a 220 Ω resistor to its pin. All the short legs share GND.',
     pins: [
-      { part: 'Red LED',    lead: '+', pin: 'GPIO 25', kind: 'output' },
-      { part: 'Amber LED',  lead: '+', pin: 'GPIO 26', kind: 'output' },
-      { part: 'Green LED',  lead: '+', pin: 'GPIO 27', kind: 'output' },
-      { part: 'LED cathodes', lead: '−', pin: 'GND', kind: 'ground' },
+      { part: '4 Digit Display', lead: 'CLK', pin: 'GPIO 17', kind: 'output' },
+      { part: '4 Digit Display', lead: 'DIO', pin: 'GPIO 16', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
     ],
   },
   'CS-G03-A02': {
     pins: [
-      { part: 'LED 1',  lead: '+', pin: 'GPIO 25', kind: 'output' },
-      { part: 'LED 2',  lead: '+', pin: 'GPIO 26', kind: 'output' },
-      { part: 'LED 3',  lead: '+', pin: 'GPIO 27', kind: 'output' },
-      { part: 'LED 4',  lead: '+', pin: 'GPIO 14', kind: 'output' },
-      { part: 'Buzzer', lead: '+', pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'Push Button 1', lead: 'S', pin: 'GPIO 25', kind: 'input' },
+      { part: 'Push Button 2', lead: 'S', pin: 'GPIO 33', kind: 'input' },
+      { part: 'Push Button 3', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'LED 1', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'LED 2', lead: '+', pin: 'GPIO 18', kind: 'output' },
     ],
   },
   'CS-G03-A03': {
     pins: [
-      { part: 'Push button', lead: 'S',   pin: 'GPIO 32', kind: 'input' },
-      { part: 'OLED',        lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',        lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
-      { part: 'OLED',        lead: 'VCC', pin: '3V3',     kind: 'power' },
+      { part: '4 Digit Display', lead: 'CLK', pin: 'GPIO 17', kind: 'output' },
+      { part: '4 Digit Display', lead: 'DIO', pin: 'GPIO 16', kind: 'output' },
+      { part: 'Push Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'LED 1', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'LED 2', lead: '+', pin: 'GPIO 18', kind: 'output' },
     ],
   },
   'CS-G03-A04': {
-    note: 'Both switches toggle the same lamp — pressing either one flips it.',
     pins: [
-      { part: 'Switch A', lead: 'S', pin: 'GPIO 32', kind: 'input' },
-      { part: 'Switch B', lead: 'S', pin: 'GPIO 15', kind: 'input' },
-      { part: 'Lamp LED', lead: '+', pin: 'GPIO 25', kind: 'output' },
+      { part: 'Push Button 1', lead: 'S', pin: 'GPIO 33', kind: 'input' },
+      { part: 'Push Button 2', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Motor 1', lead: 'Input 1', pin: 'GPIO 13', kind: 'motor' },
+      { part: 'Motor 2', lead: 'Input 1', pin: 'GPIO 26', kind: 'motor' },
+      { part: 'Motor 1', lead: 'Speed control', pin: 'GPIO 14', kind: 'pwm' },
+      { part: 'Motor 2', lead: 'Speed control', pin: 'GPIO 27', kind: 'pwm' },
     ],
   },
   'CS-G03-A05': {
     pins: [
-      { part: 'Push button',   lead: 'S', pin: 'GPIO 32', kind: 'input' },
-      { part: 'Buzzer',        lead: '+', pin: 'GPIO 33', kind: 'pwm' },
-      { part: 'Indicator LED', lead: '+', pin: 'GPIO 25', kind: 'output' },
+      { part: 'Push Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
     ],
   },
 
   /* ---------------- Class 4 ---------------- */
   'CS-G04-A01': {
     pins: [
-      { part: 'Start / stop button', lead: 'S',   pin: 'GPIO 32', kind: 'input' },
-      { part: 'Reset button',        lead: 'S',   pin: 'GPIO 15', kind: 'input' },
-      { part: 'OLED',                lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',                lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: '4 Digit Display', lead: 'CLK', pin: 'GPIO 17', kind: 'output' },
+      { part: '4 Digit Display', lead: 'DIO', pin: 'GPIO 16', kind: 'output' },
+      { part: 'Decrease Button', lead: 'S', pin: 'GPIO 25', kind: 'input' },
+      { part: 'OK Button', lead: 'S', pin: 'GPIO 33', kind: 'input' },
+      { part: 'Increase Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'LED 1', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'LED 2', lead: '+', pin: 'GPIO 19', kind: 'output' },
     ],
   },
   'CS-G04-A02': {
-    note: 'The HC-SR04 needs 5 V to range properly. Keep the OLED on 3V3.',
     pins: [
-      { part: 'HC-SR04', lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
-      { part: 'HC-SR04', lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
-      { part: 'HC-SR04', lead: 'VCC',  pin: '5V',      kind: 'power' },
-      { part: 'OLED',    lead: 'SDA',  pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',    lead: 'SCL',  pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Distance Sensor', lead: 'TRIG', pin: 'GPIO 17', kind: 'output' },
+      { part: 'Distance Sensor', lead: 'ECHO', pin: 'GPIO 16', kind: 'input' },
+      { part: '4 Digit Display', lead: 'CLK', pin: 'GPIO 21', kind: 'output' },
+      { part: '4 Digit Display', lead: 'DIO', pin: 'GPIO 22', kind: 'output' },
     ],
   },
   'CS-G04-A03': {
     pins: [
-      { part: 'Rain sensor', lead: 'DO', pin: 'GPIO 35', kind: 'input' },
-      { part: 'Buzzer',      lead: '+',  pin: 'GPIO 33', kind: 'pwm' },
-      { part: 'Alert LED',   lead: '+',  pin: 'GPIO 25', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Rain Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
     ],
   },
   'CS-G04-A04': {
     pins: [
-      { part: 'Jump button', lead: 'S',   pin: 'GPIO 32', kind: 'input' },
-      { part: 'OLED',        lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',        lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
-      { part: 'Buzzer',      lead: '+',   pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'Push Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'LED 1', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'LED 2', lead: '+', pin: 'GPIO 18', kind: 'output' },
     ],
   },
   'CS-G04-A05': {
     pins: [
-      { part: 'DHT11', lead: 'DATA', pin: 'GPIO 4',  kind: 'input' },
-      { part: 'OLED',  lead: 'SDA',  pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',  lead: 'SCL',  pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Temperature & Humidity Sensor', lead: 'DATA', pin: 'GPIO 15', kind: 'input' },
+      { part: 'Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
 
@@ -3575,163 +3742,176 @@ window.COGGY_WIRING = {
   'CS-G05-A01': {
     note: 'Power the servo from 5V, not 3V3 — it pulls too much current for the regulator.',
     pins: [
-      { part: 'IR sensor',  lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
-      { part: 'SG90 servo', lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
-      { part: 'SG90 servo', lead: 'VCC', pin: '5V',      kind: 'power' },
+      { part: 'Distance Sensor', lead: 'TRIG', pin: 'GPIO 17', kind: 'output' },
+      { part: 'Distance Sensor', lead: 'ECHO', pin: 'GPIO 16', kind: 'input' },
+      { part: 'Servo Motor', lead: 'SIG', pin: 'GPIO 15', kind: 'pwm' },
     ],
   },
   'CS-G05-A02': {
     pins: [
-      { part: 'Soil sensor', lead: 'AO',  pin: 'GPIO 36', kind: 'analog' },
-      { part: 'OLED',        lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',        lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Soil Moisture Sensor', lead: 'AO', pin: 'GPIO 33', kind: 'analog' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G05-A03': {
-    note: 'Motor power comes from the battery into the L298N. Join its GND to the Coggy GND.',
     pins: [
-      { part: 'Potentiometer', lead: 'wiper', pin: 'GPIO 34', kind: 'analog' },
-      { part: 'L298N',         lead: 'ENA',   pin: 'GPIO 14', kind: 'pwm' },
-      { part: 'L298N',         lead: 'IN1',   pin: 'GPIO 27', kind: 'motor' },
-      { part: 'L298N',         lead: 'IN2',   pin: 'GPIO 26', kind: 'motor' },
-      { part: 'L298N',         lead: 'GND',   pin: 'GND',     kind: 'ground' },
+      { part: 'OK Button', lead: 'S', pin: 'GPIO 33', kind: 'input' },
+      { part: 'Stop Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G05-A04': {
     pins: [
-      { part: 'Keypad rows', lead: 'R1–R4', pin: 'GPIO 13 · 14 · 27 · 26', kind: 'output' },
-      { part: 'Keypad cols', lead: 'C1–C4', pin: 'GPIO 25 · 33 · 32 · 15', kind: 'input' },
-      { part: 'OLED',        lead: 'SDA',   pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',        lead: 'SCL',   pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Button 1', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Button 2', lead: 'S', pin: 'GPIO 33', kind: 'input' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G05-A05': {
     pins: [
-      { part: 'DHT11', lead: 'DATA', pin: 'GPIO 4',  kind: 'input' },
-      { part: 'L298N', lead: 'ENA',  pin: 'GPIO 14', kind: 'pwm' },
-      { part: 'L298N', lead: 'IN1',  pin: 'GPIO 27', kind: 'motor' },
-      { part: 'L298N', lead: 'IN2',  pin: 'GPIO 26', kind: 'motor' },
+      { part: 'Temperature & Humidity Sensor', lead: 'DATA', pin: 'GPIO 33', kind: 'input' },
     ],
   },
 
   /* ---------------- Class 6 ---------------- */
   'CS-G06-A01': {
     pins: [
-      { part: 'Rain sensor', lead: 'DO',  pin: 'GPIO 35', kind: 'input' },
-      { part: 'L298N',       lead: 'IN1', pin: 'GPIO 27', kind: 'motor' },
-      { part: 'L298N',       lead: 'IN2', pin: 'GPIO 26', kind: 'motor' },
-      { part: 'L298N',       lead: 'ENA', pin: 'GPIO 14', kind: 'pwm' },
+      { part: 'Rain Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Servo Motor', lead: 'SIG', pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G06-A02': {
     pins: [
-      { part: 'PIR',         lead: 'OUT',   pin: 'GPIO 19', kind: 'input' },
-      { part: 'Keypad rows', lead: 'R1–R4', pin: 'GPIO 13 · 14 · 27 · 26', kind: 'output' },
-      { part: 'Keypad cols', lead: 'C1–C4', pin: 'GPIO 25 · 33 · 32 · 15', kind: 'input' },
-      { part: 'Buzzer',      lead: '+',     pin: 'GPIO 23', kind: 'pwm' },
+      { part: 'Light Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Distance Sensor', lead: 'TRIG', pin: 'GPIO 17', kind: 'output' },
+      { part: 'Distance Sensor', lead: 'ECHO', pin: 'GPIO 16', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G06-A03': {
     pins: [
-      { part: 'PIR',   lead: 'OUT', pin: 'GPIO 19', kind: 'input' },
-      { part: 'LDR',   lead: 'AO',  pin: 'GPIO 39', kind: 'analog' },
-      { part: 'Relay', lead: 'IN',  pin: 'GPIO 23', kind: 'output' },
+      { part: 'Light Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'LED', lead: '+', pin: 'GPIO 33', kind: 'output' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G06-A04': {
-    note: 'No wires for Bluetooth — it is built into the Coggy. Pair from the phone app.',
+    note: 'Bluetooth is built into the Coggy — pair from the phone app.',
     pins: [
-      { part: 'OLED', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G06-A05': {
     pins: [
-      { part: 'IR sensor (entry)', lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
-      { part: 'IR sensor (exit)',  lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
-      { part: 'OLED',              lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',              lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Entry Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Exit Sensor', lead: 'OUT', pin: 'GPIO 33', kind: 'input' },
+      { part: '4 Digit Display', lead: 'CLK', pin: 'GPIO 17', kind: 'output' },
+      { part: '4 Digit Display', lead: 'DIO', pin: 'GPIO 16', kind: 'output' },
     ],
   },
 
   /* ---------------- Class 7 ---------------- */
   'CS-G07-A01': {
     pins: [
-      { part: 'Soil sensor', lead: 'AO', pin: 'GPIO 36', kind: 'analog' },
-      { part: 'Relay',       lead: 'IN', pin: 'GPIO 23', kind: 'output' },
-      { part: 'Pump',        lead: '+',  pin: 'Relay NO', kind: 'power' },
+      { part: 'Soil Moisture Sensor', lead: 'AO', pin: 'GPIO 33', kind: 'analog' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G07-A02': {
     pins: [
-      { part: 'IR sensor (before)', lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
-      { part: 'IR sensor (after)',  lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
-      { part: 'SG90 servo',         lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
-      { part: 'Buzzer',             lead: '+',   pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'Start Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'End Sensor', lead: 'OUT', pin: 'GPIO 33', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Servo Motor', lead: 'SIG', pin: 'GPIO 15', kind: 'pwm' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G07-A03': {
-    note: 'Open the serial monitor at 115200, type a word and press Send.',
     pins: [
-      { part: 'LED',    lead: '+', pin: 'GPIO 25', kind: 'output' },
-      { part: 'Buzzer', lead: '+', pin: 'GPIO 33', kind: 'pwm' },
+      { part: 'LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G07-A04': {
     pins: [
-      { part: 'IR bay 1', lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
-      { part: 'IR bay 2', lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
-      { part: 'IR bay 3', lead: 'OUT', pin: 'GPIO 36', kind: 'input' },
-      { part: 'IR bay 4', lead: 'OUT', pin: 'GPIO 39', kind: 'input' },
-      { part: 'OLED',     lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
-      { part: 'OLED',     lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Entry Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Exit Sensor', lead: 'OUT', pin: 'GPIO 33', kind: 'input' },
+      { part: 'Servo Motor', lead: 'SIG', pin: 'GPIO 15', kind: 'pwm' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G07-A05': {
     pins: [
-      { part: 'HC-SR04', lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
-      { part: 'HC-SR04', lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
-      { part: 'L298N',   lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
-      { part: 'L298N',   lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
-      { part: 'Buzzer',  lead: '+',    pin: 'GPIO 23', kind: 'pwm' },
+      { part: 'Distance Sensor', lead: 'TRIG', pin: 'GPIO 17', kind: 'output' },
+      { part: 'Distance Sensor', lead: 'ECHO', pin: 'GPIO 16', kind: 'input' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
 
   /* ---------------- Class 8 ---------------- */
   'CS-G08-A01': {
-    note: 'Battery pack goes to the L298N 12V terminal. Join the L298N GND to the Coggy GND.',
     pins: [
-      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
-      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
-      { part: 'L298N', lead: 'GND',       pin: 'GND', kind: 'ground' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Clutch Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Accelerator Button', lead: 'S', pin: 'GPIO 25', kind: 'input' },
+      { part: 'Brake Button', lead: 'S', pin: 'GPIO 33', kind: 'input' },
     ],
   },
   'CS-G08-A02': {
+    note: 'No external component pins used — control it from the wireless web joystick.',
     pins: [
-      { part: 'Gripper servo', lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
-      { part: 'Gripper servo', lead: 'VCC', pin: '5V',      kind: 'power' },
+      { part: 'Control', lead: 'Web joystick', pin: 'Wireless', kind: 'wireless' },
     ],
   },
   'CS-G08-A03': {
     pins: [
-      { part: 'HC-SR04',  lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
-      { part: 'HC-SR04',  lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
-      { part: 'IR left',  lead: 'OUT',  pin: 'GPIO 34', kind: 'input' },
-      { part: 'IR right', lead: 'OUT',  pin: 'GPIO 35', kind: 'input' },
-      { part: 'L298N',    lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'Distance Sensor', lead: 'TRIG', pin: 'GPIO 17', kind: 'output' },
+      { part: 'Distance Sensor', lead: 'ECHO', pin: 'GPIO 16', kind: 'input' },
+      { part: 'Left IR Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Right IR Sensor', lead: 'OUT', pin: 'GPIO 33', kind: 'input' },
     ],
   },
   'CS-G08-A04': {
+    note: 'No external component pins used — Bluetooth is built into the Coggy.',
     pins: [
-      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
-      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+      { part: 'Bluetooth', lead: 'Communication', pin: 'Built-in', kind: 'wireless' },
     ],
   },
   'CS-G08-A05': {
+    note: 'No external component pins used — Bluetooth is built into the Coggy.',
     pins: [
-      { part: 'L298N #1', lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
-      { part: 'L298N #2', lead: 'IN1–IN4', pin: 'GPIO 19 · 18 · 17 · 16', kind: 'motor' },
-      { part: 'Arm servo', lead: 'SIG',    pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'Bluetooth', lead: 'Communication', pin: 'Built-in', kind: 'wireless' },
     ],
   },
   'CS-G08-A06': {
@@ -3769,39 +3949,39 @@ window.COGGY_WIRING = {
   /* ---------------- Class 9 ---------------- */
   'CS-G09-A01': {
     pins: [
-      { part: 'L298N', lead: 'IN1–IN4',   pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
-      { part: 'L298N', lead: 'ENA / ENB', pin: 'GPIO 14 · 32', kind: 'pwm' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
+      { part: 'Clutch Button', lead: 'S', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Accelerator Button', lead: 'S', pin: 'GPIO 25', kind: 'input' },
+      { part: 'Brake Button', lead: 'S', pin: 'GPIO 33', kind: 'input' },
     ],
   },
   'CS-G09-A02': {
     pins: [
-      { part: 'HC-SR04',    lead: 'TRIG', pin: 'GPIO 5',  kind: 'output' },
-      { part: 'HC-SR04',    lead: 'ECHO', pin: 'GPIO 18', kind: 'input' },
-      { part: 'Scan servo', lead: 'SIG',  pin: 'GPIO 13', kind: 'pwm' },
-      { part: 'L298N',      lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'Distance Sensor', lead: 'TRIG', pin: 'GPIO 17', kind: 'output' },
+      { part: 'Distance Sensor', lead: 'ECHO', pin: 'GPIO 16', kind: 'input' },
+      { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
+      { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
+      { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
+      { part: 'OLED Display', lead: 'SDA', pin: 'GPIO 21', kind: 'i2c' },
+      { part: 'OLED Display', lead: 'SCL', pin: 'GPIO 22', kind: 'i2c' },
     ],
   },
   'CS-G09-A03': {
     pins: [
-      { part: 'IR edge left',  lead: 'OUT', pin: 'GPIO 34', kind: 'input' },
-      { part: 'IR edge right', lead: 'OUT', pin: 'GPIO 35', kind: 'input' },
-      { part: 'L298N',         lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
+      { part: 'Left IR Sensor', lead: 'OUT', pin: 'GPIO 32', kind: 'input' },
+      { part: 'Right IR Sensor', lead: 'OUT', pin: 'GPIO 33', kind: 'input' },
     ],
   },
   'CS-G09-A04': {
     pins: [
-      { part: 'Base servo',     lead: 'SIG', pin: 'GPIO 13', kind: 'pwm' },
-      { part: 'Shoulder servo', lead: 'SIG', pin: 'GPIO 12', kind: 'pwm' },
-      { part: 'Elbow servo',    lead: 'SIG', pin: 'GPIO 14', kind: 'pwm' },
-      { part: 'Gripper servo',  lead: 'SIG', pin: 'GPIO 27', kind: 'pwm' },
-      { part: 'All servos',     lead: 'VCC', pin: '5V',      kind: 'power' },
+      { part: 'Servo Motor', lead: 'SIG', pin: 'GPIO 32', kind: 'pwm' },
     ],
   },
   'CS-G09-A05': {
+    note: 'No external component pins used — drive it over Wi-Fi.',
     pins: [
-      { part: 'L298N #1', lead: 'IN1–IN4', pin: 'GPIO 27 · 26 · 25 · 33', kind: 'motor' },
-      { part: 'L298N #2', lead: 'IN1–IN4', pin: 'GPIO 19 · 18 · 17 · 16', kind: 'motor' },
-      { part: 'Arm servo', lead: 'SIG',    pin: 'GPIO 13', kind: 'pwm' },
+      { part: 'Control', lead: 'Wi-Fi', pin: 'Wireless', kind: 'wireless' },
     ],
   },
   'CS-G09-A06': {
@@ -4218,6 +4398,7 @@ function renderCards() {
       <div class="card__name"></div>
       <div class="card__desc"></div>
       ${parts ? '<div class="card__parts"><b>Needs</b> <span></span></div>' : ''}
+      ${hasWifi(a) ? `<button type="button" class="card__wire card__wifi" title="Network name and password for this activity">${ICON_WIFI}Wi-Fi credentials</button>` : ''}
       <div class="card__foot">
         <span class="tag">${a.label || `Class ${a.grade}`}</span>
         <span class="tag">v${a.version}</span>
@@ -4236,7 +4417,8 @@ function renderCards() {
       if (e.target !== card) return;
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
     });
-    card.querySelector('.card__wire')?.addEventListener('click', (e) => { e.stopPropagation(); openWiring(a); });
+    card.querySelector('.card__top .card__wire')?.addEventListener('click', (e) => { e.stopPropagation(); openWiring(a); });
+    card.querySelector('.card__wifi')?.addEventListener('click', (e) => { e.stopPropagation(); openWifi(a); });
     wrap.append(card);
   });
 }
@@ -5128,6 +5310,45 @@ const CAT_ICON = {
 };
 const catIcon = (c) => svg(CAT_ICON[c] || CAT_ICON.Mechatronics);
 const ICON_PLUG = svg('<path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/>');
+const ICON_WIFI = svg('<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/>');
+
+/* ---------- Wi-Fi credentials ----------
+   Shown only when the catalogue says "wifiDetails": true for the activity. */
+const hasWifi = (a) => !!a && !a.soon && a.wifiDetails === true;
+let _wifiCur = { ssid: '', password: '' }, _wifiShown = false;
+
+function paintWifiPass() {
+  const p = _wifiCur.password, el = $('#wifiPass');
+  el.textContent = !p ? 'Not added yet' : _wifiShown ? p : '\u2022'.repeat(Math.min(14, Math.max(8, p.length)));
+  el.classList.toggle('is-empty', !p);
+  $('#wifiReveal').hidden = !p;
+  $('#wifiReveal').textContent = _wifiShown ? 'Hide' : 'Show';
+  $('#wifiCopyPass').hidden = !p;
+}
+
+function openWifi(a) {
+  _wifiCur = { ssid: String(a.ssid || ''), password: String(a.password || '') };
+  _wifiShown = false;
+  $('#wifiModal .wifi').style.setProperty('--gc', a.color || 'var(--brand)');
+  $('#wifiCode').textContent = a.code;
+  $('#wifiTitle').textContent = a.name;
+  const ss = $('#wifiSsid');
+  ss.textContent = _wifiCur.ssid || 'Not added yet';
+  ss.classList.toggle('is-empty', !_wifiCur.ssid);
+  $('#wifiCopySsid').hidden = !_wifiCur.ssid;
+  const blank = !_wifiCur.ssid && !_wifiCur.password;
+  const note = $('#wifiNote');
+  note.textContent = a.wifiNote || (blank
+    ? 'Not filled in yet. Add "ssid" and "password" to this activity in the catalogue block of index.html.' : '');
+  note.hidden = !note.textContent;
+  paintWifiPass();
+  openModal('#wifiModal');
+}
+
+async function copyText(text, what) {
+  try { await navigator.clipboard.writeText(text); toast(`${what} copied`); }
+  catch (_) { toast(`Could not copy the ${what.toLowerCase()}`, 'error'); }
+}
 
 const TRACK_INFO = {
   'Mechatronics':       { color: '#F5821E', blurb: 'Sensors, buzzers, displays and motors — the builds every class starts with.' },
@@ -5148,6 +5369,7 @@ const WIRE_KINDS = {
   motor:  { label: 'Motor driver',  color: '#5DA33E', flow: 'out',  icon: '<circle cx="12" cy="12" r="7"/><path d="M12 5v3M12 16v3M5 12h3M16 12h3"/>' },
   power:  { label: 'Power',         color: '#E0484B', flow: 'none', icon: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>' },
   ground: { label: 'Ground',        color: '#6B7280', flow: 'none', icon: '<path d="M12 3v8M5 11h14M8 15h8M11 19h2"/>' },
+  wireless: { label: 'Wireless',    color: '#0EA5B7', flow: 'none', icon: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/>' },
 };
 
 function wireRow(p, i) {
@@ -5342,15 +5564,18 @@ function closeModal(m) {
   else setTimeout(finish, 170);
 }
 function wireModals() {
-  for (const id of ['#wireModal', '#doneModal']) {
+  for (const id of ['#wireModal', '#doneModal', '#wifiModal']) {
     const m = $(id);
     m.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeModal(m); });
   }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    for (const id of ['#doneModal', '#wireModal']) if (!$(id).hidden) { closeModal($(id)); break; }
+    for (const id of ['#doneModal', '#wifiModal', '#wireModal']) if (!$(id).hidden) { closeModal($(id)); break; }
   });
   $('#wirePrint').addEventListener('click', () => window.print());
+  $('#wifiReveal').addEventListener('click', () => { _wifiShown = !_wifiShown; paintWifiPass(); });
+  $('#wifiCopySsid').addEventListener('click', () => copyText(_wifiCur.ssid, 'Network name'));
+  $('#wifiCopyPass').addEventListener('click', () => copyText(_wifiCur.password, 'Password'));
 
   $('#doneDisconnect').addEventListener('click', async (e) => {
     const btn = e.currentTarget;
