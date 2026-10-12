@@ -1709,37 +1709,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
     <aside class="dock">
 
       <div class="panel">
-        <div class="panel__head"><h2>Board</h2></div>
-        <div class="panel__body">
-          <div class="readout__row" style="margin-bottom:.7rem">
-            <span class="readout__k">Target</span><span class="readout__v">ESP32 Dev Module</span>
-          </div>
-
-          <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
-          <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
-            <option value="115200" selected>115200 — default, most reliable</option>
-            <option value="230400">230400 — a little quicker</option>
-            <option value="460800">460800 — quick</option>
-            <option value="921600">921600 — fastest, needs a good cable</option>
-          </select>
-
-          <div class="readout">
-            <div class="readout__row"><span class="readout__k">Chip</span><span class="readout__v" id="roChip">Not connected</span></div>
-            <div class="readout__row"><span class="readout__k">Adapter</span><span class="readout__v" id="roAdapter">—</span></div>
-            <div class="readout__row"><span class="readout__k">USB ID</span><span class="readout__v" id="roUsb">—</span></div>
-            <div class="readout__row"><span class="readout__k">MAC</span><span class="readout__v" id="roMac">—</span></div>
-            <div class="readout__row"><span class="readout__k">Flash</span><span class="readout__v" id="roFlash">—</span></div>
-          </div>
-
-          <button class="btn btn--block btn--ghost" id="connectBtn" type="button" style="margin-top:1rem">Connect a Coggy</button>
-          <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.6rem">
-            Every Coggy is an ESP32 dev module, so the only choice is which board — the list is filtered to ESP32 adapters, so it is usually one entry. If the list is empty, the CH340 or CP2102 driver is missing; hold Shift and press Connect to see every port. If a flash breaks up partway, lower the transfer speed.
-          </p>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel__head"><h2>Write firmware</h2></div>
+        <div class="panel__head"><h2>Select table name</h2></div>
         <div class="panel__body">
           <div class="target">
             <div class="target__label">Selected</div>
@@ -1775,6 +1745,36 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
             <label class="rail__title" for="customOffset" style="padding-left:0;display:block">Flash offset</label>
             <input class="select" id="customOffset" value="0x10000" style="width:100%">
           </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head"><h2>Board</h2></div>
+        <div class="panel__body">
+          <div class="readout__row" style="margin-bottom:.7rem">
+            <span class="readout__k">Target</span><span class="readout__v">ESP32 Dev Module</span>
+          </div>
+
+          <label class="rail__title" for="baudSelect" style="padding-left:0;display:block">Transfer speed</label>
+          <select class="select" id="baudSelect" style="width:100%;margin-bottom:.9rem">
+            <option value="115200" selected>115200 — default, most reliable</option>
+            <option value="230400">230400 — a little quicker</option>
+            <option value="460800">460800 — quick</option>
+            <option value="921600">921600 — fastest, needs a good cable</option>
+          </select>
+
+          <div class="readout">
+            <div class="readout__row"><span class="readout__k">Chip</span><span class="readout__v" id="roChip">Not connected</span></div>
+            <div class="readout__row"><span class="readout__k">Adapter</span><span class="readout__v" id="roAdapter">—</span></div>
+            <div class="readout__row"><span class="readout__k">USB ID</span><span class="readout__v" id="roUsb">—</span></div>
+            <div class="readout__row"><span class="readout__k">MAC</span><span class="readout__v" id="roMac">—</span></div>
+            <div class="readout__row"><span class="readout__k">Flash</span><span class="readout__v" id="roFlash">—</span></div>
+          </div>
+
+          <button class="btn btn--block btn--ghost" id="connectBtn" type="button" style="margin-top:1rem">Connect a Coggy</button>
+          <p style="font-size:var(--t-xs);color:var(--text-3);margin-top:.6rem">
+            Every Coggy is an ESP32 dev module, so the only choice is which board — the list is filtered to ESP32 adapters, so it is usually one entry. If the list is empty, the CH340 or CP2102 driver is missing; hold Shift and press Connect to see every port. If a flash breaks up partway, lower the transfer speed.
+          </p>
         </div>
       </div>
 
