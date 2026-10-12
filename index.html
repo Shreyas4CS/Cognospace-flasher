@@ -990,6 +990,114 @@ body::before{content:'';position:fixed;inset:-12%;z-index:-1;pointer-events:none
   55%{opacity:1;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(calc(var(--r) * .6))}
   100%{opacity:0;transform:translate(calc(-50% + var(--x) * 1.15),calc(-50% + var(--y2))) rotate(var(--r))}}
 
+/* ---------- upload pop-up: uploading → done / failed ----------
+   #doneModal carries data-state="flashing" | "done" | "error". The dial, title
+   and lede are shared; each state shows its own block below them. */
+.done{transition:background .5s var(--ease)}
+[data-state="flashing"] .done{background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--brand) 16%,var(--surface)),var(--surface) 62%)}
+[data-state="error"] .done{background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--err) 14%,var(--surface)),var(--surface) 62%)}
+[data-state="flashing"] .modal__x{display:none}
+#doneModal:not([data-state="done"]) :is(.done__facts,.done__tip,.done__actions){display:none}
+#doneModal:not([data-state="flashing"]) .fx__live{display:none}
+#doneModal:not([data-state="error"]) .fx__fail{display:none}
+
+.fx__dial{--p:0;position:relative;width:148px;height:148px;margin:0 auto;display:grid;place-items:center}
+.fx__dial::before{content:'';position:absolute;inset:14px;border-radius:50%;background:var(--surface);
+  box-shadow:0 14px 34px color-mix(in srgb,var(--brand) 26%,transparent),inset 0 0 0 1px var(--border-soft);
+  transition:background .45s var(--ease),box-shadow .45s var(--ease)}
+.fx__ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.fx__track{fill:none;stroke:color-mix(in srgb,var(--brand) 14%,var(--surface-2));stroke-width:9}
+.fx__arc{fill:none;stroke:url(#fxGrad);stroke-width:9;stroke-linecap:round;stroke-dasharray:100;
+  stroke-dashoffset:calc(100 - var(--p));transition:stroke-dashoffset .35s var(--ease),stroke .4s}
+/* while erasing nothing is measurable yet, so the arc chases its tail */
+.fx__dial.is-indet .fx__ring{animation:fxSpin 1.1s linear infinite}
+.fx__dial.is-indet .fx__arc{stroke-dashoffset:72}
+@keyframes fxSpin{to{transform:rotate(270deg)}}
+/* a soft light that orbits the dial while bytes are moving */
+.fx__spark{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:conic-gradient(from 0deg,transparent 0 78%,color-mix(in srgb,var(--brand) 55%,transparent) 92%,transparent 100%);
+  -webkit-mask:radial-gradient(circle,transparent 60%,#000 61%,#000 70%,transparent 71%);
+          mask:radial-gradient(circle,transparent 60%,#000 61%,#000 70%,transparent 71%);
+  animation:fxSpin 1.6s linear infinite}
+[data-state="flashing"] .fx__spark{opacity:1}
+.fx__core{position:relative;display:grid;place-items:center}
+.fx__core > *{grid-area:1/1}
+.fx__num{display:flex;align-items:baseline;font-weight:700;font-size:2.55rem;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;color:var(--text);line-height:1;transition:opacity .25s,transform .35s var(--ease)}
+.fx__num small{font-size:1rem;font-weight:600;margin-left:2px;color:var(--text-3)}
+.fx__ok,.fx__bad{width:58px;height:58px;fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;
+  opacity:0;transform:scale(.4);transition:opacity .3s .1s,transform .5s .1s cubic-bezier(.34,1.56,.64,1)}
+.fx__ok .done__tick{animation:none}
+
+/* done: the ring closes, the centre fills green and the tick draws in */
+[data-state="done"] .fx__arc{stroke:var(--ok)}
+[data-state="done"] .fx__dial::before{background:linear-gradient(145deg,#3DC877,var(--ok));
+  box-shadow:0 18px 40px color-mix(in srgb,var(--ok) 45%,transparent)}
+[data-state="done"] .fx__track{stroke:color-mix(in srgb,var(--ok) 18%,var(--surface-2))}
+[data-state="done"] .fx__num,[data-state="error"] .fx__num{opacity:0;transform:scale(.6)}
+[data-state="done"] .fx__ok{opacity:1;transform:none}
+[data-state="done"] .fx__ok .done__tick{animation:drawTick .45s .25s var(--ease) forwards}
+[data-state="done"] .fx__dial{animation:fxPop .6s cubic-bezier(.34,1.56,.64,1)}
+[data-state="done"] .fx__dial::after{content:'';position:absolute;inset:14px;border-radius:50%;border:2px solid var(--ok);
+  animation:ripple 2s var(--ease) .3s infinite}
+@keyframes fxPop{40%{transform:scale(1.08)}}
+
+/* failed */
+[data-state="error"] .fx__arc{stroke:var(--err)}
+[data-state="error"] .fx__dial::before{background:linear-gradient(145deg,#F06A6C,var(--err));
+  box-shadow:0 18px 40px color-mix(in srgb,var(--err) 40%,transparent)}
+[data-state="error"] .fx__track{stroke:color-mix(in srgb,var(--err) 16%,var(--surface-2))}
+[data-state="error"] .fx__bad{opacity:1;transform:none}
+[data-state="error"] .fx__dial{animation:fxShake .45s var(--ease)}
+@keyframes fxShake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+.fx__live{margin-top:1.35rem}
+.fx__steps{list-style:none;display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:.4rem;padding:0;margin:0}
+.fx__steps li{position:relative;display:flex;flex-direction:column;align-items:center;gap:.4rem;font-size:var(--t-xs);
+  color:var(--text-3);font-weight:500;transition:color .25s}
+.fx__steps li[hidden]{display:none}
+.fx__steps li:not(:first-child)::before{content:'';position:absolute;top:10px;right:calc(50% + 15px);width:calc(100% - 30px + .4rem);
+  height:2px;border-radius:2px;background:var(--border);transition:background .35s}
+.fx__steps i{position:relative;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface-2);border:2px solid var(--border);transition:background .3s,border-color .3s,box-shadow .3s}
+.fx__steps li.is-now{color:var(--text)}
+.fx__steps li.is-now i{border-color:var(--brand);background:var(--surface);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 18%,transparent)}
+.fx__steps li.is-now i::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--brand);animation:fxBeat 1s var(--ease) infinite}
+@keyframes fxBeat{50%{transform:scale(.55);opacity:.6}}
+.fx__steps li.is-done{color:var(--text-2)}
+.fx__steps li.is-done i{background:var(--brand);border-color:var(--brand)}
+.fx__steps li.is-done i::after{content:'';width:9px;height:5px;border:solid #fff;border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
+.fx__steps li.is-done::before,.fx__steps li.is-now::before{background:var(--brand)}
+
+.fx__bar{position:relative;height:8px;margin-top:1.2rem;border-radius:999px;overflow:hidden;
+  background:color-mix(in srgb,var(--brand) 12%,var(--surface-2))}
+.fx__fill{height:100%;width:0;border-radius:inherit;transition:width .35s var(--ease);
+  background:linear-gradient(90deg,#FFB054,#F5821E 60%,#E0532B)}
+.fx__fill::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);
+  background-size:220% 100%;animation:fxSheen 1.4s linear infinite}
+@keyframes fxSheen{from{background-position:120% 0}to{background-position:-120% 0}}
+.fx__meta{display:flex;justify-content:space-between;gap:1rem;margin-top:.55rem;font-size:var(--t-xs);color:var(--text-3);
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.fx__warn{display:flex;align-items:center;justify-content:center;gap:.45rem;margin:1.2rem auto 0;padding:.6rem .85rem;
+  border-radius:var(--r-md);font-size:var(--t-xs);color:var(--text-2);
+  background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 32%,transparent)}
+.fx__warn svg{width:16px;height:16px;flex:none;fill:none;stroke:#B98A00;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.fx__fail{margin-top:1.2rem}
+.fx__why{margin:0 0 1.1rem;padding:.75rem .9rem;border-radius:var(--r-md);text-align:left;font-size:var(--t-sm);
+  color:var(--text-2);background:color-mix(in srgb,var(--err) 8%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--err) 30%,transparent);overflow-wrap:anywhere}
+.fx__fail .btn{justify-content:center}
+.fx__fail .btn[hidden]{display:none}
+.fx__fail .done__row:has(> .btn[hidden]) .btn{grid-column:1/-1}
+
+@media (prefers-reduced-motion: reduce){
+  .fx__spark,.fx__fill::after,.fx__steps li.is-now i::after{animation:none}
+  .fx__dial.is-indet .fx__ring{animation:none}
+}
+
 /* ---------- wiring sheet ---------- */
 .wire{--gc:var(--brand);width:min(720px,100%)}
 .wire .modal__head{background:linear-gradient(135deg,color-mix(in srgb,var(--gc) 16%,var(--surface)),var(--surface) 70%)}
@@ -1750,14 +1858,58 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
 </div>
 
 <!-- ==================== FLASH DONE ==================== -->
-<div class="modal" id="doneModal" hidden>
+<div class="modal" id="doneModal" data-state="flashing" hidden>
   <div class="modal__scrim" data-close></div>
-  <div class="modal__box done" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
+  <div class="modal__box done" role="dialog" aria-modal="true" aria-labelledby="doneTitle" aria-describedby="doneLede">
     <button class="modal__x" type="button" data-close aria-label="Close">&times;</button>
     <div class="done__burst" id="doneBurst" aria-hidden="true"></div>
-    <div class="done__badge"><svg viewBox="0 0 52 52" aria-hidden="true"><path class="done__tick" d="M14 27l8 8 16-17"/></svg></div>
-    <h2 id="doneTitle">Upload complete!</h2>
+
+    <!-- one dial for all three states: uploading %, success tick, failure cross -->
+    <div class="fx__dial" id="fxDial" style="--p:0" role="progressbar" aria-label="Upload progress"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <svg class="fx__ring" viewBox="0 0 120 120" aria-hidden="true">
+        <defs>
+          <linearGradient id="fxGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FFB054"/><stop offset=".55" stop-color="#F5821E"/><stop offset="1" stop-color="#E0532B"/>
+          </linearGradient>
+        </defs>
+        <circle class="fx__track" cx="60" cy="60" r="52"/>
+        <circle class="fx__arc" cx="60" cy="60" r="52" pathLength="100"/>
+      </svg>
+      <span class="fx__spark" aria-hidden="true"></span>
+      <div class="fx__core">
+        <div class="fx__num"><span id="fxPct">0</span><small>%</small></div>
+        <svg class="fx__ok" viewBox="0 0 52 52" aria-hidden="true"><path class="done__tick" d="M14 27l8 8 16-17"/></svg>
+        <svg class="fx__bad" viewBox="0 0 52 52" aria-hidden="true"><path d="M18 18l16 16M34 18L18 34"/></svg>
+      </div>
+    </div>
+
+    <h2 id="doneTitle">Uploading code</h2>
     <p class="done__lede" id="doneLede"></p>
+
+    <!-- uploading only -->
+    <div class="fx__live">
+      <ol class="fx__steps" id="fxSteps">
+        <li data-s="prep"><i></i><span>Prepare</span></li>
+        <li data-s="erase"><i></i><span>Erase</span></li>
+        <li data-s="write"><i></i><span>Write</span></li>
+        <li data-s="restart"><i></i><span>Restart</span></li>
+      </ol>
+      <div class="fx__bar"><div class="fx__fill" id="fxFill"></div></div>
+      <div class="fx__meta"><span id="fxBytes">Getting ready…</span><span id="fxEta"></span></div>
+      <p class="fx__warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        Keep the Coggy plugged in until this finishes.</p>
+    </div>
+
+    <!-- failure only -->
+    <div class="fx__fail">
+      <p class="fx__why" id="fxWhy"></p>
+      <div class="done__row">
+        <button class="btn btn--brand" id="fxRetry" type="button">Try again</button>
+        <button class="btn btn--ghost" type="button" data-close>Close</button>
+      </div>
+    </div>
+
     <div class="done__facts">
       <div><span>Activity</span><b id="doneAct"></b></div>
       <div><span>Table</span><b id="doneTable"></b></div>
@@ -5187,16 +5339,34 @@ async function flashEsp() {
     }
   }
   if ($('#eraseAll').checked) log('Erasing the whole flash first — this takes a few seconds.', 'warn');
+  fxBegin(parts.map((p) => p.data.length));
 
   await state.esp.writeFlash({
     fileArray: parts,
     flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep',
     eraseAll: $('#eraseAll').checked,
     compress: true,
-    reportProgress: (i, written, total) => setProgress(written, total, `part ${i + 1} · ${written} / ${total}`),
+    reportProgress: (i, written, total) => {
+      setProgress(written, total, `part ${i + 1} · ${written} / ${total}`);
+      fxPart(i, written, total);
+    },
   });
+  fxSet(100);
+  fxStage('restart');
   try { await state.esp.after(); } catch (_) {}
   return parts.reduce((n, p) => n + p.data.length, 0);
+}
+
+/* the console keeps the raw error; the pop-up gets the version a teacher can act on */
+function explainFlashError(msg) {
+  if (/head of packet|serial noise|corrupt|timed out|Timeout/i.test(msg))
+    return 'The data stream broke up partway. The speed has been lowered one step — press Try again. '
+         + 'If it keeps happening, use a shorter or different USB cable.';
+  if (/disconnected|device has been lost|NetworkError|port is closed|not open/i.test(msg))
+    return 'The Coggy was unplugged or lost its connection. Plug it back in, press Connect, then Flash again.';
+  if (/Failed to fetch|NetworkError when attempting/i.test(msg))
+    return 'The program could not be downloaded from the server. Check the lab network and try again.';
+  return msg;
 }
 
 async function flash() {
@@ -5206,12 +5376,14 @@ async function flash() {
   const fb = $('#flashBtn');
   fb.setAttribute('aria-busy', 'true');
   updateFlashButton();
+  fxOpen();
   try {
     if (!state.custom) {
       $('#flashLabel').textContent = 'Checking the build…';
       await detectMode(state.selected);
       const missing = await missingBuildPaths(state.selected);
       if (missing.length) {
+        fxClose();
         showMissing(state.selected, state.table, missing);
         return;                                  // finally{} puts the button back
       }
@@ -5245,6 +5417,7 @@ async function flash() {
     $('#progressBar').classList.remove('is-active');
     if (err?.code === 'NO_BUILD' && state.selected && !state.custom) {
       setProgress(0, 1, '');
+      fxClose();
       showMissing(state.selected, state.table, [err.path]);
       return;
     }
@@ -5259,7 +5432,7 @@ async function flash() {
         if (slower) { sel.value = String(slower); log(`Speed lowered to ${slower}. Reconnect and try again.`, 'info'); }
       }
     }
-    toast(msg, 'error');
+    fxFail(explainFlashError(msg));
   } finally {
     state.busy = false;
     state.flashing = false;
@@ -5715,13 +5888,24 @@ function closeModal(m) {
 function wireModals() {
   for (const id of ['#wireModal', '#doneModal', '#wifiModal']) {
     const m = $(id);
-    m.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeModal(m); });
+    m.addEventListener('click', (e) => {
+      if (m.dataset.state === 'flashing') return;           // never close mid-upload
+      if (e.target.closest('[data-close]')) closeModal(m);
+    });
   }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    for (const id of ['#doneModal', '#wifiModal', '#wireModal']) if (!$(id).hidden) { closeModal($(id)); break; }
+    for (const id of ['#doneModal', '#wifiModal', '#wireModal']) if (!$(id).hidden) {
+      if ($(id).dataset.state !== 'flashing') closeModal($(id));
+      break;
+    }
   });
   $('#wirePrint').addEventListener('click', () => window.print());
+  $('#fxRetry').addEventListener('click', () => { if (state.connected && !state.busy) flash(); });
+  /* leaving the page mid-upload would leave the Coggy half-written */
+  window.addEventListener('beforeunload', (e) => {
+    if ($('#doneModal').dataset.state === 'flashing' && !$('#doneModal').hidden) { e.preventDefault(); e.returnValue = ''; }
+  });
   $('#wifiReveal').addEventListener('click', () => { _wifiShown = !_wifiShown; paintWifiPass(); });
   $('#wifiCopySsid').addEventListener('click', () => copyText(_wifiCur.ssid, 'Network name'));
   $('#wifiCopyPass').addEventListener('click', () => copyText(_wifiCur.password, 'Password'));
@@ -5749,6 +5933,108 @@ function wireModals() {
     await monOpenPort();
     $('#monOut').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
+}
+
+/* ---------- upload pop-up ----------
+   Opens the moment Flash is pressed and stays up until the board is written:
+   live percentage, the stage it is on, bytes and time left. On success the same
+   pop-up turns into the "Upload complete" card; on failure it says why. */
+const fx = { t0: 0, wStart: 0, weights: [], total: 0, shown: 0, target: 0, raf: 0, title: '' };
+
+function fxStage(stage) {
+  const order = ['prep', 'erase', 'write', 'restart'];
+  const at = order.indexOf(stage);
+  $('#fxSteps').querySelectorAll('li').forEach((li) => {
+    const i = order.indexOf(li.dataset.s);
+    li.classList.toggle('is-done', i < at);
+    li.classList.toggle('is-now', i === at);
+  });
+  $('#fxDial').classList.toggle('is-indet', stage === 'erase' || stage === 'prep');
+  const label = { prep: 'Getting the code ready…', erase: 'Erasing the old program…',
+                  write: '', restart: 'Restarting the Coggy…' }[stage];
+  if (label) $('#fxBytes').textContent = label;
+  if (stage !== 'write') $('#fxEta').textContent = '';
+}
+
+function fxPaint() {
+  /* ease the number toward the real value so it counts up instead of jumping */
+  fx.shown += (fx.target - fx.shown) * 0.22;
+  if (Math.abs(fx.target - fx.shown) < 0.15) fx.shown = fx.target;
+  const p = Math.round(fx.shown);
+  $('#fxPct').textContent = p;
+  $('#fxDial').style.setProperty('--p', fx.shown.toFixed(2));
+  $('#fxFill').style.width = fx.shown.toFixed(2) + '%';
+  $('#fxDial').setAttribute('aria-valuenow', String(p));
+  if ($('#doneModal').dataset.state === 'flashing') document.title = `${p}% · Uploading — Coggy Flasher`;
+  fx.raf = fx.shown === fx.target ? 0 : requestAnimationFrame(fxPaint);
+}
+function fxSet(pct) {
+  fx.target = Math.max(fx.target, Math.min(100, pct));     // never runs backwards
+  if (!fx.raf) fx.raf = requestAnimationFrame(fxPaint);
+}
+
+function fxOpen() {
+  const m = $('#doneModal');
+  const a = state.custom ? null : state.selected;
+  const name = state.custom ? state.custom.name : a.name;
+  const where = state.custom ? '' : needsTable(a) && state.table ? ` for ${tableName(state.table)}` : '';
+  fx.t0 = performance.now(); fx.wStart = 0; fx.shown = 0; fx.target = 0;
+  fx.title = fx.title || document.title;
+  cancelAnimationFrame(fx.raf); fx.raf = 0;
+  m.dataset.state = 'flashing';
+  $('#doneBurst').innerHTML = '';
+  $('#doneTitle').textContent = 'Uploading code';
+  $('#doneLede').textContent = `Writing ${name}${where} to the Coggy.`;
+  $('#fxPct').textContent = '0';
+  $('#fxDial').style.setProperty('--p', '0');
+  $('#fxFill').style.width = '0%';
+  const erase = $('#eraseAll').checked;
+  $('#fxSteps [data-s="erase"]').hidden = !erase;
+  $('#fxSteps').style.setProperty('--n', erase ? 4 : 3);
+  fxStage('prep');
+  if (m.hidden) openModal('#doneModal');
+}
+
+/* parts: byte length of each image being written, to weight a multi-part flash */
+function fxBegin(lengths) {
+  fx.weights = lengths;
+  fx.total = lengths.reduce((n, x) => n + x, 0);
+  fxStage($('#eraseAll').checked ? 'erase' : 'write');
+}
+
+function fxPart(i, written, total) {
+  if (!fx.wStart) { fx.wStart = performance.now(); fxStage('write'); }
+  const before = fx.weights.slice(0, i).reduce((n, x) => n + x, 0);
+  const frac = total ? written / total : 0;
+  const done = before + (fx.weights[i] || 0) * frac;
+  const pct = fx.total ? (done / fx.total) * 100 : frac * 100;
+  fxSet(pct);
+  const kb = (n) => (n / 1024).toFixed(1);
+  $('#fxBytes').textContent = `${kb(done)} of ${kb(fx.total)} KB`;
+  const secs = (performance.now() - fx.wStart) / 1000;
+  if (secs > 0.8 && done > 0) {
+    const left = Math.max(0, (fx.total - done) / (done / secs));
+    $('#fxEta').textContent = left < 1 ? 'almost there' : `about ${Math.ceil(left)} s left`;
+  }
+}
+
+function fxClose() {
+  document.title = fx.title || document.title;
+  closeModal($('#doneModal'));
+}
+
+function fxFail(msg) {
+  const m = $('#doneModal');
+  if (m.hidden) return;
+  cancelAnimationFrame(fx.raf); fx.raf = 0;
+  document.title = fx.title || document.title;
+  $('#fxDial').classList.remove('is-indet');
+  m.dataset.state = 'error';
+  $('#doneTitle').textContent = 'Upload didn’t finish';
+  $('#doneLede').textContent = 'Nothing is broken — the Coggy just needs another try.';
+  $('#fxWhy').textContent = msg;
+  $('#fxRetry').hidden = !state.connected;
+  $('#fxRetry').focus({ preventScroll: true });
 }
 
 /* ---------- flash done ---------- */
@@ -5793,6 +6079,15 @@ function chime() {
 }
 
 function showFlashDone(info) {
+  cancelAnimationFrame(fx.raf); fx.raf = 0;
+  fx.shown = fx.target = 100;
+  $('#fxPct').textContent = '100';
+  $('#fxDial').style.setProperty('--p', '100');
+  $('#fxDial').setAttribute('aria-valuenow', '100');
+  $('#fxDial').classList.remove('is-indet');
+  document.title = fx.title || document.title;
+  $('#doneModal').dataset.state = 'done';
+  $('#doneTitle').textContent = 'Upload complete!';
   $('#doneLede').textContent = `${info.name} is on the Coggy, and the board is restarting now.`;
   $('#doneAct').textContent = info.code;
   $('#doneAct').title = info.name;
@@ -5803,7 +6098,8 @@ function showFlashDone(info) {
   $('#doneModal').querySelectorAll('.done__facts > div').forEach((d, i) => d.style.setProperty('--k', i));
   burst();
   chime();
-  openModal('#doneModal');
+  if ($('#doneModal').hidden) openModal('#doneModal');
+  $('#doneDisconnect').focus({ preventScroll: true });
 }
 
 /* ---------- journey strip ---------- */
