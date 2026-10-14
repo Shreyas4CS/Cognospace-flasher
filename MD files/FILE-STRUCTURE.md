@@ -1,4 +1,4 @@
-# Coggy Flasher — file structure
+ # Coggy Flasher — file structure
 Coggy flasher designed and developed by cognospace
 
 Everything is served as static files from one folder. No build step, no server
