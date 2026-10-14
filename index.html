@@ -156,6 +156,23 @@ p{max-width:68ch}
 .navbtn--connect.is-on{border-color:color-mix(in srgb,#16a34a 45%,transparent);color:#15803d;
   background:color-mix(in srgb,#16a34a 10%,var(--surface))}
 [data-theme="dark"] .navbtn--connect.is-on{color:#4ade80}
+.navbtn--sensor{text-decoration:none;color:#6d28d9;border-color:color-mix(in srgb,#7c3aed 40%,transparent);
+  background:color-mix(in srgb,#7c3aed 8%,var(--surface))}
+.navbtn--sensor:hover{background:color-mix(in srgb,#7c3aed 15%,var(--surface))!important}
+[data-theme="dark"] .navbtn--sensor{color:#c4b5fd}
+/* on narrower screens it keeps its icon, so the search box keeps its room */
+.navbtn--drivers{text-decoration:none;color:#0f766e;border-color:color-mix(in srgb,#0d9488 40%,transparent);
+  background:color-mix(in srgb,#0d9488 8%,var(--surface))}
+.navbtn--drivers:hover{background:color-mix(in srgb,#0d9488 15%,var(--surface))!important}
+[data-theme="dark"] .navbtn--drivers{color:#5eead4}
+/* Sensor Testing and Drivers keep their names on laptop and desktop screens.
+   To make room, the title word and the "Not connected" text go first (the
+   logo and the Connect button already say the same), then the search narrows.
+   Below 1200px the two buttons drop to icons. */
+.navsearch{width:clamp(110px,11vw,210px)}
+@media (max-width:1440px){ .brandmark__word{display:none} }
+@media (max-width:1500px){ #statusText{display:none} #statusPill{padding:.35rem .5rem!important} }
+@media (max-width:1199px){ .navbtn--sensor span,.navbtn--drivers span{display:none} .navbtn--sensor,.navbtn--drivers{padding:.42rem .55rem} }
 .navbtn--flash{background:var(--brand);border-color:var(--brand);color:#fff}
 .navbtn--flash:hover:not(:disabled){background:var(--brand-deep);border-color:var(--brand-deep)}
 .navbtn:disabled{opacity:.45;cursor:not-allowed}
@@ -287,6 +304,14 @@ p{max-width:68ch}
 .tchip[data-build="checking"]{opacity:.55}
 .tables__hint{font-size:var(--t-xs);color:var(--text-3);margin-top:.5rem}
 .tables__hint b{color:var(--warn)}
+.uni-hint{display:flex;align-items:center;gap:.45rem;margin-top:.75rem;padding:.5rem .7rem;
+  border-radius:var(--r-sm);border:1px solid var(--border-soft);background:var(--surface)}
+.uni-hint[hidden]{display:none}
+.uni-hint::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--text-3)}
+.uni-hint[data-state="found"]{color:#137a43;border-color:#a8e0c0;background:#effaf3}
+.uni-hint[data-state="found"]::before{background:#16a34a}
+.uni-hint[data-state="missing"]::before{background:var(--warn)}
+[data-theme="dark"] .uni-hint[data-state="found"]{color:#7fe0a9;border-color:rgba(127,224,169,.35);background:rgba(40,190,110,.12)}
 
 /* ---------- coming soon ---------- */
 .card[data-soon="true"]{opacity:.55;border-style:dashed;cursor:default}
@@ -548,7 +573,7 @@ a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
 
 /* ---------- activity finder: search from anywhere ---------- */
 /* Search living inside the nav bar — on every page via the sticky header. */
-.navsearch{position:relative;width:clamp(150px,17vw,230px);min-width:0}
+.navsearch{position:relative;width:clamp(130px,14vw,210px);min-width:0}
 .navsearch .srch__panel{left:auto;right:0;width:min(360px,86vw)}
 .gsearch__field,.herosearch__field{display:flex;align-items:center;gap:.55rem;
   padding:.44rem .8rem;background:var(--surface);border:1px solid var(--border);
@@ -1451,7 +1476,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
         <label class="gsearch__field">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input id="navSearch" type="search" autocomplete="off"
-                 placeholder="Search activities"
+                 placeholder="Search"
                  aria-label="Search activities" role="combobox"
                  aria-autocomplete="list" aria-expanded="false" aria-controls="navSearchResults">
         </label>
@@ -1463,6 +1488,12 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
       </span>
       <a class="masthead__link" href="#/">Home</a>
       <a class="masthead__link" href="#/flash">Flasher</a>
+      <!-- Sensor Testing: replace the href below with the real page's address -->
+      <a class="navbtn navbtn--sensor" id="navSensor" href="https://example.com/sensor-testing" target="_blank" rel="noopener" title="Open the sensor testing page in a new tab">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Sensor Testing</span></a>
+      <!-- Drivers: put the installer at assets/coggy-drivers.exe (or change both names below) -->
+      <a class="navbtn navbtn--drivers" id="navDrivers" href="assets/coggy-drivers.exe" download="coggy-drivers.exe" title="Download the USB drivers for Windows">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>Drivers</span></a>
       <button class="navbtn navbtn--connect" id="navConnect" type="button" title="Plug in the Coggy, then press Connect">
         <svg viewBox="0 0 24 24"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/></svg><span>Connect Coggy</span></button>
       <button class="navbtn navbtn--flash" id="navFlash" type="button" disabled title="Connect a Coggy first">
@@ -1792,6 +1823,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
               <div class="tables__grid" id="tableGrid"></div>
               <p class="tables__hint" id="tablePath">Pick the table this Coggy belongs to.</p>
             </div>
+            <p class="tables__hint uni-hint" id="uniHint" hidden></p>
           </div>
 
           <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
@@ -4829,6 +4861,7 @@ function renderTables() {
   const row = $('#tableRow');
   const show = !!state.selected && !state.custom && codeMode(state.selected) === 'table';
   row.hidden = !show;
+  paintUniversalHint();
   if (!show) return;
 
   const act = state.selected;
@@ -4853,6 +4886,30 @@ function renderTables() {
   $('#tableNow').textContent = state.table ? tableName(state.table) : 'none picked';
   paintHint();
   probeTables(act);
+}
+
+/* Universal activities have no table picker, so they get their own
+   "Program found" line, checked against the shared build on the server. */
+async function paintUniversalHint() {
+  const hint = $('#uniHint');
+  const act = state.selected;
+  if (!hint) return;
+  if (!act || state.custom || codeMode(act) !== 'universal') { hint.hidden = true; return; }
+  hint.hidden = false;
+  hint.dataset.state = 'checking';
+  hint.textContent = 'Checking for the program…';
+  const files = rawFiles(act);
+  const found = files.length ? (await Promise.all(files.map((f) => buildExists(universalPath(f))))).every(Boolean) : false;
+  if (state.selected !== act) return;           // teacher moved on while we checked
+  hint.dataset.state = found ? 'found' : 'missing';
+  hint.innerHTML = '';
+  if (found) {
+    hint.textContent = 'Program found — same code for every table, ready to flash.';
+  } else {
+    const warn = document.createElement('b');
+    warn.textContent = "This program hasn't been uploaded yet. Ask your trainer to add it.";
+    hint.append(warn);
+  }
 }
 
 function paintHint() {
