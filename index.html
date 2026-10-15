@@ -6983,6 +6983,8 @@ window.SPARKY_CONFIG = {
   font:inherit;font-size:.82rem;font-weight:700;color:#fff;background:var(--sp-grad);text-decoration:none!important;
   box-shadow:0 6px 16px -8px var(--sp-b);transition:transform .15s,filter .15s}
 .sp__act:hover{transform:translateY(-2px);filter:brightness(1.06)}
+/* links inside a bubble are orange, so action links need white restated */
+.sp__bub a.sp__act:not(.sp__act--ghost),.sp__bub a.sp__act:not(.sp__act--ghost):visited{color:#fff}
 .sp__act svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .sp__act--ghost{background:var(--sp-bg);color:var(--text)!important;border:1px solid var(--border);box-shadow:none}
 .sp__list{display:grid;gap:.35rem;margin-top:.5rem}
