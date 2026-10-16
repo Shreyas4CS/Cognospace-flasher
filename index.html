@@ -7040,7 +7040,55 @@ window.SPARKY_CONFIG = {
 @media (prefers-reduced-motion:reduce){
   .sp *, .sp *::before{animation:none!important;transition:none!important}
 }
-@media print{ .sp{display:none} }
+@media print{ .sp{display:none}  .sptour{display:none} }
+
+/* scrolling inside the chat never scrolls the page behind it */
+.sp__win,.sp__log,.sp__chips{overscroll-behavior:contain}
+@media (max-width:560px){ html.sp-lock,html.sp-lock body{overflow:hidden} }
+
+/* ---------- Sparky guided tour: dimmed page, a lit cut-out, a bouncing arrow and a tip ---------- */
+.sptour{position:fixed;inset:0;z-index:150;pointer-events:none;font-family:var(--font-ui)}
+.sptour__shade{position:fixed;background:rgba(15,12,20,.62);pointer-events:auto;transition:all .28s cubic-bezier(.3,1,.4,1)}
+.sptour__ring{position:fixed;border-radius:14px;border:3px solid var(--brand);pointer-events:none;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 30%,transparent),0 0 28px 4px color-mix(in srgb,var(--brand) 55%,transparent);
+  transition:all .28s cubic-bezier(.3,1,.4,1);animation:spTourPulse 1.6s ease-in-out infinite}
+.sptour__arrow{position:fixed;width:46px;height:46px;margin-left:-23px;color:var(--brand);pointer-events:none;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));transition:left .28s,top .28s}
+.sptour__arrow svg{width:100%;height:100%;fill:currentColor;stroke:#fff;stroke-width:1.4;stroke-linejoin:round}
+.sptour__arrow.is-down{animation:spTourDown .9s ease-in-out infinite}
+.sptour__arrow.is-up{animation:spTourUp .9s ease-in-out infinite}
+.sptour__arrow.is-up svg{transform:rotate(180deg)}
+.sptour__arrow.is-left{animation:spTourRight .9s ease-in-out infinite}
+.sptour__arrow.is-left svg{transform:rotate(-90deg)}
+.sptour__arrow.is-right{animation:spTourLeft .9s ease-in-out infinite}
+.sptour__arrow.is-right svg{transform:rotate(90deg)}
+.sptour__tip{position:fixed;width:min(330px,calc(100vw - 24px));pointer-events:auto;padding:1rem 1rem .85rem;border-radius:18px;
+  background:var(--surface);color:var(--text);border:1px solid color-mix(in srgb,var(--brand) 35%,var(--border));
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.55);transition:left .28s,top .28s;animation:spIn .35s cubic-bezier(.3,1.3,.5,1) both}
+.sptour__step{display:flex;align-items:center;gap:.45rem;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-deep)}
+[data-theme="dark"] .sptour__step{color:var(--brand)}
+.sptour__step i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;color:#fff;
+  background:linear-gradient(135deg,#FF9A3D,var(--brand) 50%,var(--brand-deep));font-size:.72rem;letter-spacing:0}
+.sptour__dots{margin-left:auto;display:flex;gap:4px}
+.sptour__dots b{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.sptour__dots b.on{background:var(--brand);width:16px;border-radius:4px}
+.sptour__text{margin:.5rem 0 .2rem;font-size:.92rem;line-height:1.5}
+.sptour__wait{display:flex;align-items:center;gap:.45rem;margin-top:.45rem;font-size:.76rem;color:var(--text-3)}
+.sptour__wait::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--brand);animation:spTourPulse 1.2s infinite}
+.sptour__wait.is-ok{color:#15803d;font-weight:700}
+.sptour__wait.is-ok::before{background:#16a34a;animation:none}
+.sptour__btns{display:flex;gap:.4rem;margin-top:.75rem;align-items:center}
+.sptour__btns button{font:inherit;font-size:.8rem;font-weight:700;border-radius:10px;cursor:pointer;padding:.45rem .8rem;border:1px solid var(--border);
+  background:var(--surface);color:var(--text)}
+.sptour__btns .sptour__skip{border:0;background:none;color:var(--text-3);padding-left:0;margin-right:auto}
+.sptour__btns .sptour__next{border:0;color:#fff;background:linear-gradient(135deg,#FF9A3D,var(--brand) 50%,var(--brand-deep))}
+.sptour__btns button:hover{filter:brightness(1.06)}
+@keyframes spTourPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes spTourDown{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+@keyframes spTourRight{0%,100%{transform:translateX(0)}50%{transform:translateX(9px)}}
+@keyframes spTourLeft{0%,100%{transform:translateX(0)}50%{transform:translateX(-9px)}}
+@keyframes spTourUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@media (prefers-reduced-motion:reduce){ .sptour *{animation:none!important;transition:none!important} }
 
 /* toasts sit above the chat button now that both live bottom-right */
 .toast-wrap{bottom:6rem}
@@ -7103,6 +7151,7 @@ window.SPARKY_CONFIG = {
     mail: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
     bolt: '<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
     web:  '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+    guide: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
   };
 
   /* ---------- links shared with the navbar ---------- */
@@ -7201,7 +7250,7 @@ window.SPARKY_CONFIG = {
       b.textContent = c.label || c;
       b.addEventListener('click', () => {
         if (busy) return;
-        if (c.run) { userSays(c.label); c.run(); }
+        if (c.run) { if (!c.quiet) userSays(c.label); c.run(); }
         else handle(c.say || c);
       });
       chipsEl.append(b);
@@ -7281,8 +7330,188 @@ window.SPARKY_CONFIG = {
   function activityBtn(a) {
     const b = itemBtn(a.name, a.soon ? 'coming soon' : (String(a.codeType).toLowerCase() === 'universal' ? 'Universal' : 'Table wise'), a.code);
     if (a.soon) { b.disabled = true; return b; }
-    b.addEventListener('click', () => { userSays(a.name); openAct(a); });
+    b.addEventListener('click', () => { if (busy) return; userSays(a.name); offerGuide(a); });
     return b;
+  }
+
+  /* ---------- "guide me, or just open it?" ---------- */
+  function offerGuide(a) {
+    const grade = a.grade ? ` · ${gradeLabel(a.grade)}` : '';
+    let chosen = false;
+    const pick = (guide) => () => {
+      if (chosen || busy) return;
+      chosen = true;
+      log.querySelectorAll('.sp__acts--choice button').forEach((x) => { x.disabled = true; });
+      userSays(guide ? 'Guide me step by step' : 'Just open the card');
+      guide ? startGuide(a) : openAct(a);
+    };
+    return say(`I found <b>${a.name}</b> (${a.code}${grade}). 🎯<br><br>Do you want me to <b>guide you step by step</b> on the screen, or just open the card?`,
+      { actions: [
+          { label: 'Guide me', run: pick(true), icon: 'guide' },
+          { label: 'Just open the card', run: pick(false), ghost: true },
+        ],
+        chips: [{ label: '🧭 Guide me', run: pick(true), quiet: true }, { label: '📂 Just open it', run: pick(false), quiet: true }, ...MENU.slice(0, 3)] })
+      .then(() => { log.lastElementChild?.querySelector('.sp__acts')?.classList.add('sp__acts--choice'); });
+  }
+
+  function startGuide(a) {
+    if (window.CoggyApp?.openActivity) window.CoggyApp.openActivity(a.code);
+    else location.hash = '#/flash';
+    return say(`Let's go! 🧭 Follow the glowing box and the arrow on the screen. I'll hide for a moment so you can see everything.`)
+      .then(() => setTimeout(() => {
+        close();
+        runTour(a);
+      }, 500));
+  }
+
+  /* ---------- the on-screen tour ---------- */
+  function tourSteps(a) {
+    const q = (s) => document.querySelector(s);
+    const card = () => q(`.card[data-code="${a.code}"]`) || q('.card[aria-selected="true"]');
+    const uni = String(a.codeType).toLowerCase() === 'universal';
+    const tableNow = () => (q('#tableNow')?.textContent || '').trim();
+    const picked = () => tableNow() && tableNow() !== 'none picked';
+    const connected = () => q('#navConnect')?.classList.contains('is-on');
+    const steps = [
+      { el: card, title: 'This is your activity',
+        text: `<b>${a.name}</b> is selected and loaded into the flasher. Later you can click any card on the shelf to pick it the same way.` },
+      { el: () => card()?.querySelector('.card__top .card__wire') || card()?.querySelector('.card__wire'), title: 'Check the wiring',
+        text: 'Click <b>Wiring</b> to see which part goes on which Coggy pin. Connect the parts first, then close the sheet and press <b>Next</b>.' },
+    ];
+    if (uni) {
+      steps.push({ el: () => { const h = q('#uniHint'); return h && !h.hidden ? h : q('#targetName'); }, title: 'No table needed',
+        text: 'This activity uses <b>Universal code</b>, so every table gets the same program. There\'s nothing to pick here.' });
+    } else {
+      steps.push({ el: () => q('#tableRow'), title: 'Select your table',
+        text: picked()
+          ? `Your table is set to <b>${tableNow()}</b>. If this Coggy belongs to a different table, click that table's name.`
+          : 'Click your <b>table name</b> here (Pi, Newton, Kalam…). Each table has its own program.',
+        wait: picked() ? null : picked, waitText: 'Waiting for you to click a table…', okText: () => `Table ${tableNow()} picked ✓` });
+    }
+    steps.push({ el: () => q('#navConnect'), title: 'Connect the Coggy',
+      text: connected()
+        ? 'Your Coggy is already connected ✓'
+        : 'Plug the Coggy in with a USB <b>data</b> cable, then click <b>Connect Coggy</b> and choose its port in the pop-up.',
+      wait: connected() ? null : connected, waitText: 'Waiting for the Coggy to connect…', okText: () => 'Coggy connected ✓' });
+    steps.push({ el: () => q('#flashBtn'), title: 'Flash it!',
+      text: 'Click <b>Flash the Coggy</b>. Keep the cable plugged in until the success pop-up appears. 🎉',
+      clickEnds: true });
+    return steps;
+  }
+
+  let tourOn = null;
+  function runTour(a) {
+    tourOn?.end(false);
+    const steps = tourSteps(a);
+    const wrap = document.createElement('div');
+    wrap.className = 'sptour';
+    wrap.innerHTML = '<div class="sptour__shade"></div><div class="sptour__shade"></div><div class="sptour__shade"></div><div class="sptour__shade"></div>'
+      + '<div class="sptour__ring"></div>'
+      + '<div class="sptour__arrow"><svg viewBox="0 0 24 24"><path d="M9 2h6v10h5l-8 10-8-10h5z"/></svg></div>'
+      + '<div class="sptour__tip" role="dialog" aria-label="Sparky guide"><div class="sptour__step"></div><div class="sptour__text"></div>'
+      + '<div class="sptour__wait" hidden></div><div class="sptour__btns"><button type="button" class="sptour__skip">Skip tour</button>'
+      + '<button type="button" class="sptour__back">Back</button><button type="button" class="sptour__next">Next</button></div></div>';
+    document.body.append(wrap);
+    const [sT, sB, sL, sR] = wrap.querySelectorAll('.sptour__shade');
+    const ring = wrap.querySelector('.sptour__ring'), arrow = wrap.querySelector('.sptour__arrow'), tip = wrap.querySelector('.sptour__tip');
+    const waitEl = wrap.querySelector('.sptour__wait'), nextB = wrap.querySelector('.sptour__next'), backB = wrap.querySelector('.sptour__back');
+    let i = -1, target = null, raf = 0, okTimer = 0, unClick = null, done = false;
+
+    const box = (el, x, y, w, h) => Object.assign(el.style, { left: x + 'px', top: y + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, h) + 'px' });
+
+    function place() {
+      raf = requestAnimationFrame(place);
+      const modal = document.querySelector('.modal:not([hidden])');
+      wrap.style.visibility = modal ? 'hidden' : '';
+      if (modal || !target) return;
+      const s = steps[i];
+      if (!target.isConnected) target = s.el() || target;
+      const vw = innerWidth, vh = innerHeight, p = 8;
+      const r = target.getBoundingClientRect();
+      const x = r.left - p, y = r.top - p, w = r.width + p * 2, h = r.height + p * 2;
+      box(sT, 0, 0, vw, y); box(sB, 0, y + h, vw, vh - y - h); box(sL, 0, y, x, h); box(sR, x + w, y, vw - x - w, h);
+      box(ring, x, y, w, h);
+      const tw = tip.offsetWidth, th = tip.offsetHeight, gap = 62;
+      const fitsBelow = y + h + gap + th < vh - 8, fitsAbove = y - gap - th > 8;
+      // a tall target (like the table list) gets the tip beside it, arrow pointing sideways
+      const side = !fitsBelow && !fitsAbove ? (x - gap - tw > 8 ? 'left' : x + w + gap + tw < vw - 8 ? 'right' : null) : null;
+      arrow.classList.toggle('is-left', side === 'left'); arrow.classList.toggle('is-right', side === 'right');
+      if (side) {
+        const cy = Math.min(Math.max(r.top + r.height / 2, 40), vh - 40);
+        tip.style.left = (side === 'left' ? x - gap - tw : x + w + gap) + 'px';
+        tip.style.top = Math.min(Math.max(cy - th / 2, 8), vh - th - 8) + 'px';
+        arrow.classList.remove('is-up', 'is-down');
+        arrow.style.left = (side === 'left' ? x - 29 : x + w + 29) + 'px';
+        arrow.style.top = (cy - 23) + 'px';
+      } else {
+      const below = fitsBelow || !fitsAbove && vh - (y + h) > y;
+      const cx = Math.min(Math.max(r.left + r.width / 2, 20), vw - 20);
+      const tx = Math.min(Math.max(cx - tw / 2, 12), vw - tw - 12);
+      const ty = below ? Math.min(y + h + gap, vh - th - 8) : Math.max(y - gap - th, 8);
+      tip.style.left = tx + 'px'; tip.style.top = ty + 'px';
+      arrow.classList.toggle('is-up', below); arrow.classList.toggle('is-down', !below);
+      arrow.style.left = cx + 'px';
+      arrow.style.top = (below ? y + h + 6 : y - 52) + 'px';
+      }
+      if (s.wait && !okTimer && s.wait()) {
+        waitEl.textContent = s.okText(); waitEl.classList.add('is-ok');
+        okTimer = setTimeout(() => go(i + 1), 900);
+      }
+    }
+
+    function go(n) {
+      clearTimeout(okTimer); okTimer = 0;
+      unClick?.(); unClick = null;
+      if (n >= steps.length) return end(true);
+      if (n < 0) n = 0;
+      // skip a step whose element isn't on the page
+      while (n < steps.length && !steps[n].el()) n++;
+      if (n >= steps.length) return end(true);
+      i = n;
+      const s = steps[i];
+      target = s.el();
+      target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+      wrap.querySelector('.sptour__step').innerHTML = `<i>${i + 1}</i>${s.title}<span class="sptour__dots">${steps.map((_, k) => `<b class="${k === i ? 'on' : ''}"></b>`).join('')}</span>`;
+      wrap.querySelector('.sptour__text').innerHTML = s.text;
+      waitEl.hidden = !s.wait; waitEl.classList.remove('is-ok'); waitEl.textContent = s.waitText || '';
+      backB.hidden = i === 0;
+      nextB.textContent = s.clickEnds ? 'Finish' : s.wait ? 'Skip this step' : 'Next';
+      if (s.clickEnds) {
+        const t = target, h = () => setTimeout(() => end(true), 150);
+        t.addEventListener('click', h, { once: true });
+        unClick = () => t.removeEventListener('click', h);
+      }
+      tip.style.animation = 'none'; void tip.offsetWidth; tip.style.animation = '';
+      nextB.focus({ preventScroll: true });
+    }
+
+    function end(finished) {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(raf); clearTimeout(okTimer); unClick?.();
+      document.removeEventListener('keydown', onKey, true);
+      wrap.remove();
+      tourOn = null;
+      if (!finished) return;
+      say(`That's the whole journey for <b>${a.name}</b>! 🎉 When the green tick pops up, the Coggy is running its new program.`, {}).then(askHelped);
+      if (!matchMedia('(max-width:560px)').matches) open();
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape' && !document.querySelector('.modal:not([hidden])')) { e.stopPropagation(); end(false); }
+      else if (e.key === 'ArrowRight' && e.target === nextB) go(i + 1);
+    }
+
+    nextB.addEventListener('click', () => go(i + 1));
+    backB.addEventListener('click', () => go(i - 1));
+    wrap.querySelector('.sptour__skip').addEventListener('click', () => end(false));
+    wrap.querySelectorAll('.sptour__shade').forEach((s) => s.addEventListener('click', () => {
+      tip.style.animation = 'none'; void tip.offsetWidth; tip.style.animation = 'spIn .35s cubic-bezier(.3,1.3,.5,1) both';
+    }));
+    document.addEventListener('keydown', onKey, true);
+    tourOn = { end };
+    go(0);
+    place();
   }
 
   function openAct(a) {
@@ -7384,11 +7613,18 @@ window.SPARKY_CONFIG = {
     if (codeM) {
       const code = `CS-${codeM[1]}-${codeM[2]}${codeM[3]}`;
       const a = activities().find((x) => x.code === code);
-      if (a) return a.soon ? say(`<b>${code}</b> is coming soon. Its program hasn't been written yet. ⏳`).then(askHelped) : openAct(a);
+      if (a) return a.soon ? say(`<b>${code}</b> is coming soon. Its program hasn't been written yet. ⏳`).then(askHelped) : offerGuide(a);
     }
 
-    // 2. a class, maybe with a module: "grade 3", "class 5 ai"
+    // 2. an activity name, maybe with its class: "g3 digital dice", "traffic signals"
     const g = gradeIn(t);
+    const isStrong = (a) => norm(a.name).trim().split(' ').every((w) => w.length < 3 || t.includes(w));
+    const named = activityMatches(t);
+    const inGrade = g === null ? named : named.filter((a) => String(a.grade) === String(g));
+    const best = inGrade.find(isStrong) || (g === null ? null : named.find(isStrong));
+    if (best && !best.soon) return offerGuide(best);
+
+    // 3. a class, maybe with a module: "grade 3", "class 5 ai"
     if (g !== null && !INTENTS.some((i) => ['drivers', 'sensor', 'developer', 'thanks'].includes(i.id) && i.keys.some((k) => has(t, k)))) {
       const cat = catIn(t);
       if (cat && activities().some((a) => String(a.grade) === String(g) && catOf(a) === cat)) return showActivities(g, cat);
@@ -7401,11 +7637,6 @@ window.SPARKY_CONFIG = {
         return answer(f.answer, (f.buttons || []).map((b) => ({ ...b, icon: /^mailto:/.test(b.href) ? 'mail' : 'out' })));
       }
     }
-
-    // 4. an activity name: "traffic signals", "line follower"
-    const named = activityMatches(t);
-    const strong = named.length && norm(named[0].name).trim().split(' ').every((w) => w.length < 3 || t.includes(w));
-    if (strong && !named[0].soon) return openAct(named[0]);
 
     // 5. built-in topics
     for (const it of INTENTS) {
@@ -7425,6 +7656,7 @@ window.SPARKY_CONFIG = {
   let started = false;
   function open() {
     root.classList.add('is-open');
+    document.documentElement.classList.add('sp-lock');
     win.setAttribute('aria-hidden', 'false');
     fab.setAttribute('aria-expanded', 'true');
     hello.hidden = true;
@@ -7434,6 +7666,7 @@ window.SPARKY_CONFIG = {
   }
   function close() {
     root.classList.remove('is-open');
+    document.documentElement.classList.remove('sp-lock');
     win.setAttribute('aria-hidden', 'true');
     fab.setAttribute('aria-expanded', 'false');
     fab.focus({ preventScroll: true });
@@ -7444,6 +7677,24 @@ window.SPARKY_CONFIG = {
     say(`${hi}! 👋 I'm <b>${NAME}</b>, your Coggy Flasher guide.`)
       .then(() => say('I can help you flash a Coggy, find an activity for your class, download drivers, open Sensor Testing, or tell you about CognoSpace. What do you need?', { chips: MENU }));
   }
+
+  /* keep scrolling inside the chat: at the top or bottom of the log the page stays put */
+  const canScroll = (el, dy) => el && el.scrollHeight > el.clientHeight + 1 &&
+    (dy < 0 ? el.scrollTop > 0 : el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+  win.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) return;                                  // pinch-zoom
+    const inChips = chipsEl.contains(e.target);
+    if (inChips && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    if (inChips && e.deltaY) { chipsEl.scrollLeft += e.deltaY; e.preventDefault(); return; }
+    if (!(log.contains(e.target) && canScroll(log, e.deltaY))) e.preventDefault();
+  }, { passive: false });
+  let touchY = 0;
+  win.addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+  win.addEventListener('touchmove', (e) => {
+    if (chipsEl.contains(e.target)) return;
+    const dy = touchY - e.touches[0].clientY;
+    if (!(log.contains(e.target) && canScroll(log, dy))) e.preventDefault();
+  }, { passive: false });
 
   fab.addEventListener('click', open);
   $('spClose').addEventListener('click', close);
