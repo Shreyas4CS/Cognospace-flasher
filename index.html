@@ -449,6 +449,13 @@ p{max-width:68ch}
 .brandmark:hover{transform:translateY(-1px);opacity:.88}
 a.brandmark__word{padding:.3rem .55rem;border-radius:var(--r-sm);transition:background 150ms,color 150ms}
 a.brandmark__word:hover{background:var(--surface-2);color:var(--text)}
+/* the navbar word is as tall as the CognoSpace logo and wears the hero's colours */
+a.brandmark__word{font-size:2.75rem;line-height:50px;font-weight:800;letter-spacing:-.03em;padding:0 .2rem;
+  background:linear-gradient(100deg,var(--brand) 0%,#E0457B 45%,#7C3AED 100%);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:brandShine 8s ease-in-out infinite alternate}
+a.brandmark__word:hover{background:linear-gradient(100deg,var(--brand) 0%,#E0457B 45%,#7C3AED 100%);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;opacity:.85}
+@media (prefers-reduced-motion:reduce){ a.brandmark__word{animation:none} }
 
 /* ---------- group colours ---------- */
 .grade-card{--gc:var(--brand)}
@@ -1657,7 +1664,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
         <img class="logo--dark" src="assets/cognospace-logo-dark.png" alt="" aria-hidden="true">
       </span>
     </a>
-    <a class="brandmark__word" href="#/">Coggy Flasher</a>
+    <a class="brandmark__word" href="#/">Flasher</a>
 
     <nav class="masthead__nav">
       <div class="navsearch">
@@ -1701,7 +1708,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
   <section class="hero">
     <div class="shell hero__grid">
       <div>
-        <div class="hero__brand reveal" style="--d:0ms">Coggy Flasher</div>
+        <div class="hero__brand reveal" style="--d:0ms">CognoSpace Flasher</div>
         <h1 class="hero__title reveal" style="--d:60ms">Every activity, every class, ready to flash onto a Coggy in thirty seconds.</h1>
         <p class="hero__lede reveal" style="--d:160ms">
           Plug a Coggy into any lab computer, pick the activity code from the shelf,
@@ -6052,6 +6059,21 @@ window.addEventListener('hashchange', route);
 window.CoggyApp = {
   activities: () => allActivities(),
   openActivity: (code) => { const a = allActivities().find((x) => x.code === code); if (a) openActivity(a); return !!a; },
+  /* For Sparky: is the code on the server, and for table wise code, on which tables? */
+  codeStatus: async (code) => {
+    const a = allActivities().find((x) => x.code === code);
+    if (!a) return null;
+    const total = TABLES.filter((t) => t.name !== 'NA').length;
+    if (a.soon) return { soon: true, type: declaredType(a), ready: false, tables: [], total };
+    if (codeMode(a) === 'universal') {
+      const files = rawFiles(a);
+      const ready = files.length ? (await Promise.all(files.map((f) => buildExists(universalPath(f))))).every(Boolean) : false;
+      return { soon: false, type: 'universal', ready, tables: [], total };
+    }
+    const found = await pooled(TABLES, 6, (t) => buildExists(tablePathFor(a, t.id)));
+    const tables = TABLES.filter((_, i) => found[i]);
+    return { soon: false, type: 'table', ready: tables.length > 0, tables, total: Math.max(total, tables.length) };
+  },
 };
 
 /* ==========================================================================
@@ -7373,7 +7395,14 @@ window.SPARKY_CONFIG = {
   background:color-mix(in srgb,var(--sp-a) 14%,transparent);color:var(--brand-deep)}
 [data-theme="dark"] .sp__item code{color:var(--sp-a)}
 .sp__item span{flex:1;min-width:0}
-.sp__item small{color:var(--text-3);font-size:.7rem}
+.sp__item small{color:var(--text-3);font-size:.7rem;text-align:right}
+.sp__item .sp__txt{display:flex;flex-direction:column;gap:.1rem}
+.sp__item .sp__txt span{flex:none}
+.sp__item .sp__txt small{text-align:left}
+.sp__item small[data-ok="yes"]{color:#15803d;font-weight:600}
+.sp__item small[data-ok="no"]{color:#b45309}
+[data-theme="dark"] .sp__item small[data-ok="yes"]{color:#4ade80}
+[data-theme="dark"] .sp__item small[data-ok="no"]{color:#fbbf24}
 
 .sp__typing{display:inline-flex;gap:4px;padding:.75rem .85rem}
 .sp__typing i{width:7px;height:7px;border-radius:50%;background:var(--text-3);animation:spDots 1.1s infinite}
@@ -7554,6 +7583,40 @@ window.SPARKY_CONFIG = {
   const CATS = ['Mechatronics', 'IoT/Automation', 'AI', 'Educator Resources'];
   const catOf = (a) => CATS.includes(a.category) ? a.category : 'Mechatronics';
 
+  /* ---------- is the code ready? (asks the flasher, which checks the server) ---------- */
+  const STATUS = new Map();      // code -> promise of { soon, type, ready, tables, total }
+  function codeStatus(a) {
+    if (!STATUS.has(a.code)) {
+      const guess = { soon: !!a.soon, type: String(a.codeType).toLowerCase() === 'universal' ? 'universal' : 'table', ready: !a.soon, tables: [], total: 0, unknown: true };
+      const job = window.CoggyApp?.codeStatus ? window.CoggyApp.codeStatus(a.code).then((s) => s || guess).catch(() => guess) : Promise.resolve(guess);
+      STATUS.set(a.code, job);
+    }
+    return STATUS.get(a.code);
+  }
+  /* the short line under an activity in a list */
+  function statusLabel(s) {
+    if (s.soon) return 'coming soon';
+    if (s.type === 'universal') return s.ready ? 'Universal · code ready ✓' : 'Universal · not uploaded yet';
+    if (s.unknown) return 'Table wise';
+    if (!s.tables.length) return 'Table wise · not uploaded yet';
+    return s.tables.length >= s.total ? `Table wise · all ${s.total} tables ✓` : `Table wise · ${s.tables.length}/${s.total} tables`;
+  }
+  /* the full answer to "is the code ready?" */
+  function statusHtml(s) {
+    if (s.soon) return '⏳ This activity is <b>coming soon</b>. Its program hasn\'t been written yet.';
+    if (s.type === 'universal') {
+      return s.ready
+        ? '✅ <b>Code is ready.</b> It\'s <b>Universal code</b>, so the same program works on every table.'
+        : '⏳ <b>Code isn\'t uploaded yet.</b> It\'s Universal code, so once it\'s uploaded every table can flash it.';
+    }
+    if (s.unknown) return 'It uses <b>Table wise code</b>, so each table has its own program.';
+    const n = s.tables.length;
+    if (!n) return `⏳ <b>Code isn't uploaded yet</b> for any table. It's <b>Table wise code</b>, so each of the ${s.total} tables needs its own program.`;
+    const names = s.tables.map((t) => t.name).join(', ');
+    if (n >= s.total) return `✅ <b>Code is ready on all ${s.total} tables.</b> It's <b>Table wise code</b>, so pick your table before flashing.`;
+    return `✅ <b>Table wise code is ready on ${n} of ${s.total} tables:</b> ${names}.<br>The other tables don't have their program yet.`;
+  }
+
   /* ---------- rendering ---------- */
   let busy = false;
   const scroll = () => { log.scrollTop = log.scrollHeight; };
@@ -7633,7 +7696,7 @@ window.SPARKY_CONFIG = {
   }
 
   const MENU = [
-    'How do I flash a Coggy?', 'Browse activities', 'Download drivers', 'Sensor testing',
+    'How do I flash a Coggy?', 'What\'s ready to flash?', 'Browse activities', 'Download drivers', 'Sensor testing',
     'Coggy not connecting', 'Table wise or Universal?', 'About CognoSpace', 'Who developed this?',
   ];
 
@@ -7656,13 +7719,13 @@ window.SPARKY_CONFIG = {
   const answer = (html, actions) => say(html, { actions }).then(askHelped);
 
   /* ---------- class → module → activity ---------- */
-  function showClasses() {
+  function showClasses(intro) {
     const list = grades().map((g) => {
       const b = itemBtn(gradeLabel(g), `${activities().filter((a) => a.grade === g && !a.soon).length} ready`);
       b.addEventListener('click', () => { userSays(gradeLabel(g)); showModules(g); });
       return b;
     });
-    return say('Which class are you teaching? 🎒', { list, chips: MENU });
+    return say(typeof intro === 'string' ? intro : 'Which class are you teaching? 🎒', { list, chips: MENU });
   }
 
   function showModules(g) {
@@ -7702,15 +7765,30 @@ window.SPARKY_CONFIG = {
   }
 
   function activityBtn(a) {
-    const b = itemBtn(a.name, a.soon ? 'coming soon' : (String(a.codeType).toLowerCase() === 'universal' ? 'Universal' : 'Table wise'), a.code);
+    const b = itemBtn(a.name, a.soon ? 'coming soon' : 'checking code…', a.code);
+    // name on top, code status underneath, so long names keep their width
+    const txt = document.createElement('span');
+    txt.className = 'sp__txt';
+    txt.append(b.querySelector('span'), b.querySelector('small'));
+    b.append(txt);
     if (a.soon) { b.disabled = true; return b; }
+    codeStatus(a).then((s) => {
+      const sm = b.querySelector('small');
+      sm.textContent = statusLabel(s);
+      sm.dataset.ok = s.unknown ? '' : s.ready ? 'yes' : 'no';
+    });
     b.addEventListener('click', () => { if (busy) return; userSays(a.name); offerGuide(a); });
     return b;
   }
 
   /* ---------- "guide me, or just open it?" ---------- */
-  function offerGuide(a) {
+  async function offerGuide(a) {
     const grade = a.grade ? ` · ${gradeLabel(a.grade)}` : '';
+    const st = await codeStatus(a);
+    if (!st.ready) {
+      return say(`I found <b>${a.name}</b> (${a.code}${grade}). 🔎<br><br>${statusHtml(st)}<br><br>Ask your CognoSpace trainer if you need it soon.`,
+        { actions: [mailBtn()], chips: [{ label: 'Check another activity', run: () => readyStart() }, ...MENU] });
+    }
     let chosen = false;
     const pick = (guide) => () => {
       if (chosen || busy) return;
@@ -7719,7 +7797,7 @@ window.SPARKY_CONFIG = {
       userSays(guide ? 'Guide me step by step' : 'Just open the card');
       guide ? startGuide(a) : openAct(a);
     };
-    return say(`I found <b>${a.name}</b> (${a.code}${grade}). 🎯<br><br>Do you want me to <b>guide you step by step</b> on the screen, or just open the card?`,
+    return say(`I found <b>${a.name}</b> (${a.code}${grade}). 🎯<br><br>${statusHtml(st)}<br><br>Do you want me to <b>guide you step by step</b> on the screen, or just open the card?`,
       { actions: [
           { label: 'Guide me', run: pick(true), icon: 'guide' },
           { label: 'Just open the card', run: pick(false), ghost: true },
@@ -7899,6 +7977,11 @@ window.SPARKY_CONFIG = {
     return say(`Done! I've opened <b>${a.name}</b> (${a.code}) in the flasher. ${next}`).then(askHelped);
   }
 
+  /* ---------- "which activities are ready to flash?" ---------- */
+  function readyStart() {
+    return showClasses('I can check that for you! 🔎 Pick your <b>class</b> and then the <b>module</b>, and I\'ll show which activities have code ready.<br><br>Or just <b>type an activity name</b> (like <i>Traffic Signals</i>) and I\'ll tell you if its code is available.');
+  }
+
   /* ---------- knowledge ---------- */
   const STEPS = '<ol><li>Plug the Coggy into the computer with a USB data cable.</li><li>Press <b>Connect Coggy</b> and choose the port in the pop-up.</li><li>Pick the activity from the shelf (or ask me to find it).</li><li>For <b>Table wise</b> activities, pick your table.</li><li>Press <b>Flash</b> and wait for the success pop-up. 🎉</li></ol>';
 
@@ -7933,6 +8016,8 @@ window.SPARKY_CONFIG = {
       run: () => answer('After flashing, press <b>Open serial monitor</b> in the success pop-up, or use the console on the flasher page, to see what the Coggy prints. 📟') },
     { id: 'disconnect', keys: ['disconnect', 'unplug', 'remove', 'eject'],
       run: () => answer('Press <b>Disconnect Coggy</b> in the success pop-up after flashing, then unplug the cable. The Coggy keeps running its new program. ✅') },
+    { id: 'ready', keys: ['ready to flash', 'ready', 'available', 'availability', 'avaiable', 'which activities', 'what activities', 'what all activities', 'code available', 'is code'],
+      run: () => readyStart() },
     { id: 'flash', keys: ['how to flash', 'flash', 'upload code', 'upload program', 'how to use', 'steps', 'burn', 'program the', 'install code', 'start'],
       run: () => answer('Flashing a Coggy takes about 30 seconds: ⚡' + STEPS, [flasherBtn()]) },
     { id: 'browse', keys: ['browse', 'activity', 'activities', 'list', 'class', 'grade', 'module', 'project', 'projects', 'experiment'],
@@ -7997,6 +8082,7 @@ window.SPARKY_CONFIG = {
     const inGrade = g === null ? named : named.filter((a) => String(a.grade) === String(g));
     const best = inGrade.find(isStrong) || (g === null ? null : named.find(isStrong));
     if (best && !best.soon) return offerGuide(best);
+    if (best && best.soon) return say(`<b>${best.name}</b> (${best.code}) is coming soon. Its program hasn't been written yet. ⏳`, { chips: MENU });
 
     // 3. a class, maybe with a module: "grade 3", "class 5 ai"
     if (g !== null && !INTENTS.some((i) => ['drivers', 'sensor', 'developer', 'thanks'].includes(i.id) && i.keys.some((k) => has(t, k)))) {
