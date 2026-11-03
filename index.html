@@ -1686,8 +1686,8 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
       <!-- Sensor Testing: replace the href below with the real page's address -->
       <a class="navbtn navbtn--sensor" id="navSensor" href="https://cogno-space-ide.vercel.app/" target="_blank" rel="noopener" title="Open the sensor testing page in a new tab">
         <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Sensor Testing</span></a>
-      <!-- Drivers: put the installer at assets/coggy-drivers.exe (or change both names below) -->
-      <a class="navbtn navbtn--drivers" id="navDrivers" href="assets/coggy-drivers.exe" download="coggy-drivers.exe" title="Download the USB drivers for Windows">
+      <!-- Drivers: put the zip at assets/coggy-drivers.zip (or change both names below) -->
+      <a class="navbtn navbtn--drivers" id="navDrivers" href="assets/coggy-drivers.zip" download="coggy-drivers.zip" title="Download the USB drivers for Windows">
         <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>Drivers</span></a>
       <button class="navbtn navbtn--connect" id="navConnect" type="button" title="Plug in the Coggy, then press Connect">
         <svg viewBox="0 0 24 24"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/></svg><span>Connect Coggy</span></button>
@@ -7994,8 +7994,8 @@ window.SPARKY_CONFIG = {
       run: () => answer(`${C.developer || ''} 🛠️<br><br>${C.aboutCognoSpace || ''}`, [{ label: 'Visit cognospace.in', href: C.website, icon: 'web' }]) },
     { id: 'bot', keys: ['who are you', 'your name', 'what are you', 'are you a bot', 'are you human', 'sparky'],
       run: () => answer(`I'm <b>${NAME}</b> ⚡, a little helper built into Coggy Flasher. I can find activities, get you drivers, explain flashing and answer questions about CognoSpace and the Coggy.`) },
-    { id: 'drivers', keys: ['driver', 'drivers', 'ch340', 'cp2102', 'cp210', 'usb driver', 'install driver', 'exe'],
-      run: () => answer('Here are the USB drivers for Windows. 💾 Download the file, open it and follow the installer, then unplug the Coggy and plug it back in.<br><br>You only need this if the Coggy doesn\'t show up when you press <b>Connect Coggy</b>.', [driversBtn()]) },
+    { id: 'drivers', keys: ['driver', 'drivers', 'ch340', 'cp2102', 'cp210', 'usb driver', 'install driver', 'exe', 'zip'],
+      run: () => answer('Here are the USB drivers for Windows. 💾 Download the zip, extract it, run the installer inside, then unplug the Coggy and plug it back in.<br><br>You only need this if the Coggy doesn\'t show up when you press <b>Connect Coggy</b>.', [driversBtn()]) },
     { id: 'wiring', keys: ['wiring', 'wire', 'pin', 'pins', 'connections', 'connect sensor', 'circuit'],
       run: () => say('Every activity card has a <b>Wiring</b> button 🔧 that shows which part goes on which Coggy pin. It\'s great for showing students the connections. Want me to find an activity?', { chips: [{ label: 'Browse activities', run: showClasses }, ...MENU] }) },
     { id: 'sensor', keys: ['sensor test', 'sensor testing', 'test sensor', 'test my sensor', 'testing sensor', 'check sensor', 'sensor'],
