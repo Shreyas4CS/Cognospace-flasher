@@ -1754,7 +1754,7 @@ body.is-scrolled .masthead{box-shadow:0 8px 24px rgba(120,60,10,.10)}
     <div class="shell hero__grid">
       <div>
         <div class="hero__brand reveal" style="--d:0ms">CognoSpace Flasher</div>
-        <h1 class="hero__title reveal" style="--d:60ms">Every activity, every class, ready to flash onto a Coggy in thirty seconds.</h1>
+        <h1 class="hero__title reveal" style="--d:60ms">Every activity, every class, ready to flash onto a Coggy in under two minutes.</h1>
         <p class="hero__lede reveal" style="--d:160ms">
           Plug a Coggy into any lab computer, pick the activity code from the shelf,
           and write the firmware straight from this page. No drivers, no IDE, nothing to install.
@@ -4435,7 +4435,7 @@ window.COGGY_WIRING = {
   },
   'CS-G05-A02': {
     pins: [
-      { part: 'Soil Moisture Sensor', lead: 'DO', pin: 'GPIO 32', kind: 'analog' },
+      { part: 'Soil Moisture Sensor', lead: 'AO', pin: 'GPIO 33', kind: 'analog' },
       { part: 'Green LED', lead: '+', pin: 'GPIO 18', kind: 'output' },
       { part: 'Red LED', lead: '+', pin: 'GPIO 19', kind: 'output' },
       { part: 'Buzzer', lead: '+', pin: 'GPIO 4', kind: 'pwm' },
@@ -8195,7 +8195,7 @@ window.SPARKY_CONFIG = {
     { id: 'ready', keys: ['ready to flash', 'ready', 'available', 'availability', 'avaiable', 'which activities', 'what activities', 'what all activities', 'code available', 'is code'],
       run: () => readyStart() },
     { id: 'flash', keys: ['how to flash', 'flash', 'upload code', 'upload program', 'how to use', 'steps', 'burn', 'program the', 'install code', 'start'],
-      run: () => answer('Flashing a Coggy takes about 30 seconds: ⚡' + STEPS, [flasherBtn()]) },
+      run: () => answer('Flashing a Coggy takes less than 2 minutes: ⚡' + STEPS, [flasherBtn()]) },
     { id: 'browse', keys: ['browse', 'activity', 'activities', 'list', 'class', 'grade', 'module', 'project', 'projects', 'experiment'],
       run: () => showClasses() },
     { id: 'coggy', keys: ['coggy', 'board', 'esp32', 'what is coggy'],
